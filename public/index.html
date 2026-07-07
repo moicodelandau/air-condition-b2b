@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>Tap &amp; Record</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+</head>
+<body>
+  <header>
+    <h1>⚡ Tap &amp; Record</h1>
+    <div id="status" class="status"></div>
+  </header>
+
+  <nav id="categoryBar" class="category-bar"></nav>
+
+  <main id="feed" class="feed">
+    <div class="empty" id="empty">
+      <p>Nothing captured yet.</p>
+      <p>Tap a button below — Claude will summarize, brainstorm, and file it.</p>
+    </div>
+  </main>
+
+  <!-- capture bar -->
+  <div class="capture-bar">
+    <button id="btnVoice" class="capture-btn" title="Record voice">
+      <span class="icon">🎤</span><span class="label">Voice</span>
+    </button>
+    <button id="btnVideo" class="capture-btn" title="Record video">
+      <span class="icon">📹</span><span class="label">Video</span>
+    </button>
+    <button id="btnPhoto" class="capture-btn" title="Take photo">
+      <span class="icon">📷</span><span class="label">Photo</span>
+    </button>
+    <button id="btnText" class="capture-btn" title="Type a note">
+      <span class="icon">✏️</span><span class="label">Text</span>
+    </button>
+  </div>
+  <input type="file" id="photoInput" accept="image/*" capture="environment" hidden />
+
+  <!-- recording overlay -->
+  <div id="recordOverlay" class="overlay" hidden>
+    <div class="overlay-inner">
+      <video id="preview" autoplay muted playsinline hidden></video>
+      <div id="pulse" class="pulse">🎤</div>
+      <div id="timer" class="timer">0:00</div>
+      <div id="liveTranscript" class="live-transcript"></div>
+      <button id="btnStop" class="stop-btn">■ Stop &amp; Process</button>
+      <button id="btnCancel" class="cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- text note overlay -->
+  <div id="textOverlay" class="overlay" hidden>
+    <div class="overlay-inner">
+      <textarea id="textInput" placeholder="Jot it down…" rows="6"></textarea>
+      <button id="btnTextSave" class="stop-btn">Save &amp; Process</button>
+      <button id="btnTextCancel" class="cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
