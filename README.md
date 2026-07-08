@@ -6,13 +6,20 @@ web page and a Google Apps Script.
 
 **What it does**
 
+- 🇻🇳 / 🇬🇧 Bilingual UI — Vietnamese by default, tap **EN** in the header to
+  switch to English (and back). The choice is remembered per phone.
 - 📷 Scans barcodes / QR codes on AC unit labels with the phone camera
   (serial numbers, model stickers, asset tags).
+- 🏷️ Brand is picked by tapping a chip (Daikin, Panasonic, Mitsubishi,
+  LG, Casper, Gree, Midea, …) instead of typing — with an **"Khác" / "Other"**
+  chip for anything not in the list.
 - 📝 Captures unit details: brand, model, type (split / VRF / cassette / …),
   BTU capacity, location, condition, notes.
 - 🖼️ Optional photo of the nameplate — saved to Google Drive and linked in
   the sheet.
 - 📊 Every scan is appended as a row in your Google Sheet, with a timestamp.
+  Type/condition are always written in English in the sheet, regardless of
+  which language was active on the phone, so the data stays consistent.
 - 📴 Works offline — scans are queued on the phone and synced automatically
   when the connection is back.
 - ⚠️ Warns if the same serial was already scanned on this device.

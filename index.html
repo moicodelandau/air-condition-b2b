@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -32,18 +32,19 @@
   header {
     position: sticky; top: 0; z-index: 20;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 16px;
+    padding: 14px 16px; gap: 8px;
     background: rgba(11,18,32,.92);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid #22304a;
   }
-  header h1 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  header h1 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--err); }
+  header h1 { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  header h1 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--err); flex: none; }
   header h1 .dot.online { background: var(--ok); }
+  header .actions { display: flex; gap: 8px; }
   .icon-btn {
     background: var(--card2); color: var(--text);
     border: 1px solid #2a3a58; border-radius: 10px;
-    padding: 8px 12px; font-size: 16px; cursor: pointer;
+    padding: 8px 12px; font-size: 14px; font-weight: 700; cursor: pointer;
   }
   main { max-width: 560px; margin: 0 auto; padding: 14px; }
   .card {
@@ -78,6 +79,15 @@
   textarea { resize: vertical; min-height: 64px; }
   .row { display: flex; gap: 10px; }
   .row > div { flex: 1; }
+  /* Brand chip picker */
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    padding: 9px 14px; border-radius: 20px; font-size: 14px;
+    background: var(--card2); color: var(--text);
+    border: 1px solid #2a3a58; cursor: pointer;
+  }
+  .chip.selected { background: var(--accent); color: #06222f; border-color: var(--accent); font-weight: 700; }
+  .brand-custom { display: none; margin-top: 8px; }
   .photo-wrap { margin-top: 12px; }
   .photo-preview { display: none; width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; margin-top: 8px; }
   .save-btn {
@@ -135,117 +145,88 @@
 <body>
 
 <header>
-  <h1><span class="dot" id="netDot"></span> AC Scanner</h1>
-  <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
+  <h1><span class="dot" id="netDot"></span> <span data-i18n="headerTitle">Quét Máy Lạnh</span></h1>
+  <div class="actions">
+    <button class="icon-btn" id="langBtn">EN</button>
+    <button class="icon-btn" id="settingsBtn">⚙️</button>
+  </div>
 </header>
 
 <main>
   <!-- Scanner -->
   <div class="card">
-    <h2>Scan label / barcode</h2>
+    <h2 data-i18n="scanCardTitle">Quét tem / mã vạch</h2>
     <div id="reader"></div>
-    <button class="scan-btn" id="scanBtn">📷 Start scanning</button>
+    <button class="scan-btn" id="scanBtn" data-i18n="startScan">📷 Bắt đầu quét</button>
     <div class="scan-result" id="scanResult"></div>
   </div>
 
   <!-- Details form -->
   <div class="card">
-    <h2>Unit details</h2>
-    <label for="serial">Serial / barcode *</label>
-    <input id="serial" placeholder="Scan or type serial number" autocomplete="off">
+    <h2 data-i18n="detailsCardTitle">Thông tin máy lạnh</h2>
+    <label for="serial" data-i18n="serialLabel">Số serial / mã vạch *</label>
+    <input id="serial" data-i18n-ph="serialPlaceholder" placeholder="Quét hoặc nhập số serial" autocomplete="off">
+
+    <label data-i18n="brandLabel">Hãng sản xuất</label>
+    <div class="chip-grid" id="brandGrid"></div>
+    <input id="brandCustom" class="brand-custom" data-i18n-ph="brandCustomPlaceholder" placeholder="Nhập tên hãng khác" autocomplete="off">
 
     <div class="row">
       <div>
-        <label for="brand">Brand</label>
-        <input id="brand" list="brands" placeholder="e.g. Daikin" autocomplete="off">
-        <datalist id="brands">
-          <option>Daikin</option><option>Mitsubishi Electric</option><option>LG</option>
-          <option>Samsung</option><option>Gree</option><option>Midea</option>
-          <option>Carrier</option><option>Toshiba</option><option>Fujitsu</option>
-          <option>Panasonic</option><option>Hitachi</option><option>Tadiran</option>
-          <option>Electra</option><option>Tornado</option>
-        </datalist>
+        <label for="model" data-i18n="modelLabel">Model</label>
+        <input id="model" data-i18n-ph="modelPlaceholder" placeholder="Mã model" autocomplete="off">
       </div>
       <div>
-        <label for="model">Model</label>
-        <input id="model" placeholder="Model number" autocomplete="off">
+        <label for="btu" data-i18n="btuLabel">Công suất (BTU)</label>
+        <input id="btu" inputmode="numeric" data-i18n-ph="btuPlaceholder" placeholder="VD: 12000" autocomplete="off">
       </div>
     </div>
 
-    <div class="row">
-      <div>
-        <label for="type">Type</label>
-        <select id="type">
-          <option value="">—</option>
-          <option>Wall split</option>
-          <option>Multi split</option>
-          <option>Cassette</option>
-          <option>Ducted / central</option>
-          <option>VRF / VRV</option>
-          <option>Window</option>
-          <option>Portable</option>
-          <option>Chiller</option>
-        </select>
-      </div>
-      <div>
-        <label for="btu">Capacity (BTU)</label>
-        <input id="btu" inputmode="numeric" placeholder="e.g. 12000" autocomplete="off">
-      </div>
-    </div>
+    <label for="type" data-i18n="typeLabel">Loại máy</label>
+    <select id="type"></select>
 
-    <label for="location">Location / site</label>
-    <input id="location" placeholder="Building, floor, room…" autocomplete="off">
+    <label for="location" data-i18n="locationLabel">Vị trí / công trình</label>
+    <input id="location" data-i18n-ph="locationPlaceholder" placeholder="Tòa nhà, tầng, phòng…" autocomplete="off">
 
-    <label for="status">Condition</label>
-    <select id="status">
-      <option value="">—</option>
-      <option>Working</option>
-      <option>Needs service</option>
-      <option>Needs gas refill</option>
-      <option>Broken</option>
-      <option>For replacement</option>
-    </select>
+    <label for="status" data-i18n="statusLabel">Tình trạng</label>
+    <select id="status"></select>
 
-    <label for="notes">Notes</label>
-    <textarea id="notes" placeholder="Anything else…"></textarea>
+    <label for="notes" data-i18n="notesLabel">Ghi chú</label>
+    <textarea id="notes" data-i18n-ph="notesPlaceholder" placeholder="Thông tin thêm…"></textarea>
 
     <div class="photo-wrap">
-      <label for="photo">Photo of nameplate (optional)</label>
+      <label for="photo" data-i18n="photoLabel">Ảnh nhãn máy (tùy chọn)</label>
       <input type="file" id="photo" accept="image/*" capture="environment">
-      <img class="photo-preview" id="photoPreview" alt="Photo preview">
+      <img class="photo-preview" id="photoPreview" alt="preview">
     </div>
 
-    <button class="save-btn" id="saveBtn">✅ Save to sheet</button>
+    <button class="save-btn" id="saveBtn" data-i18n="saveBtn">✅ Lưu vào Sheet</button>
   </div>
 
   <!-- Recent scans -->
   <div class="card">
-    <h2>Recent scans (this device)</h2>
-    <div id="recentList"><div class="meta" style="color:var(--muted);font-size:14px">No scans yet.</div></div>
+    <h2 data-i18n="recentCardTitle">Đã quét gần đây (máy này)</h2>
+    <div id="recentList"></div>
   </div>
 </main>
 
 <!-- Offline queue bar -->
 <div class="queue-bar" id="queueBar">
-  <span id="queueText">0 scans waiting to sync</span>
-  <button id="retryBtn">Sync now</button>
+  <span id="queueText"></span>
+  <button id="retryBtn" data-i18n="retrySync">Đồng bộ ngay</button>
 </div>
 
 <!-- Settings modal -->
 <div class="modal" id="settingsModal">
   <div class="card">
-    <h2>Google Sheet connection</h2>
-    <label for="webhookUrl">Apps Script Web App URL</label>
+    <h2 data-i18n="settingsTitle">Kết nối Google Sheet</h2>
+    <label for="webhookUrl" data-i18n="webhookLabel">URL Web App (Apps Script)</label>
     <input id="webhookUrl" placeholder="https://script.google.com/macros/s/…/exec">
-    <div class="hint">
-      Create a Google Sheet → Extensions → Apps Script → paste the code from
-      <b>apps-script/Code.gs</b> in this repo → Deploy → Web app (access:
-      <b>Anyone</b>) → copy the URL here. Full steps are in the README.
-    </div>
+    <div class="hint" id="settingsHint"></div>
     <div class="test-status" id="testStatus"></div>
     <div class="actions">
-      <button class="btn-ghost" id="testBtn">Test connection</button>
-      <button class="btn-primary" id="saveSettingsBtn">Save</button>
+      <button class="btn-ghost" id="testBtn" data-i18n="testBtn">Kiểm tra kết nối</button>
+      <button class="btn-primary" id="saveSettingsBtn" data-i18n="saveSettingsBtn">Lưu</button>
     </div>
   </div>
 </div>
@@ -260,11 +241,159 @@
   const LS_URL = 'ac_webhook_url';
   const LS_QUEUE = 'ac_queue';
   const LS_RECENT = 'ac_recent';
+  const LS_LANG = 'ac_lang';
+
+  /* ---------- i18n ---------- */
+
+  const I18N = {
+    vi: {
+      headerTitle: 'Quét Máy Lạnh',
+      scanCardTitle: 'Quét tem / mã vạch',
+      startScan: '📷 Bắt đầu quét',
+      stopScan: '✋ Dừng quét',
+      startingCamera: '⏳ Đang mở camera…',
+      scannedPrefix: '✔ Đã quét: ',
+      detailsCardTitle: 'Thông tin máy lạnh',
+      serialLabel: 'Số serial / mã vạch *',
+      serialPlaceholder: 'Quét hoặc nhập số serial',
+      brandLabel: 'Hãng sản xuất',
+      brandOther: 'Khác',
+      brandCustomPlaceholder: 'Nhập tên hãng khác',
+      modelLabel: 'Model',
+      modelPlaceholder: 'Mã model',
+      typeLabel: 'Loại máy',
+      btuLabel: 'Công suất (BTU)',
+      btuPlaceholder: 'VD: 12000',
+      locationLabel: 'Vị trí / công trình',
+      locationPlaceholder: 'Tòa nhà, tầng, phòng…',
+      statusLabel: 'Tình trạng',
+      notesLabel: 'Ghi chú',
+      notesPlaceholder: 'Thông tin thêm…',
+      photoLabel: 'Ảnh nhãn máy (tùy chọn)',
+      saveBtn: '✅ Lưu vào Sheet',
+      saving: '⏳ Đang lưu…',
+      recentCardTitle: 'Đã quét gần đây (máy này)',
+      noScans: 'Chưa có lượt quét nào.',
+      retrySync: 'Đồng bộ ngay',
+      settingsTitle: 'Kết nối Google Sheet',
+      webhookLabel: 'URL Web App (Apps Script)',
+      settingsHint: 'Tạo Google Sheet → Extensions → Apps Script → dán code từ <b>apps-script/Code.gs</b> trong repo này → Deploy → Web app (quyền truy cập: <b>Anyone</b>) → dán URL vào đây. Xem hướng dẫn đầy đủ trong README.',
+      testBtn: 'Kiểm tra kết nối',
+      saveSettingsBtn: 'Lưu',
+      testing: 'Đang kiểm tra…',
+      testNoUrl: 'Vui lòng nhập URL trước.',
+      testOk: '✅ Đã kết nối! Endpoint hoạt động.',
+      testFail: '❌ Không kết nối được. Kiểm tra lại URL và đảm bảo Web App được triển khai với quyền truy cập "Anyone".',
+      camError: 'Lỗi camera: ',
+      libFail: 'Không tải được thư viện quét (mất mạng?) — bạn vẫn có thể nhập số serial thủ công',
+      dupSerial: '⚠️ Số serial này đã được quét trên máy này',
+      serialRequired: 'Vui lòng nhập số serial / mã vạch',
+      setUrlFirst: 'Hãy thiết lập URL Google Sheet trước (⚙️)',
+      savedOk: '✅ Đã lưu vào Google Sheet',
+      savedOffline: '📥 Không có mạng — đã lưu tạm trên máy, sẽ đồng bộ sau',
+      urlInvalid: 'URL này không giống URL Apps Script',
+      urlSaved: '✅ Đã kết nối Sheet',
+      urlCleared: 'Đã xoá URL',
+      badgeSent: 'đã gửi',
+      badgeQueued: 'đang chờ',
+      queueSuffix: n => n + ' lượt quét đang chờ đồng bộ',
+      syncedToast: n => '🔄 Đã đồng bộ ' + n + ' lượt quét',
+    },
+    en: {
+      headerTitle: 'AC Scanner',
+      scanCardTitle: 'Scan label / barcode',
+      startScan: '📷 Start scanning',
+      stopScan: '✋ Stop scanning',
+      startingCamera: '⏳ Starting camera…',
+      scannedPrefix: '✔ Scanned: ',
+      detailsCardTitle: 'Unit details',
+      serialLabel: 'Serial / barcode *',
+      serialPlaceholder: 'Scan or type serial number',
+      brandLabel: 'Brand',
+      brandOther: 'Other',
+      brandCustomPlaceholder: 'Type another brand',
+      modelLabel: 'Model',
+      modelPlaceholder: 'Model number',
+      typeLabel: 'Type',
+      btuLabel: 'Capacity (BTU)',
+      btuPlaceholder: 'e.g. 12000',
+      locationLabel: 'Location / site',
+      locationPlaceholder: 'Building, floor, room…',
+      statusLabel: 'Condition',
+      notesLabel: 'Notes',
+      notesPlaceholder: 'Anything else…',
+      photoLabel: 'Photo of nameplate (optional)',
+      saveBtn: '✅ Save to sheet',
+      saving: '⏳ Saving…',
+      recentCardTitle: 'Recent scans (this device)',
+      noScans: 'No scans yet.',
+      retrySync: 'Sync now',
+      settingsTitle: 'Google Sheet connection',
+      webhookLabel: 'Apps Script Web App URL',
+      settingsHint: 'Create a Google Sheet → Extensions → Apps Script → paste the code from <b>apps-script/Code.gs</b> in this repo → Deploy → Web app (access: <b>Anyone</b>) → copy the URL here. Full steps are in the README.',
+      testBtn: 'Test connection',
+      saveSettingsBtn: 'Save',
+      testing: 'Testing…',
+      testNoUrl: 'Enter a URL first.',
+      testOk: '✅ Connected! The endpoint is live.',
+      testFail: '❌ Could not reach the endpoint. Check the URL and that the Web App is deployed with access "Anyone".',
+      camError: 'Camera error: ',
+      libFail: 'Scanner library failed to load (no internet?) — you can still type the serial manually',
+      dupSerial: '⚠️ This serial was already scanned on this device',
+      serialRequired: 'Serial / barcode is required',
+      setUrlFirst: 'Set your Google Sheet URL first (⚙️)',
+      savedOk: '✅ Saved to Google Sheet',
+      savedOffline: '📥 No connection — saved offline, will sync later',
+      urlInvalid: 'That does not look like an Apps Script URL',
+      urlSaved: '✅ Sheet connected',
+      urlCleared: 'URL cleared',
+      badgeSent: 'sent',
+      badgeQueued: 'queued',
+      queueSuffix: n => n + ' scan' + (n > 1 ? 's' : '') + ' waiting to sync',
+      syncedToast: n => '🔄 Synced ' + n + ' queued scan' + (n > 1 ? 's' : ''),
+    }
+  };
+
+  /* "value" is always the English label — that's what gets written to the
+     sheet, so rows stay consistent no matter which language was active on
+     the phone that scanned them. */
+  const TYPE_OPTIONS = [
+    { value: '', vi: '—', en: '—' },
+    { value: 'Wall split', vi: 'Treo tường (1 chiều)', en: 'Wall split' },
+    { value: 'Multi split', vi: 'Multi (1 dàn nóng, nhiều dàn lạnh)', en: 'Multi split' },
+    { value: 'Cassette', vi: 'Âm trần Cassette', en: 'Cassette' },
+    { value: 'Ducted / central', vi: 'Nối ống gió / trung tâm', en: 'Ducted / central' },
+    { value: 'VRF / VRV', vi: 'VRF / VRV', en: 'VRF / VRV' },
+    { value: 'Window', vi: 'Cửa sổ', en: 'Window' },
+    { value: 'Portable', vi: 'Di động', en: 'Portable' },
+    { value: 'Chiller', vi: 'Chiller', en: 'Chiller' },
+  ];
+
+  const STATUS_OPTIONS = [
+    { value: '', vi: '—', en: '—' },
+    { value: 'Working', vi: 'Đang hoạt động tốt', en: 'Working' },
+    { value: 'Needs service', vi: 'Cần bảo trì', en: 'Needs service' },
+    { value: 'Needs gas refill', vi: 'Cần nạp gas', en: 'Needs gas refill' },
+    { value: 'Broken', vi: 'Hỏng', en: 'Broken' },
+    { value: 'For replacement', vi: 'Cần thay mới', en: 'For replacement' },
+  ];
+
+  const BRANDS = [
+    'Daikin', 'Panasonic', 'Mitsubishi Electric', 'Mitsubishi Heavy', 'LG', 'Samsung',
+    'Toshiba', 'Casper', 'Gree', 'Midea', 'Aqua', 'Sharp', 'Electrolux', 'Reetech',
+    'Nagakawa', 'Sumikura', 'Funiki', 'Kangaroo', 'Carrier', 'TCL', 'Hitachi',
+    'Fujitsu', 'Haier', 'Sanyo'
+  ];
+
+  let currentLang = localStorage.getItem(LS_LANG) === 'en' ? 'en' : 'vi';
+  function t(key) { return I18N[currentLang][key]; }
 
   let scanner = null;
   let scanning = false;
   let photoBase64 = '';
   let syncing = false;
+  let brandChoice = '';
+  let brandIsOther = false;
 
   /* ---------- helpers ---------- */
 
@@ -291,6 +420,42 @@
     if (navigator.vibrate) navigator.vibrate(80);
   }
 
+  function esc(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  /* ---------- language ---------- */
+
+  function renderSelectOptions(selectEl, list) {
+    const cur = selectEl.value;
+    selectEl.innerHTML = list.map(o => `<option value="${esc(o.value)}">${esc(o[currentLang])}</option>`).join('');
+    selectEl.value = cur;
+  }
+
+  function applyLang() {
+    document.documentElement.lang = currentLang;
+    $('langBtn').textContent = currentLang === 'vi' ? 'EN' : 'VI';
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      el.placeholder = t(el.getAttribute('data-i18n-ph'));
+    });
+    $('settingsHint').innerHTML = t('settingsHint');
+    $('scanBtn').textContent = scanning ? t('stopScan') : t('startScan');
+    renderSelectOptions($('type'), TYPE_OPTIONS);
+    renderSelectOptions($('status'), STATUS_OPTIONS);
+    renderBrandGrid();
+    renderRecent();
+    updateQueueBar();
+  }
+
+  $('langBtn').addEventListener('click', () => {
+    currentLang = currentLang === 'vi' ? 'en' : 'vi';
+    localStorage.setItem(LS_LANG, currentLang);
+    applyLang();
+  });
+
   /* ---------- network indicator ---------- */
 
   function updateNet() {
@@ -300,17 +465,48 @@
   window.addEventListener('offline', updateNet);
   updateNet();
 
+  /* ---------- brand chip picker ---------- */
+
+  function renderBrandGrid() {
+    const html = BRANDS.map(b =>
+      `<button type="button" class="chip${brandChoice === b && !brandIsOther ? ' selected' : ''}" data-brand="${esc(b)}">${esc(b)}</button>`
+    ).join('') + `<button type="button" class="chip${brandIsOther ? ' selected' : ''}" data-brand="__other__">${esc(t('brandOther'))}</button>`;
+    $('brandGrid').innerHTML = html;
+  }
+
+  $('brandGrid').addEventListener('click', e => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    const val = btn.dataset.brand;
+    if (val === '__other__') {
+      brandIsOther = true;
+      brandChoice = '';
+      $('brandCustom').style.display = 'block';
+      $('brandCustom').focus();
+    } else {
+      brandIsOther = false;
+      brandChoice = val;
+      $('brandCustom').style.display = 'none';
+      $('brandCustom').value = '';
+    }
+    renderBrandGrid();
+  });
+
+  $('brandCustom').addEventListener('input', () => {
+    brandChoice = $('brandCustom').value.trim();
+  });
+
   /* ---------- camera scanning ---------- */
 
   async function startScan() {
     if (scanning) return stopScan();
     if (typeof Html5Qrcode === 'undefined') {
-      toast('Scanner library failed to load (no internet?) — you can still type the serial manually', 4500);
+      toast(t('libFail'), 4500);
       $('serial').focus();
       return;
     }
     scanner = scanner || new Html5Qrcode('reader');
-    $('scanBtn').textContent = '⏳ Starting camera…';
+    $('scanBtn').textContent = t('startingCamera');
     try {
       await scanner.start(
         { facingMode: 'environment' },
@@ -319,11 +515,11 @@
         () => {} /* per-frame decode misses are normal */
       );
       scanning = true;
-      $('scanBtn').textContent = '✋ Stop scanning';
+      $('scanBtn').textContent = t('stopScan');
       $('scanBtn').classList.add('stop');
     } catch (err) {
-      $('scanBtn').textContent = '📷 Start scanning';
-      toast('Camera error: ' + (err && err.message ? err.message : err), 4000);
+      $('scanBtn').textContent = t('startScan');
+      toast(t('camError') + (err && err.message ? err.message : err), 4000);
     }
   }
 
@@ -332,7 +528,7 @@
       try { await scanner.stop(); } catch {}
     }
     scanning = false;
-    $('scanBtn').textContent = '📷 Start scanning';
+    $('scanBtn').textContent = t('startScan');
     $('scanBtn').classList.remove('stop');
   }
 
@@ -340,11 +536,11 @@
     beep();
     $('serial').value = text;
     const res = $('scanResult');
-    res.textContent = '✔ Scanned: ' + text;
+    res.textContent = t('scannedPrefix') + text;
     res.style.display = 'block';
     const recent = loadJSON(LS_RECENT);
     if (recent.some(r => r.serial === text)) {
-      toast('⚠️ This serial was already scanned on this device', 3500);
+      toast(t('dupSerial'), 3500);
     }
     stopScan();
     $('serial').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -382,7 +578,7 @@
     return {
       ts: new Date().toISOString(),
       serial: $('serial').value.trim(),
-      brand: $('brand').value.trim(),
+      brand: brandChoice,
       model: $('model').value.trim(),
       type: $('type').value,
       btu: $('btu').value.trim(),
@@ -394,11 +590,14 @@
   }
 
   function resetForm() {
-    ['serial','brand','model','btu','location','notes'].forEach(id => $(id).value = '');
+    ['serial','model','btu','location','notes'].forEach(id => $(id).value = '');
     $('type').value = ''; $('status').value = '';
     $('photo').value = ''; photoBase64 = '';
     $('photoPreview').style.display = 'none';
     $('scanResult').style.display = 'none';
+    brandChoice = ''; brandIsOther = false;
+    $('brandCustom').value = ''; $('brandCustom').style.display = 'none';
+    renderBrandGrid();
   }
 
   async function postScan(entry) {
@@ -412,27 +611,27 @@
 
   $('saveBtn').addEventListener('click', async () => {
     const entry = collectForm();
-    if (!entry.serial) { toast('Serial / barcode is required'); $('serial').focus(); return; }
-    if (!getUrl()) { toast('Set your Google Sheet URL first (⚙️)'); openSettings(); return; }
+    if (!entry.serial) { toast(t('serialRequired')); $('serial').focus(); return; }
+    if (!getUrl()) { toast(t('setUrlFirst')); openSettings(); return; }
 
     $('saveBtn').disabled = true;
-    $('saveBtn').textContent = '⏳ Saving…';
+    $('saveBtn').textContent = t('saving');
     let sent = false;
     try {
       await postScan(entry);
       sent = true;
-      toast('✅ Saved to Google Sheet');
+      toast(t('savedOk'));
     } catch (err) {
       const q = loadJSON(LS_QUEUE);
       q.push(entry);
       saveJSON(LS_QUEUE, q);
-      toast('📥 No connection — saved offline, will sync later', 3500);
+      toast(t('savedOffline'), 3500);
     }
     addRecent(entry, sent);
     resetForm();
     updateQueueBar();
     $('saveBtn').disabled = false;
-    $('saveBtn').textContent = '✅ Save to sheet';
+    $('saveBtn').textContent = t('saveBtn');
   });
 
   /* ---------- offline queue ---------- */
@@ -442,7 +641,7 @@
     const bar = $('queueBar');
     if (q.length) {
       bar.style.display = 'flex';
-      $('queueText').textContent = q.length + ' scan' + (q.length > 1 ? 's' : '') + ' waiting to sync';
+      $('queueText').textContent = t('queueSuffix')(q.length);
     } else {
       bar.style.display = 'none';
     }
@@ -466,7 +665,7 @@
     syncing = false;
     updateQueueBar();
     renderRecent();
-    if (synced) toast('🔄 Synced ' + synced + ' queued scan' + (synced > 1 ? 's' : ''));
+    if (synced) toast(t('syncedToast')(synced));
   }
 
   $('retryBtn').addEventListener('click', syncQueue);
@@ -486,15 +685,11 @@
     if (item) { item.sent = true; saveJSON(LS_RECENT, recent); }
   }
 
-  function esc(s) {
-    return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
-
   function renderRecent() {
     const recent = loadJSON(LS_RECENT);
     const el = $('recentList');
     if (!recent.length) {
-      el.innerHTML = '<div style="color:var(--muted);font-size:14px">No scans yet.</div>';
+      el.innerHTML = `<div style="color:var(--muted);font-size:14px">${esc(t('noScans'))}</div>`;
       return;
     }
     el.innerHTML = recent.map(r => `
@@ -503,7 +698,7 @@
           <div><b>${esc(r.serial)}</b> ${esc([r.brand, r.model].filter(Boolean).join(' '))}</div>
           <div class="meta">${esc(r.location || '')} · ${new Date(r.ts).toLocaleString()}</div>
         </div>
-        <span class="badge ${r.sent ? 'sent' : 'queued'}">${r.sent ? 'sent' : 'queued'}</span>
+        <span class="badge ${r.sent ? 'sent' : 'queued'}">${r.sent ? esc(t('badgeSent')) : esc(t('badgeQueued'))}</span>
       </div>`).join('');
   }
 
@@ -523,12 +718,12 @@
   $('saveSettingsBtn').addEventListener('click', () => {
     const url = $('webhookUrl').value.trim();
     if (url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) {
-      toast('That does not look like an Apps Script URL');
+      toast(t('urlInvalid'));
       return;
     }
     localStorage.setItem(LS_URL, url);
     $('settingsModal').classList.remove('open');
-    toast(url ? '✅ Sheet connected' : 'URL cleared');
+    toast(url ? t('urlSaved') : t('urlCleared'));
     syncQueue();
   });
 
@@ -537,25 +732,24 @@
     const st = $('testStatus');
     st.style.display = 'block';
     st.style.color = 'var(--muted)';
-    st.textContent = 'Testing…';
-    if (!url) { st.style.color = 'var(--err)'; st.textContent = 'Enter a URL first.'; return; }
+    st.textContent = t('testing');
+    if (!url) { st.style.color = 'var(--err)'; st.textContent = t('testNoUrl'); return; }
     try {
       const resp = await fetch(url);
       const data = await resp.json();
       if (data.ok) {
         st.style.color = 'var(--ok)';
-        st.textContent = '✅ Connected! The endpoint is live.';
+        st.textContent = t('testOk');
       } else { throw new Error('Unexpected response'); }
     } catch (err) {
       st.style.color = 'var(--err)';
-      st.textContent = '❌ Could not reach the endpoint. Check the URL and that the Web App is deployed with access "Anyone".';
+      st.textContent = t('testFail');
     }
   });
 
   /* ---------- init ---------- */
 
-  renderRecent();
-  updateQueueBar();
+  applyLang();
   if (!getUrl()) setTimeout(openSettings, 600);
   else syncQueue();
 })();
