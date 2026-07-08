@@ -3,94 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kho Map Tracking – Điều Hòa B2B</title>
-  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <title>Sơ Đồ Kho – Warehouse Map Tracking</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏭</text></svg>">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <span class="brand-icon">❄️</span>
+      <span class="brand-icon">🏭</span>
       <div>
-        <h1>Kho Map Tracking</h1>
-        <p>Theo dõi tồn kho điều hòa theo bản đồ</p>
+        <h1>Sơ Đồ Kho Điều Hòa</h1>
+        <p>Phân khu · tìm vị trí · tối ưu sắp xếp</p>
       </div>
     </div>
-    <div class="stats" id="stats">
-      <div class="stat"><span class="stat-value" id="statWh">0</span><span class="stat-label">Kho</span></div>
+    <div class="stats">
+      <div class="stat"><span class="stat-value" id="statBrands">0</span><span class="stat-label">Hãng</span></div>
+      <div class="stat"><span class="stat-value" id="statModels">0</span><span class="stat-label">Model</span></div>
       <div class="stat"><span class="stat-value" id="statUnits">0</span><span class="stat-label">Máy tồn</span></div>
-      <div class="stat"><span class="stat-value" id="statSku">0</span><span class="stat-label">Mã hàng</span></div>
-      <div class="stat warn"><span class="stat-value" id="statLow">0</span><span class="stat-label">Sắp hết</span></div>
+      <div class="stat"><span class="stat-value" id="statFill">0%</span><span class="stat-label">Lấp đầy</span></div>
+      <div class="stat warn"><span class="stat-value" id="statOverflow">0</span><span class="stat-label">Chưa xếp</span></div>
     </div>
-    <button class="btn ghost" id="btnReset" title="Xoá dữ liệu đã lưu, quay về dữ liệu mẫu">↺ Dữ liệu mẫu</button>
+    <div class="toolbar">
+      <select id="colorMode" title="Chế độ tô màu sơ đồ">
+        <option value="brand">Màu: theo hãng</option>
+        <option value="fill">Màu: độ lấp đầy</option>
+        <option value="levels">Màu: số tầng kệ</option>
+      </select>
+      <button class="btn blue" id="btnOptimize">⚡ Tối ưu sắp xếp</button>
+      <button class="btn ghost" id="btnEdit">✎ Sửa sơ đồ</button>
+      <button class="btn ghost" id="btnReset" title="Xoá dữ liệu đã lưu, quay về mặc định">↺ Mặc định</button>
+    </div>
   </header>
 
   <main class="layout">
     <aside class="sidebar">
       <div class="search-box">
-        <input type="search" id="searchInput" placeholder="Tìm model / mã hàng… (vd: Daikin 1.5HP)">
+        <input type="search" id="searchInput" placeholder="Tìm model / hãng… (vd: FTKA35, Casper)">
       </div>
       <div id="searchResults" class="search-results hidden"></div>
-      <h2 class="side-title">Danh sách kho</h2>
-      <ul class="wh-list" id="whList"></ul>
 
-      <h2 class="side-title">Lịch sử gần đây</h2>
-      <ul class="history" id="historyList"></ul>
+      <h2 class="side-title">Hãng trong kho <span class="muted-inline">(bấm để xem vị trí)</span></h2>
+      <ul class="brand-list" id="brandList"></ul>
+
+      <h2 class="side-title">Checklist dọn kho (5S)</h2>
+      <ul class="checklist" id="checklist"></ul>
     </aside>
 
     <section class="map-wrap">
-      <div id="map"></div>
-      <div class="map-fallback hidden" id="mapFallback">
-        <p>⚠️ Không tải được bản đồ (offline?). Danh sách kho bên trái vẫn hoạt động bình thường.</p>
+      <div class="map-scroll" id="mapScroll">
+        <div id="mapHost"></div>
       </div>
+      <div class="map-hint" id="mapHint">Bấm vào kệ để xem chi tiết · kéo thả kệ ở chế độ ✎ Sửa sơ đồ</div>
     </section>
 
     <aside class="detail hidden" id="detailPanel">
       <div class="detail-head">
         <div>
           <h2 id="detailName">—</h2>
-          <p id="detailAddr" class="muted">—</p>
+          <p id="detailMeta" class="muted">—</p>
         </div>
         <button class="btn ghost" id="btnCloseDetail">✕</button>
       </div>
-      <div class="detail-actions">
-        <button class="btn green" data-op="in">＋ Nhập kho</button>
-        <button class="btn amber" data-op="out">－ Xuất kho</button>
-        <button class="btn blue" data-op="transfer">⇄ Chuyển kho</button>
-      </div>
-      <table class="inv-table">
-        <thead><tr><th>Sản phẩm</th><th>Tồn</th><th>Tối thiểu</th><th></th></tr></thead>
-        <tbody id="invBody"></tbody>
-      </table>
+      <div id="detailBody"></div>
     </aside>
   </main>
 
-  <!-- Modal thao tác kho -->
+  <!-- Modal kết quả tối ưu -->
   <div class="modal-backdrop hidden" id="modal">
     <div class="modal">
-      <h3 id="modalTitle">Nhập kho</h3>
-      <form id="opForm">
-        <label>Sản phẩm
-          <select id="opSku" required></select>
-        </label>
-        <label id="opToWrap" class="hidden">Chuyển đến kho
-          <select id="opTo"></select>
-        </label>
-        <label>Số lượng
-          <input type="number" id="opQty" min="1" value="1" required>
-        </label>
-        <label>Ghi chú
-          <input type="text" id="opNote" placeholder="VD: đơn hàng #1234, nhà cung cấp…">
-        </label>
-        <div class="modal-actions">
-          <button type="button" class="btn ghost" id="btnCancel">Huỷ</button>
-          <button type="submit" class="btn blue" id="btnConfirm">Xác nhận</button>
-        </div>
-      </form>
+      <h3 id="modalTitle">Kết quả tối ưu</h3>
+      <div id="modalBody" class="modal-body"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn blue" id="btnModalClose">Đóng</button>
+      </div>
     </div>
   </div>
 
-  <script src="vendor/leaflet/leaflet.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
