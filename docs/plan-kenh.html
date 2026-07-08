@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kế hoạch kênh – An Nhiên Care</title>
+<style>
+  :root {
+    --primary: #d14a75;
+    --primary-bright: #e8638c;
+    --primary-soft: #fdeef3;
+    --accent: #3e8d7e;
+    --accent-soft: #eaf7f4;
+    --ink: #33303a;
+    --ink-soft: #6b6675;
+    --bg: #fffdfd;
+    --bg-alt: #fdf7f9;
+    --card: #ffffff;
+    --border: #f0dfe6;
+    --code-bg: #faf3f6;
+    --shadow: 0 6px 24px rgba(209, 74, 117, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --primary: #f07ba0;
+      --primary-bright: #f593b1;
+      --primary-soft: #3a2530;
+      --accent: #8fd4c5;
+      --accent-soft: #1e3630;
+      --ink: #ece6ea;
+      --ink-soft: #a89fa8;
+      --bg: #201b1f;
+      --bg-alt: #282127;
+      --card: #2d252b;
+      --border: #453a42;
+      --code-bg: #332a31;
+      --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --primary: #f07ba0;
+    --primary-bright: #f593b1;
+    --primary-soft: #3a2530;
+    --accent: #8fd4c5;
+    --accent-soft: #1e3630;
+    --ink: #ece6ea;
+    --ink-soft: #a89fa8;
+    --bg: #201b1f;
+    --bg-alt: #282127;
+    --card: #2d252b;
+    --border: #453a42;
+    --code-bg: #332a31;
+    --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --primary: #d14a75;
+    --primary-bright: #e8638c;
+    --primary-soft: #fdeef3;
+    --accent: #3e8d7e;
+    --accent-soft: #eaf7f4;
+    --ink: #33303a;
+    --ink-soft: #6b6675;
+    --bg: #fffdfd;
+    --bg-alt: #fdf7f9;
+    --card: #ffffff;
+    --border: #f0dfe6;
+    --code-bg: #faf3f6;
+    --shadow: 0 6px 24px rgba(209, 74, 117, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    display: grid;
+    grid-template-columns: 230px minmax(0, 1fr);
+    gap: 3rem;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2.5rem 1.4rem 5rem;
+  }
+
+  /* ===== TOC ===== */
+  .toc {
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+    grid-row: 1 / span 2;
+    font-size: 0.88rem;
+  }
+  .toc-title {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+    margin: 0 0 0.7rem;
+    font-weight: 700;
+  }
+  .toc a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 0.32rem 0.6rem;
+    border-radius: 8px;
+    border-left: 2.5px solid transparent;
+  }
+  .toc a:hover { background: var(--bg-alt); color: var(--primary); }
+  .toc a:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .toc .p3::after { content: "●●●"; margin-left: auto; font-size: 0.5rem; letter-spacing: 1px; color: var(--primary); }
+  .toc .p2::after { content: "●●"; margin-left: auto; font-size: 0.5rem; letter-spacing: 1px; color: var(--primary); opacity: 0.55; }
+  .toc .p1::after { content: "●"; margin-left: auto; font-size: 0.5rem; color: var(--primary); opacity: 0.35; }
+
+  /* ===== Header ===== */
+  .doc-head { grid-column: 2; margin-bottom: 0.5rem; }
+  .eyebrow {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0 0 0.6rem;
+  }
+  h1 {
+    font-size: clamp(1.7rem, 3.6vw, 2.5rem);
+    line-height: 1.2;
+    margin: 0 0 0.8rem;
+    text-wrap: balance;
+    font-weight: 800;
+  }
+  .lede { color: var(--ink-soft); max-width: 42rem; margin: 0; font-size: 1.03rem; }
+
+  /* ===== Funnel ===== */
+  .funnel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: stretch;
+    margin: 1.8rem 0 0;
+  }
+  .funnel-step {
+    flex: 1 1 150px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    position: relative;
+    min-width: 150px;
+  }
+  .funnel-step strong { display: block; font-size: 0.92rem; }
+  .funnel-step span { font-size: 0.82rem; color: var(--ink-soft); }
+  .funnel-step em {
+    display: block;
+    font-style: normal;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 0.2rem;
+  }
+
+  /* ===== Sections ===== */
+  main section {
+    margin-top: 3.2rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .channel-head {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 1.3rem;
+  }
+  .channel-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: var(--primary-soft);
+    display: grid;
+    place-items: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+  }
+  h2 { font-size: 1.45rem; margin: 0; font-weight: 800; }
+  .channel-meta { display: flex; gap: 0.5rem; margin-left: auto; flex-wrap: wrap; }
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.22rem 0.7rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .badge-must { background: var(--primary-soft); color: var(--primary); }
+  .badge-should { background: var(--accent-soft); color: var(--accent); }
+  .badge-later { background: var(--bg-alt); color: var(--ink-soft); border: 1px solid var(--border); }
+  .badge-phase { background: var(--bg-alt); color: var(--ink-soft); border: 1px solid var(--border); }
+
+  .goal {
+    background: var(--bg-alt);
+    border-left: 3px solid var(--primary);
+    border-radius: 0 10px 10px 0;
+    padding: 0.8rem 1.1rem;
+    margin: 0 0 1.4rem;
+    font-size: 0.97rem;
+  }
+  .goal strong { color: var(--primary); }
+
+  h3 {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--ink-soft);
+    margin: 1.7rem 0 0.7rem;
+    font-weight: 700;
+  }
+
+  /* checklist */
+  .check { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.45rem; }
+  .check li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    font-size: 0.96rem;
+  }
+  .check li::before {
+    content: "";
+    width: 15px; height: 15px;
+    border: 2px solid var(--primary);
+    border-radius: 5px;
+    flex-shrink: 0;
+    transform: translateY(2px);
+    opacity: 0.65;
+  }
+
+  /* tables */
+  .tbl-scroll { overflow-x: auto; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.92rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-soft);
+    background: var(--bg-alt);
+  }
+  td strong { font-variant-numeric: tabular-nums; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* script / chat blocks */
+  .script {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    font-size: 0.93rem;
+    margin: 0.6rem 0;
+  }
+  .script .who {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .script p { margin: 0 0 0.5rem; }
+  .script p:last-child { margin-bottom: 0; }
+
+  /* idea cards grid */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    gap: 0.7rem;
+    counter-reset: idea;
+  }
+  .cards.numbered .card { counter-increment: idea; }
+  .cards.numbered .card strong::before {
+    content: counter(idea, decimal-leading-zero) " · ";
+    color: var(--primary);
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+  }
+  .card strong { display: block; margin-bottom: 0.25rem; font-size: 0.93rem; }
+  .card span { color: var(--ink-soft); font-size: 0.86rem; }
+
+  /* two-col kpi + budget row */
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+  @media (max-width: 760px) { .duo { grid-template-columns: 1fr; } }
+
+  /* phase timeline */
+  .phases { display: grid; gap: 0.6rem; margin-top: 1rem; }
+  .phase {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.94rem;
+  }
+  .phase b { color: var(--primary); font-variant-numeric: tabular-nums; }
+  .phase span { color: var(--ink-soft); }
+
+  .note {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    margin-top: 1rem;
+  }
+  .note b { color: var(--accent); }
+
+  footer.doc-foot {
+    margin-top: 4rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; gap: 0; }
+    .toc { display: none; }
+    .doc-head { grid-column: 1; }
+    .channel-meta { margin-left: 0; width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <nav class="toc" aria-label="Danh sách kênh">
+    <p class="toc-title">Kênh · độ ưu tiên</p>
+    <a href="#tong-quan">Tổng quan phễu</a>
+    <a href="#gbp" class="p3">Google Business</a>
+    <a href="#facebook" class="p3">Facebook Fanpage</a>
+    <a href="#zalo" class="p3">Zalo OA</a>
+    <a href="#tiktok" class="p3">TikTok</a>
+    <a href="#hotline" class="p3">Hotline &amp; chốt đơn</a>
+    <a href="#group" class="p2">Facebook Group</a>
+    <a href="#website" class="p2">Website + Blog</a>
+    <a href="#instagram" class="p2">Instagram</a>
+    <a href="#youtube" class="p1">YouTube</a>
+    <a href="#tong-ket">Ngân sách &amp; nhịp tuần</a>
+  </nav>
+
+  <header class="doc-head">
+    <p class="eyebrow">An Nhiên Care · Kế hoạch vận hành kênh</p>
+    <h1>Kế hoạch chi tiết từng kênh marketing</h1>
+    <p class="lede">
+      Mỗi kênh dưới đây có mục tiêu riêng, checklist dựng kênh, chiến lược nội dung,
+      kịch bản mẫu dùng được ngay và chỉ số cần theo dõi. Ba chấm <b style="color:var(--primary)">●●●</b> = bắt buộc làm ngay,
+      hai chấm = tháng 2–3, một chấm = từ tháng 4.
+    </p>
+  </header>
+
+  <main style="grid-column: 2; min-width: 0;">
+
+    <!-- ============ TỔNG QUAN ============ -->
+    <section id="tong-quan">
+      <div class="channel-head">
+        <div class="channel-icon">🧭</div>
+        <h2>Phễu khách hàng: kênh nào làm việc gì</h2>
+      </div>
+      <div class="funnel">
+        <div class="funnel-step">
+          <em>1 · Biết đến</em>
+          <strong>TikTok · Ads · GBP</strong>
+          <span>Người lạ nhìn thấy mình lần đầu</span>
+        </div>
+        <div class="funnel-step">
+          <em>2 · Tin tưởng</em>
+          <strong>Fanpage · Website · Review</strong>
+          <span>Xem feedback, bảng giá, đội ngũ</span>
+        </div>
+        <div class="funnel-step">
+          <em>3 · Chốt</em>
+          <strong>Inbox · Hotline</strong>
+          <span>Tư vấn và đặt lịch buổi đầu</span>
+        </div>
+        <div class="funnel-step">
+          <em>4 · Giữ chân</em>
+          <strong>Zalo OA</strong>
+          <span>Nhắc lịch, nhật ký, gia hạn gói</span>
+        </div>
+        <div class="funnel-step">
+          <em>5 · Giới thiệu</em>
+          <strong>Group · Referral</strong>
+          <span>Khách cũ kéo khách mới</span>
+        </div>
+      </div>
+      <p class="note"><b>Quy tắc vàng:</b> mọi bài đăng ở mọi kênh đều kết thúc bằng một lời mời duy nhất — <i>“Inbox hoặc gọi 0900 123 456 để được tư vấn miễn phí”</i>. Một số điện thoại, một lời mời, lặp lại ở mọi nơi.</p>
+    </section>
+
+    <!-- ============ GBP ============ -->
+    <section id="gbp">
+      <div class="channel-head">
+        <div class="channel-icon">📍</div>
+        <h2>Google Business Profile</h2>
+        <div class="channel-meta">
+          <span class="badge badge-must">Bắt buộc</span>
+          <span class="badge badge-phase">Tuần 1</span>
+        </div>
+      </div>
+      <p class="goal"><strong>Mục tiêu:</strong> khi mẹ gõ <i>“tắm bé tại nhà quận Phú Nhuận”</i> hay <i>“thông tắc tia sữa gần đây”</i>, An Nhiên Care hiện trong top 3 bản đồ. Đây là kênh ra khách nhanh nhất và hoàn toàn miễn phí.</p>
+
+      <h3>Checklist dựng kênh (làm 1 lần, ~2 giờ)</h3>
+      <ul class="check">
+        <li>Tạo hồ sơ tại business.google.com, xác minh địa chỉ (Google gửi mã qua thư/điện thoại)</li>
+        <li>Chọn danh mục chính “Dịch vụ chăm sóc trẻ em” + phụ “Trung tâm chăm sóc sức khỏe”</li>
+        <li>Điền đủ: giờ mở cửa 8h–21h cả tuần, khu vực phục vụ (liệt kê từng quận), số hotline, link website</li>
+        <li>Tải lên tối thiểu 15 ảnh thật: mặt tiền trung tâm, phòng dịch vụ, đội ngũ mặc đồng phục, dụng cụ tiệt trùng</li>
+        <li>Khai báo từng dịch vụ kèm giá từ (tắm bé — từ 250.000₫/buổi…)</li>
+        <li>Bật tính năng nhắn tin trực tiếp trên hồ sơ</li>
+      </ul>
+
+      <h3>Vận hành hằng tuần (~30 phút)</h3>
+      <ul class="check">
+        <li>Đăng 1 “bài viết” trên GBP: ưu đãi tuần hoặc ảnh buổi chăm bé mới</li>
+        <li>Trả lời 100% review trong 24 giờ — kể cả review xấu (xin lỗi + mời liên hệ riêng)</li>
+        <li>Sau mỗi khách hài lòng: gửi link review qua Zalo kèm lời nhắn mẫu bên dưới</li>
+      </ul>
+
+      <div class="script">
+        <span class="who">Tin nhắn xin review (gửi sau buổi thứ 3)</span>
+        <p>“Em chào chị Trang ạ 🌸 Bé Su hôm nay hợp tác ghê, ngủ ngon lành sau massage luôn. Nếu chị thấy dịch vụ ổn, chị cho An Nhiên 1 đánh giá trên Google giúp em với nha, chỉ 30 giây thôi ạ: [link]. Trung tâm gửi tặng chị 1 buổi massage bé miễn phí vào gói như lời cảm ơn ạ 💕”</p>
+      </div>
+
+      <h3>KPI</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Chỉ số</th><th>Tháng 3</th><th>Tháng 6</th></tr>
+        <tr><td>Review 5⭐</td><td class="num">30</td><td class="num">80</td></tr>
+        <tr><td>Lượt gọi/chỉ đường từ GBP</td><td class="num">40/tháng</td><td class="num">100/tháng</td></tr>
+        <tr><td>Vị trí map cho từ khoá chính</td><td class="num">Top 5</td><td class="num">Top 3</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ FACEBOOK ============ -->
+    <section id="facebook">
+      <div class="channel-head">
+        <div class="channel-icon">📘</div>
+        <h2>Facebook Fanpage</h2>
+        <div class="channel-meta">
+          <span class="badge badge-must">Bắt buộc</span>
+          <span class="badge badge-phase">Tuần 1–2</span>
+        </div>
+      </div>
+      <p class="goal"><strong>Mục tiêu:</strong> là “mặt tiền” thương hiệu — nơi khách kiểm tra độ uy tín trước khi inbox, và là nền tảng chạy quảng cáo chính. 80% khách sẽ inbox qua đây.</p>
+
+      <h3>Checklist dựng kênh</h3>
+      <ul class="check">
+        <li>Tên page: <b>An Nhiên Care – Chăm sóc Mẹ &amp; Bé tại nhà [Thành phố]</b> (có từ khoá + khu vực để dễ tìm)</li>
+        <li>Avatar logo, cover là ảnh đội ngũ thật + hotline to rõ</li>
+        <li>Nút CTA “Gửi tin nhắn”; phần giới thiệu điền đủ dịch vụ, giá từ, khu vực</li>
+        <li>Bài ghim: giới thiệu 3 gói + bảng giá + 5 feedback + quy trình 4 bước, có ảnh</li>
+        <li>Cài trả lời tự động Messenger: chào + hỏi tên bé/tuần tuổi + hẹn phản hồi trong 15 phút</li>
+        <li>Cài Meta Pixel lên website để chạy retargeting sau này</li>
+      </ul>
+
+      <h3>Nhịp nội dung (5 bài/tuần)</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Loại bài</th><th>Tần suất</th><th>Ví dụ cụ thể</th></tr>
+        <tr><td>Kiến thức chăm bé</td><td class="num">2/tuần</td><td>“5 dấu hiệu bé bú chưa đủ sữa — dấu hiệu số 3 hầu hết mẹ bỏ qua”</td></tr>
+        <tr><td>Video hậu trường (đăng lại từ TikTok)</td><td class="num">2/tuần</td><td>Clip tắm bé 45s, trước/sau thông tia sữa</td></tr>
+        <tr><td>Feedback khách</td><td class="num">1/tuần</td><td>Screenshot tin nhắn cảm ơn + ảnh bé (đã xin phép)</td></tr>
+      </table></div>
+
+      <h3>Quảng cáo (bắt đầu tháng 2, 100–150k/ngày)</h3>
+      <ul class="check">
+        <li>Chiến dịch 1 — <b>Tin nhắn:</b> chạy bài feedback thật, target nữ 24–38 có con nhỏ, bán kính 10km</li>
+        <li>Chiến dịch 2 — <b>Retargeting:</b> bám đuổi người đã xem video &gt;50% hoặc vào website, hiển thị ưu đãi buổi đầu</li>
+        <li>Không chạy bài bán hàng khô (“Gói A giá X”) — luôn chạy nội dung có câu chuyện/bằng chứng</li>
+        <li>Mỗi 2 tuần tắt mẫu quảng cáo có giá tin nhắn cao nhất, nhân bản mẫu tốt nhất</li>
+      </ul>
+
+      <div class="script">
+        <span class="who">Kịch bản trả lời inbox (mục tiêu: lấy được SĐT trong 4 câu)</span>
+        <p>1. “Em chào chị ạ 🌸 Chị đang quan tâm dịch vụ tắm bé hay chăm mẹ sau sinh ạ?”</p>
+        <p>2. “Dạ bé nhà mình được mấy tuần rồi chị nhỉ? Nhà mình ở khu vực nào ạ?”</p>
+        <p>3. “Dạ khu đó bên em phục vụ hằng ngày luôn ạ. Gói phù hợp với bé [X tuần] là… giá… Buổi đầu chị được trải nghiệm, không ưng hoàn 100% tiền ạ.”</p>
+        <p>4. “Chị cho em xin số điện thoại, chuyên viên bên em gọi tư vấn kỹ hơn trong 15 phút nha chị — tư vấn miễn phí, không đặt cũng không sao ạ 💕”</p>
+      </div>
+
+      <h3>KPI</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Chỉ số</th><th>Tháng 3</th><th>Tháng 6</th></tr>
+        <tr><td>Tin nhắn mới</td><td class="num">60/tháng</td><td class="num">150/tháng</td></tr>
+        <tr><td>Chi phí / tin nhắn (ads)</td><td class="num">&lt;40.000₫</td><td class="num">&lt;30.000₫</td></tr>
+        <tr><td>Tỷ lệ inbox → lấy được SĐT</td><td class="num">50%</td><td class="num">65%</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ ZALO ============ -->
+    <section id="zalo">
+      <div class="channel-head">
+        <div class="channel-icon">💬</div>
+        <h2>Zalo OA</h2>
+        <div class="channel-meta">
+          <span class="badge badge-must">Bắt buộc</span>
+          <span class="badge badge-phase">Tuần 2</span>
+        </div>
+      </div>
+      <p class="goal"><strong>Mục tiêu:</strong> kênh giữ chân — 100% khách đã đặt lịch được đưa vào Zalo OA. Nhắc lịch giảm hủy buổi, nhật ký sau buổi tạo cảm giác chuyên nghiệp, và là nơi bán gói gia hạn với chi phí 0đ.</p>
+
+      <h3>Checklist dựng kênh</h3>
+      <ul class="check">
+        <li>Đăng ký OA loại “Doanh nghiệp” tại oa.zalo.me (gói miễn phí trước, nâng cấp khi &gt;1.000 quan tâm)</li>
+        <li>Menu 4 nút: Đặt lịch · Bảng giá · Dịch vụ · Gọi hotline</li>
+        <li>In mã QR Zalo OA dán tại quầy + in vào card cảm ơn điều dưỡng đưa khách sau buổi đầu</li>
+        <li>Quy trình bắt buộc: chốt khách xong → mời quan tâm OA ngay để nhận xác nhận lịch</li>
+      </ul>
+
+      <h3>4 tin nhắn kịch bản trong vòng đời khách (soạn sẵn, gửi đúng thời điểm)</h3>
+      <div class="script">
+        <span class="who">① Xác nhận lịch — ngay sau khi chốt</span>
+        <p>“An Nhiên Care xác nhận lịch của chị Mai 🌸 Dịch vụ: Tắm bé + massage · Thứ 3, 9h00 sáng · Điều dưỡng: Ngọc Anh (ảnh đính kèm). Chị cần đổi lịch cứ nhắn tại đây trước 4 tiếng ạ.”</p>
+      </div>
+      <div class="script">
+        <span class="who">② Nhắc lịch — 19h tối hôm trước</span>
+        <p>“Em nhắc lịch mai 9h00 điều dưỡng Ngọc Anh đến tắm cho bé Su nha chị 💕 Chị chuẩn bị giúp em 1 chậu nước ấm và khăn của bé. Mọi dụng cụ còn lại bên em mang theo đầy đủ ạ.”</p>
+      </div>
+      <div class="script">
+        <span class="who">③ Nhật ký sau buổi — trong vòng 1 giờ sau buổi chăm</span>
+        <p>“Nhật ký buổi 3 của bé Su 📋 Cân nặng: 4,2kg (+150g so với tuần trước) · Da: hết vàng vùng ngực · Rốn: khô, đẹp · Bé bú tốt, ngủ ngay sau massage. Hẹn bé thứ 5 nha chị!”</p>
+      </div>
+      <div class="script">
+        <span class="who">④ Gia hạn — trước khi hết gói 3 buổi</span>
+        <p>“Chị ơi gói của bé Su còn 3 buổi nữa ạ. Bé đang lên cân đều và quen với chị Ngọc Anh rồi, nếu chị gia hạn trước khi hết gói, bên em giữ nguyên điều dưỡng + tặng 1 buổi massage mẹ ạ 🌸”</p>
+      </div>
+
+      <h3>Broadcast hằng tuần (miễn phí với người đã quan tâm)</h3>
+      <ul class="check">
+        <li>Thứ 3: 1 tip chăm bé theo mùa (ngắn, có ảnh)</li>
+        <li>Thứ 6: ưu đãi cuối tuần hoặc khung giờ trống cần lấp</li>
+      </ul>
+
+      <h3>KPI</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Chỉ số</th><th>Tháng 3</th><th>Tháng 6</th></tr>
+        <tr><td>Người quan tâm OA</td><td class="num">300</td><td class="num">1.200</td></tr>
+        <tr><td>Tỷ lệ khách đặt lịch vào OA</td><td class="num">80%</td><td class="num">95%</td></tr>
+        <tr><td>Tỷ lệ gia hạn gói</td><td class="num">30%</td><td class="num">45%</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ TIKTOK ============ -->
+    <section id="tiktok">
+      <div class="channel-head">
+        <div class="channel-icon">🎵</div>
+        <h2>TikTok</h2>
+        <div class="channel-meta">
+          <span class="badge badge-must">Bắt buộc</span>
+          <span class="badge badge-phase">Tuần 3–4</span>
+        </div>
+      </div>
+      <p class="goal"><strong>Mục tiêu:</strong> kênh kéo khách mới chi phí 0đ. Mẹ bỉm là nhóm xem TikTok nhiều nhất lúc cho con bú đêm — video tắm bé/massage bé có sẵn tính “xem là dừng lại”.</p>
+
+      <h3>Checklist dựng kênh</h3>
+      <ul class="check">
+        <li>Tên: <b>@annhiencare</b> · Bio: “Tắm bé &amp; chăm mẹ sau sinh tại nhà [TP] 🌸 Đặt lịch → SĐT” + link website</li>
+        <li>Xin phép khách trước khi quay; che mặt bé bằng sticker nếu khách yêu cầu</li>
+        <li>Nhịp đăng: 4–5 video/tuần, quay ngay trong buổi làm dịch vụ bằng điện thoại + 1 đèn kẹp</li>
+        <li>Mỗi video đăng lại lên Reels Facebook, Reels Instagram, YouTube Shorts (quay 1 lần, dùng 4 nơi)</li>
+      </ul>
+
+      <h3>Công thức video 30–60 giây</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Giây</th><th>Nội dung</th></tr>
+        <tr><td class="num">0–3</td><td><b>Hook:</b> câu hỏi hoặc hình ảnh khiến mẹ dừng tay — “Bé khóc mỗi lần tắm? Xem cách điều dưỡng làm”</td></tr>
+        <tr><td class="num">3–40</td><td><b>Thân:</b> quay thao tác thật + phụ đề giải thích từng bước, nhạc nhẹ</td></tr>
+        <tr><td class="num">40–55</td><td><b>Kết quả:</b> bé nín/ngủ/cười — khoảnh khắc “wow”</td></tr>
+        <tr><td class="num">55–60</td><td><b>CTA:</b> “Mẹ ở [TP] cần tắm bé tại nhà → số điện thoại ở bio nha”</td></tr>
+      </table></div>
+
+      <h3>10 video đầu tiên (quay được trong 2 tuần)</h3>
+      <div class="cards numbered">
+        <div class="card"><strong>Trọn quy trình tắm bé 60s</strong><span>Video nền tảng, ghim đầu kênh</span></div>
+        <div class="card"><strong>3 lỗi khi tắm bé tại nhà</strong><span>Kiến thức — dễ được share</span></div>
+        <div class="card"><strong>Massage giúp bé hết đầy hơi</strong><span>Nỗi đau phổ biến nhất của mẹ</span></div>
+        <div class="card"><strong>Trước/sau thông tia sữa</strong><span>Bằng chứng tay nghề mạnh nhất</span></div>
+        <div class="card"><strong>Bên trong túi dụng cụ điều dưỡng</strong><span>Chứng minh tiệt trùng, tạo niềm tin</span></div>
+        <div class="card"><strong>Một ngày của điều dưỡng Ngọc Anh</strong><span>Gương mặt quen — dịch vụ vào nhà người ta</span></div>
+        <div class="card"><strong>Cách quấn bé ngủ ngon (ASMR)</strong><span>Content dễ viral, không cần nói</span></div>
+        <div class="card"><strong>Mẹ hỏi – nữ hộ sinh trả lời #1</strong><span>Lấy câu hỏi thật từ inbox</span></div>
+        <div class="card"><strong>Phản ứng của bé khi massage lần đầu</strong><span>Dễ thương = lượt xem</span></div>
+        <div class="card"><strong>Feedback khách quay tại nhà</strong><span>Social proof — xin 15s sau buổi thứ 5</span></div>
+      </div>
+
+      <h3>KPI</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Chỉ số</th><th>Tháng 3</th><th>Tháng 6</th></tr>
+        <tr><td>Follower</td><td class="num">2.000</td><td class="num">10.000</td></tr>
+        <tr><td>Video &gt;10k view</td><td class="num">2</td><td class="num">10</td></tr>
+        <tr><td>Tin nhắn/cuộc gọi ghi nguồn TikTok</td><td class="num">15/tháng</td><td class="num">50/tháng</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ HOTLINE ============ -->
+    <section id="hotline">
+      <div class="channel-head">
+        <div class="channel-icon">📞</div>
+        <h2>Hotline &amp; quy trình chốt đơn</h2>
+        <div class="channel-meta">
+          <span class="badge badge-must">Bắt buộc</span>
+          <span class="badge badge-phase">Tuần 1</span>
+        </div>
+      </div>
+      <p class="goal"><strong>Mục tiêu:</strong> mọi kênh đổ về đây. Marketing tốt đến đâu mà gọi 15 phút không ai bắt máy, hoặc tư vấn không có kịch bản, thì tiền ads đổ sông. Chuẩn phản hồi: <strong>gọi lại trong 15 phút</strong>, 8h–21h.</p>
+
+      <h3>Quy trình cuộc gọi tư vấn (5 bước, ~7 phút)</h3>
+      <ul class="check">
+        <li><b>Mở:</b> “Em chào chị, em là [tên] từ An Nhiên Care, chị vừa để lại thông tin quan tâm dịch vụ tắm bé ạ” — nhắc đúng dịch vụ khách đã chọn</li>
+        <li><b>Hỏi:</b> bé mấy tuần, sinh thường/mổ, ở khu nào, mẹ đang lo lắng gì nhất — <i>hỏi trước, bán sau</i></li>
+        <li><b>Tư vấn:</b> đề xuất đúng 1 gói phù hợp (không liệt kê cả 3), nêu giá rõ ràng, nhấn “buổi đầu không ưng hoàn 100%”</li>
+        <li><b>Chốt:</b> “Bên em còn trống sáng thứ 3 hoặc chiều thứ 4, chị tiện khung nào ạ?” — đưa 2 lựa chọn thay vì hỏi mở</li>
+        <li><b>Sau gọi:</b> mời quan tâm Zalo OA + gửi xác nhận lịch ngay; ghi nguồn khách vào sheet</li>
+      </ul>
+
+      <h3>Sheet theo dõi nguồn khách (Google Sheet, điền sau mỗi cuộc gọi)</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Cột</th><th>Ghi gì</th></tr>
+        <tr><td>Nguồn</td><td>Hỏi “mẹ biết mình qua đâu ạ?” — Facebook / TikTok / Google / Người quen / Khác</td></tr>
+        <tr><td>Dịch vụ quan tâm · Khu vực · Tuần tuổi bé</td><td>Để phân tích nhu cầu theo khu</td></tr>
+        <tr><td>Kết quả</td><td>Chốt / Hẹn gọi lại / Từ chối (kèm lý do)</td></tr>
+      </table></div>
+      <p class="note"><b>Cuối tháng</b> đếm sheet này là biết ngay kênh nào ra khách, chi phí mỗi khách bao nhiêu — quyết định tháng sau đổ tiền vào đâu dựa trên số, không dựa trên cảm giác.</p>
+
+      <h3>KPI</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Chỉ số</th><th>Tháng 3</th><th>Tháng 6</th></tr>
+        <tr><td>Tỷ lệ gọi lại trong 15 phút</td><td class="num">90%</td><td class="num">98%</td></tr>
+        <tr><td>Tỷ lệ cuộc gọi → chốt lịch</td><td class="num">25%</td><td class="num">35%</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ GROUP ============ -->
+    <section id="group">
+      <div class="channel-head">
+        <div class="channel-icon">👥</div>
+        <h2>Facebook Group cộng đồng</h2>
+        <div class="channel-meta">
+          <span class="badge badge-should">Tháng 2–3</span>
+        </div>
+      </div>
+      <p class="goal"><strong>Mục tiêu:</strong> sở hữu cộng đồng mẹ bỉm khu vực — nơi khách cũ ở lại, khách mới được giới thiệu tự nhiên, và mọi câu hỏi về mẹ &amp; bé đều có điều dưỡng An Nhiên trả lời đầu tiên.</p>
+
+      <h3>Checklist dựng kênh</h3>
+      <ul class="check">
+        <li>Tên group theo khu vực, không theo thương hiệu: <b>“Hội Mẹ Bỉm [Quận/TP] – Hỏi đáp cùng điều dưỡng”</b> (dễ được tìm và join hơn)</li>
+        <li>3 câu hỏi màng lọc khi join: bé mấy tháng / khu nào / quan tâm chủ đề gì → chính là data khách tiềm năng</li>
+        <li>Luật group ghim rõ: cấm bán hàng, trừ admin — giữ group sạch là giữ giá trị</li>
+        <li>Tuần đầu: mời toàn bộ khách cũ + bạn bè nhân viên vào trước cho có “mồi” (mục tiêu 100 thành viên đầu)</li>
+      </ul>
+
+      <h3>Vận hành</h3>
+      <ul class="check">
+        <li>Thứ 2: câu hỏi thảo luận (“Các mẹ ru bé ngủ bằng cách nào?”) — nuôi tương tác</li>
+        <li>Thứ 5 tối 20h30: <b>Q&amp;A trực tiếp với nữ hộ sinh</b> — 30 phút, comment hỏi gì trả lời đó. Đây là “đặc sản” của group</li>
+        <li>Chủ nhật: chia sẻ của một mẹ trong group (xin phép đăng lại) hoặc tổng hợp câu hỏi hay trong tuần</li>
+        <li>Ưu đãi riêng chỉ dành cho thành viên group, mỗi tháng 1 lần — lý do để ở lại</li>
+      </ul>
+
+      <h3>KPI</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Chỉ số</th><th>Tháng 3</th><th>Tháng 6</th></tr>
+        <tr><td>Thành viên</td><td class="num">500</td><td class="num">2.000</td></tr>
+        <tr><td>Bài có &gt;10 bình luận / tuần</td><td class="num">2</td><td class="num">5</td></tr>
+        <tr><td>Khách mới ghi nguồn “group/người quen”</td><td class="num">10%</td><td class="num">25%</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ WEBSITE ============ -->
+    <section id="website">
+      <div class="channel-head">
+        <div class="channel-icon">🌐</div>
+        <h2>Website + Blog SEO</h2>
+        <div class="channel-meta">
+          <span class="badge badge-should">Tháng 2–3</span>
+        </div>
+      </div>
+      <p class="goal"><strong>Mục tiêu:</strong> điểm “chốt” cuối — khách từ mọi kênh vào xem bảng giá và điền form. Blog SEO kéo traffic miễn phí từ Google, hiệu quả cộng dồn theo thời gian. <i>(Website đã build xong, chỉ cần deploy.)</i></p>
+
+      <h3>Checklist kỹ thuật (tuần 1–2)</h3>
+      <ul class="check">
+        <li>Deploy lên GitHub Pages / Netlify, trỏ tên miền riêng (vd. annhiencare.vn, ~300k/năm)</li>
+        <li>Thay hotline, địa chỉ, email placeholder bằng thông tin thật</li>
+        <li>Nối form đặt lịch về Google Sheet hoặc Zalo OA (hiện đang lưu demo)</li>
+        <li>Cài Google Analytics 4 + Meta Pixel; khai báo site với Google Search Console</li>
+      </ul>
+
+      <h3>Kế hoạch blog: 2 bài/tháng, mỗi bài nhắm 1 từ khoá</h3>
+      <div class="cards numbered">
+        <div class="card"><strong>“Tắm bé tại nhà giá bao nhiêu?”</strong><span>Từ khoá thương mại — ưu tiên #1, dễ chốt nhất</span></div>
+        <div class="card"><strong>“Dấu hiệu tắc tia sữa và cách xử lý”</strong><span>Nhu cầu khẩn cấp → gọi ngay</span></div>
+        <div class="card"><strong>“Chăm sóc mẹ sau sinh mổ đúng cách”</strong><span>Volume cao, dẫn về gói Mẹ &amp; Bé</span></div>
+        <div class="card"><strong>“Trẻ sơ sinh vàng da khi nào cần lo?”</strong><span>Kiến thức — xây uy tín + backlink nội bộ</span></div>
+        <div class="card"><strong>“Lịch tắm cho trẻ sơ sinh theo tuần tuổi”</strong><span>Dạng bảng, dễ lên top</span></div>
+        <div class="card"><strong>“Massage cho bà bầu có an toàn không?”</strong><span>Dẫn về dịch vụ spa bầu</span></div>
+      </div>
+      <p class="note"><b>Cấu trúc mỗi bài:</b> trả lời thẳng câu hỏi trong 100 từ đầu → chi tiết có ảnh thật của trung tâm → hộp CTA “Đặt lịch tư vấn miễn phí” giữa bài và cuối bài. Độ dài 800–1.200 từ, viết bằng giọng điều dưỡng đang tư vấn.</p>
+
+      <h3>KPI</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Chỉ số</th><th>Tháng 3</th><th>Tháng 6</th></tr>
+        <tr><td>Traffic tự nhiên</td><td class="num">300/tháng</td><td class="num">1.500/tháng</td></tr>
+        <tr><td>Form đặt lịch gửi về</td><td class="num">15/tháng</td><td class="num">50/tháng</td></tr>
+        <tr><td>Bài blog lên top 10 Google</td><td class="num">1</td><td class="num">5</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ INSTAGRAM ============ -->
+    <section id="instagram">
+      <div class="channel-head">
+        <div class="channel-icon">📸</div>
+        <h2>Instagram</h2>
+        <div class="channel-meta">
+          <span class="badge badge-should">Tháng 2–3</span>
+        </div>
+      </div>
+      <p class="goal"><strong>Mục tiêu:</strong> kênh “đẹp” cho nhóm mẹ trẻ khu trung tâm; chi phí vận hành gần 0 vì tái sử dụng toàn bộ nội dung TikTok và ảnh Fanpage.</p>
+
+      <h3>Checklist &amp; vận hành</h3>
+      <ul class="check">
+        <li>Chuyển tài khoản Business, liên kết với Fanpage để đăng chéo Reels tự động</li>
+        <li>Grid theo nhịp 3 cột: ảnh dịch vụ – quote/tip trên nền hồng thương hiệu – ảnh feedback (nhìn gọn gàng, chuyên nghiệp)</li>
+        <li>Story highlight cố định: Bảng giá · Feedback · Quy trình · Đội ngũ · Đặt lịch</li>
+        <li>Reels: đăng lại 100% video TikTok (xoá watermark bằng cách xuất bản gốc)</li>
+        <li>Story hằng ngày 1–2 lần: hậu trường buổi chăm, poll hỏi đáp (“Bé nhà mẹ mấy tháng rồi?”)</li>
+      </ul>
+
+      <h3>KPI</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Chỉ số</th><th>Tháng 3</th><th>Tháng 6</th></tr>
+        <tr><td>Follower</td><td class="num">500</td><td class="num">2.000</td></tr>
+        <tr><td>DM hỏi dịch vụ</td><td class="num">10/tháng</td><td class="num">30/tháng</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ YOUTUBE ============ -->
+    <section id="youtube">
+      <div class="channel-head">
+        <div class="channel-icon">▶️</div>
+        <h2>YouTube</h2>
+        <div class="channel-meta">
+          <span class="badge badge-later">Từ tháng 4</span>
+        </div>
+      </div>
+      <p class="goal"><strong>Mục tiêu:</strong> tài sản dài hạn — video “cách tắm bé sơ sinh” trên YouTube được tìm kiếm quanh năm và tồn tại nhiều năm, khác với TikTok trôi sau 48 giờ. Đồng thời là phễu cho lớp tiền sản trả phí.</p>
+
+      <h3>Checklist &amp; vận hành</h3>
+      <ul class="check">
+        <li>Shorts: bật đăng chéo tự động từ TikTok ngay từ tháng 2 (0 công sức, nuôi kênh sẵn)</li>
+        <li>Từ tháng 4: series <b>“Lớp tiền sản miễn phí cùng An Nhiên”</b> — 8 video × 10–15 phút (chuyển dạ, sữa mẹ, tắm bé, sơ cứu…)</li>
+        <li>Mỗi video mô tả có link đăng ký lớp tiền sản trực tiếp (trả phí) + hotline</li>
+        <li>Quay đơn giản: 1 góc máy cố định, nữ hộ sinh + búp bê thực hành, đèn đủ sáng là được</li>
+        <li>Tối ưu tiêu đề theo từ khoá tìm kiếm: “Cách tắm bé sơ sinh đúng chuẩn y khoa | Điều dưỡng hướng dẫn”</li>
+      </ul>
+
+      <h3>KPI</h3>
+      <div class="tbl-scroll"><table>
+        <tr><th>Chỉ số</th><th>Tháng 6</th><th>Tháng 12</th></tr>
+        <tr><td>Subscriber</td><td class="num">500</td><td class="num">3.000</td></tr>
+        <tr><td>Đăng ký lớp tiền sản từ YouTube</td><td class="num">10</td><td class="num">40</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ TỔNG KẾT ============ -->
+    <section id="tong-ket">
+      <div class="channel-head">
+        <div class="channel-icon">🗓️</div>
+        <h2>Ngân sách &amp; nhịp làm việc tuần</h2>
+      </div>
+
+      <div class="duo">
+        <div>
+          <h3>Ngân sách tháng (từ tháng 2)</h3>
+          <div class="tbl-scroll"><table>
+            <tr><th>Khoản</th><th>Chi phí</th></tr>
+            <tr><td>Facebook Ads</td><td class="num">3–4,5 triệu</td></tr>
+            <tr><td>CTV quay dựng video (part-time)</td><td class="num">2–3 triệu</td></tr>
+            <tr><td>Quà review + referral</td><td class="num">1 triệu</td></tr>
+            <tr><td>Zalo OA nâng cao (khi cần)</td><td class="num">~500k</td></tr>
+            <tr><td>Tên miền + hosting</td><td class="num">~50k</td></tr>
+            <tr><td><b>Tổng</b></td><td class="num"><b>6,5–9 triệu</b></td></tr>
+          </table></div>
+        </div>
+        <div>
+          <h3>Ai làm gì (đội 2 người + CTV)</h3>
+          <div class="tbl-scroll"><table>
+            <tr><th>Người</th><th>Việc</th></tr>
+            <tr><td>Lễ tân / tư vấn viên</td><td>Trả lời inbox &amp; hotline, Zalo OA, sheet nguồn khách</td></tr>
+            <tr><td>Quản lý</td><td>Duyệt nội dung, chạy ads, đọc số cuối tháng</td></tr>
+            <tr><td>Điều dưỡng</td><td>Quay clip trong buổi làm (2 phút/buổi), xin review</td></tr>
+            <tr><td>CTV dựng video</td><td>Dựng 4–5 video/tuần từ clip thô</td></tr>
+          </table></div>
+        </div>
+      </div>
+
+      <h3>Lộ trình mở kênh</h3>
+      <div class="phases">
+        <div class="phase"><b>Tuần 1–2</b><div>Google Business Profile · Fanpage chuẩn hoá · Hotline + sheet nguồn khách · Deploy website</div></div>
+        <div class="phase"><b>Tuần 2–3</b><div>Zalo OA + 4 kịch bản tin nhắn · Quay 5 video đầu</div></div>
+        <div class="phase"><b>Tuần 3–4</b><div>TikTok đăng đều 4–5 video/tuần · Instagram đăng chéo</div></div>
+        <div class="phase"><b>Tháng 2</b><div>Facebook Ads 100–150k/ngày · Mở Group cộng đồng · Bắt đầu blog SEO</div></div>
+        <div class="phase"><b>Tháng 3</b><div>Q&amp;A group hằng tuần · Retargeting · Đọc sheet nguồn khách, dồn tiền vào kênh hiệu quả</div></div>
+        <div class="phase"><b>Tháng 4–6</b><div>Referral khách cũ · KOC mẹ bỉm địa phương · YouTube series tiền sản · Liên kết phòng khám sản</div></div>
+      </div>
+
+      <p class="note"><b>Nguyên tắc dừng/tăng:</b> cuối mỗi tháng, kênh nào có chi phí/khách mới thấp nhất thì tăng 50% nguồn lực; kênh nào 2 tháng liền không ra khách nào thì giảm về mức duy trì. Sheet nguồn khách ở mục Hotline là căn cứ duy nhất.</p>
+    </section>
+
+    <footer class="doc-foot">
+      An Nhiên Care · Kế hoạch vận hành kênh marketing · Cập nhật tháng 7/2026 — Số liệu hotline, giá và tên nhân sự là placeholder, thay bằng thông tin thật khi triển khai.
+    </footer>
+
+  </main>
+</div>
+
+</html>
