@@ -1,0 +1,16 @@
+{
+  "name": "Quyết Nhanh · Decision Autopilot",
+  "short_name": "Quyết Nhanh",
+  "description": "Tự động hoá cách suy nghĩ: quyết định nhanh, bớt trì hoãn, luật cá nhân, nhật ký quyết định.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12131f",
+  "theme_color": "#4f46e5",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

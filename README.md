@@ -43,9 +43,11 @@ python3 -m http.server 8000
 # rồi mở http://localhost:8000
 ```
 
-## Triển khai
+## Triển khai — cài như app thật (PWA)
 
-Là static site nên deploy miễn phí lên **GitHub Pages** (Settings → Pages → chọn branch), Netlify, Vercel hoặc bất kỳ hosting nào. Trên điện thoại: mở trang → "Thêm vào màn hình chính" để dùng như app.
+Là static site nên deploy miễn phí lên **GitHub Pages** (Settings → Pages → chọn branch), Netlify, Vercel hoặc bất kỳ hosting nào.
+
+App là **PWA hoàn chỉnh**: có `manifest.webmanifest`, icon riêng (`icons/`) và service worker (`sw.js`) cache toàn bộ app shell. Sau khi deploy, mở link trên điện thoại → **"Thêm vào Màn hình chính" / "Cài đặt ứng dụng"** → app có icon ⚡ riêng, chạy toàn màn hình và **hoạt động cả khi không có mạng**.
 
 ## Tuỳ chỉnh
 

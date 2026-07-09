@@ -381,7 +381,7 @@
         '<textarea id="dText" rows="2" placeholder="' + esc(t("decidePlaceholder")) + '">' + esc(wizard.text) + "</textarea>" +
         '<div class="btn-row"><button class="btn" id="dGo">' + t("decideGo") + "</button></div>" +
         "</div>";
-      document.getElementById("dGo").addEventListener("click", function () {
+      function go() {
         const v = document.getElementById("dText").value.trim();
         if (!v) { alert(t("decideNeedText")); return; }
         wizard.text = v;
@@ -390,6 +390,11 @@
         wizard.startedAt = Date.now();
         wizard.verdict = null;
         renderDecide();
+      }
+      document.getElementById("dGo").addEventListener("click", go);
+      // Enter submits (Shift+Enter for a newline) — one less tap
+      document.getElementById("dText").addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(); }
       });
       return;
     }
@@ -512,6 +517,9 @@
     document.getElementById("vCommit").addEventListener("click", function () {
       saveEntry(document.getElementById("vChosen").value.trim());
     });
+    document.getElementById("vChosen").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") saveEntry(this.value.trim());
+    });
     document.getElementById("vLater").addEventListener("click", function () { saveEntry(""); });
   }
 
@@ -586,13 +594,17 @@
         renderStart();
       });
     });
-    document.getElementById("fLaunch").addEventListener("click", function () {
+    function launch() {
       const task = document.getElementById("fTask").value.trim();
       if (!task) { alert(t("launchNeedTask")); return; }
       focus.task = task;
       focus.step = document.getElementById("fStep").value.trim();
       focus.phase = "countdown";
       renderStart();
+    }
+    document.getElementById("fLaunch").addEventListener("click", launch);
+    document.getElementById("fStep").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") launch();
     });
   }
 
@@ -729,13 +741,17 @@
       "</div>" +
       cards;
 
-    document.getElementById("rAdd").addEventListener("click", function () {
+    function addRule() {
       const rIf = document.getElementById("rIf").value.trim();
       const rThen = document.getElementById("rThen").value.trim();
       if (!rIf || !rThen) return;
       S.rules.unshift({ id: uid(), if: rIf, then: rThen, used: 0 });
       save();
       renderRules();
+    }
+    document.getElementById("rAdd").addEventListener("click", addRule);
+    document.getElementById("rThen").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") addRule();
     });
     $view.querySelectorAll("[data-use]").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -887,4 +903,9 @@
   // ---------------------------------------------------------- boot
   renderChrome();
   showTab("decide");
+
+  // Offline support when served over http(s) — skipped on file://
+  if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  }
 })();
