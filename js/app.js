@@ -64,11 +64,16 @@
     return blocks;
   }
 
-  // ---------- Nạp tồn kho thật ----------
-  // INVENTORY_DATA: [hãng, mã, tên, tồn, xuất, cat, size]
-  var ITEMS = (typeof INVENTORY_DATA !== 'undefined' ? INVENTORY_DATA : []).map(function (r) {
-    return { brand: r[0], sku: r[1], name: r[2], qty: r[3], out: r[4], cat: r[5], size: r[6] };
-  });
+  // ---------- Nạp tồn kho ----------
+  // Dòng dữ liệu: [hãng, mã, tên, tồn, xuất, cat, size]. Nguồn: js/data.js (mặc định),
+  // file Excel/CSV nạp trong app, hoặc Google Sheet — tất cả lưu vào state.items.
+  function rawToItems(raw) {
+    return raw.map(function (r) {
+      return { brand: r[0], sku: r[1], name: r[2], qty: r[3], out: r[4], cat: r[5], size: r[6] };
+    });
+  }
+  var ITEMS = [];   // gán trong applyRawItems / khởi động
+  var GROUPS = [];
 
   var CAT_LABEL = {
     treo: 'Treo tường', amtran: 'Âm trần', aptran: 'Áp trần', tudung: 'Tủ đứng',
@@ -122,7 +127,9 @@
     var bigBrands = Object.keys(perBrand).filter(function (b) { return perBrand[b] >= 30; });
     bigBrands.sort(function (a, b) { return perBrand[b] - perBrand[a]; });
     bigBrands.forEach(function (b, i) {
-      mark(grp('g_br_' + i, b + ' (treo tường & hàng nhẹ)', b, 'north', PALETTE[i % PALETTE.length],
+      // id theo tên hãng (không theo thứ tự) để lô đã gán không bị lệch khi nạp số liệu mới
+      var slug = b.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '_');
+      mark(grp('g_br_' + slug, b + ' (treo tường & hàng nhẹ)', b, 'north', PALETTE[i % PALETTE.length],
         function (m) { return untaken(m) && m.brand === b; }));
     });
     mark(grp('g_khac', 'Hãng nhỏ & hàng khác', 'KHÁC', 'south', '#64748b', untaken));
@@ -132,7 +139,6 @@
     return groups;
   }
 
-  var GROUPS = buildGroups();
   function groupOf(id) { return GROUPS.filter(function (g) { return g.id === id; })[0]; }
 
   // Thứ tự phân bổ diện tích: nhóm đặc thù trước (cần vị trí riêng), rồi hãng theo độ ưu tiên
@@ -155,7 +161,7 @@
     return st;
   }
 
-  function load() {
+  function readSaved() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -163,14 +169,22 @@
         if (st && st.blocks) return st;
       }
     } catch (e) { /* dữ liệu hỏng -> mặc định */ }
-    return defaultState();
+    return null;
   }
 
   function save() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* hết quota */ }
   }
 
-  var state = load();
+  // khởi tạo 2 pha: items trước (GROUPS cần nó), rồi state
+  var _saved = readSaved();
+  ITEMS = rawToItems((_saved && _saved.items) || (typeof INVENTORY_DATA !== 'undefined' ? INVENTORY_DATA : []));
+  GROUPS = buildGroups();
+  var state = _saved || defaultState();
+  // dọn id nhóm không còn tồn tại (vd hãng đã hết hàng sau lần nạp trước)
+  state.blocks.forEach(function (b) {
+    b.groupIds = (b.groupIds || []).filter(function (id) { return groupOf(id); });
+  });
   var selectedBlock = null;
   var highlightBlocks = {};
   var activeGroup = null;
@@ -515,7 +529,7 @@
         m.size === 'L' ? '<span class="tag heavy">NẶNG</span>' : '';
       html += '<tr><td>' + esc(m.name) + tag +
         '<div class="p-sku">' + esc(m.sku) + ' · ' + esc(CAT_LABEL[m.cat] || m.cat) + ' · ' + esc(m.brand) + '</div></td>' +
-        '<td><b>' + it.qty + '</b></td></tr>';
+        '<td><b class="qty-edit" title="Bấm để sửa số lượng" data-key="' + esc(m.sku + '|' + m.name) + '">' + it.qty + '</b></td></tr>';
     });
     if (items.length > 80) html += '<tr><td colspan="2" class="p-sku">… và ' + (items.length - 80) + ' model nữa</td></tr>';
     html += '</tbody></table>';
@@ -530,6 +544,16 @@
         else if (b.groupIds.length >= 3) { alert('Mỗi lô tối đa 3 nhóm hàng cho dễ tìm. Bỏ bớt 1 nhóm trước.'); return; }
         else b.groupIds.push(gid);
         save(); renderAll();
+      });
+    });
+    $('detailBody').querySelectorAll('.qty-edit').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var key = el.getAttribute('data-key');
+        var v = prompt('Số lượng tồn mới (0 = hết hàng, bỏ khỏi sơ đồ):', el.textContent);
+        if (v === null) return;
+        var n = parseInt(v, 10);
+        if (isNaN(n) || n < 0) return;
+        updateQty(key, n);
       });
     });
     var rot = $('btnRotate');
@@ -660,6 +684,219 @@
     renderDetail();
   }
 
+  // ---------- Nạp dữ liệu động: Excel/CSV/Google Sheet -> tự xếp lại ----------
+  var MISC_BRANDS = ['MÁY NƯỚC NÓNG', 'TỦ LẠNH- TỦ ĐÔNG', 'MÁY GIẶT', 'TIVI', 'NỒI -CHẢO', 'BẾP', 'ẤM ĐUN', 'QUẠT', 'MÔ HÌNH', 'NÓN BH +ÁO'];
+  var ACCESSORY_BRANDS = ['PHỤ KIỆN MÁY LẠNH'];
+
+  function stripAccents(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+  // Phân loại model từ tên hàng (bản JS của tools/xlsx_to_data.py — giữ 2 bên giống nhau)
+  function classify(brand, name) {
+    var n = stripAccents(String(name).toUpperCase());
+    if (ACCESSORY_BRANDS.indexOf(brand) !== -1 || /MAT NA|REMOTE|BO DIEU KHIEN|BO LOE/.test(n)) return ['phukien', 'S'];
+    if (MISC_BRANDS.indexOf(brand) !== -1) return ['linhtinh', 'S'];
+    if (n.indexOf('VRV') !== -1 || n.indexOf('VRF') !== -1) return ['vrv', 'X'];
+
+    var hp = 0;
+    var m = n.match(/(\d+(?:[\.,]\d+)?)\s*HP/);
+    if (m) hp = parseFloat(m[1].replace(',', '.'));
+    var bigCode = /(?:^|\D)(100|125|140|160|200|250)(?:\D|$)/.test(n);
+
+    var cat;
+    if (n.indexOf('TU DUNG') !== -1) cat = 'tudung';
+    else if (n.indexOf('GIAU') !== -1) cat = 'giautran';
+    else if (n.indexOf('AM TRAN') !== -1) cat = 'amtran';
+    else if (n.indexOf('AP TRAN') !== -1) cat = 'aptran';
+    else if (n.indexOf('MULTI') !== -1) cat = 'multi';
+    else if (n.indexOf('TREO TUONG') !== -1) cat = 'treo';
+    else if (n.indexOf('DAN NONG') !== -1) cat = 'dannong';
+    else cat = 'khac';
+
+    var size;
+    if (hp >= 5 || (bigCode && cat !== 'treo' && cat !== 'khac')) size = 'X';
+    else if (cat === 'tudung' || cat === 'giautran') size = 'L';
+    else if (cat === 'amtran' || cat === 'aptran' || cat === 'dannong' || cat === 'multi') size = 'M';
+    else size = 'S';
+    return [cat, size];
+  }
+
+  function toNum(x) {
+    var v = parseFloat(String(x == null ? '' : x).replace(/,/g, '.'));
+    return isNaN(v) ? 0 : v;
+  }
+
+  // rows (mảng 2 chiều, cùng bố cục sheet TỒN KHO) -> raw items
+  // Cột: A hãng (chỉ dòng đầu nhóm) · B mã · C tên hàng · D TỔNG TỒN CUỐI · I XUẤT
+  function rowsToRaw(rows) {
+    var hi = -1;
+    for (var i = 0; i < Math.min(rows.length, 10); i++) {
+      var joined = (rows[i] || []).map(function (c) { return stripAccents(String(c || '').toUpperCase()); }).join('|');
+      if (joined.indexOf('TONG TON CUOI') !== -1) { hi = i; break; }
+    }
+    if (hi === -1) return null;
+    var raw = [], brand = null;
+    for (var r = hi + 1; r < rows.length; r++) {
+      var row = rows[r] || [];
+      var a = row[0], sku = row[1], name = row[2];
+      if (a && String(a).trim() && String(a).trim() !== 'TỔNG') brand = String(a).trim();
+      if (!sku && !name) continue;
+      var qty = toNum(row[3]);
+      if (qty <= 0) continue;
+      name = String(name || '').replace(/\s+/g, ' ').trim();
+      sku = String(sku || '').replace(/\s+/g, ' ').trim() || name.slice(0, 20);
+      var cs = classify(brand, name);
+      raw.push([brand, sku, name, Math.round(qty), Math.round(toNum(row[8])), cs[0], cs[1]]);
+    }
+    return raw;
+  }
+
+  function parseCSV(text) {
+    var rows = [], row = [], cur = '', q = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+        else cur += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(cur); rows.push(row); row = []; cur = '';
+      } else cur += c;
+    }
+    if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+    return rows;
+  }
+
+  // Nạp bộ tồn kho mới -> TỰ CHẠY LẠI GỢI Ý XẾP KHO -> lưu + vẽ lại
+  function applyRawItems(raw, label, silent) {
+    state.items = raw;
+    state.dataLabel = label;
+    ITEMS = rawToItems(raw);
+    GROUPS = buildGroups();
+    state.blocks.forEach(function (b) {
+      b.groupIds = (b.groupIds || []).filter(function (id) { return groupOf(id); });
+    });
+    runOptimize(state, !!silent); // sơ đồ tự điều chỉnh theo số mới
+    save();
+    updateDataLabel();
+    renderAll();
+  }
+
+  function updateDataLabel() {
+    var el = $('dataLabel');
+    if (el) el.textContent = state.dataLabel || 'báo cáo 10/07/2026 (mặc định)';
+  }
+
+  // Sửa số lượng 1 model ngay trong app -> sơ đồ tự điều chỉnh
+  function updateQty(key, newQty) {
+    if (!state.items) state.items = ITEMS.map(function (m) { return [m.brand, m.sku, m.name, m.qty, m.out, m.cat, m.size]; });
+    var hit = null;
+    state.items.forEach(function (r) { if (r[1] + '|' + r[2] === key) hit = r; });
+    if (!hit) return;
+    hit[3] = newQty;
+    state.items = state.items.filter(function (r) { return r[3] > 0; });
+    ITEMS = rawToItems(state.items);
+    GROUPS = buildGroups();
+    state.blocks.forEach(function (b) {
+      b.groupIds = (b.groupIds || []).filter(function (id) { return groupOf(id); });
+    });
+    // chỉ tự chạy lại gợi ý khi hết chỗ, để không xáo trộn sơ đồ ngoài ý muốn
+    if (computePlacement().overflow.length) runOptimize(state, true);
+    save();
+    renderAll();
+  }
+
+  $('btnImport').addEventListener('click', function () { $('fileInput').click(); });
+  $('fileInput').addEventListener('change', function () {
+    var f = this.files[0];
+    this.value = '';
+    if (!f) return;
+    var reader = new FileReader();
+    if (/\.csv$/i.test(f.name)) {
+      reader.onload = function () {
+        var raw = rowsToRaw(parseCSV(String(reader.result)));
+        if (!raw || !raw.length) { alert('Không tìm thấy cột "TỔNG TỒN CUỐI" trong file CSV. Xuất đúng sheet TỒN KHO nhé.'); return; }
+        applyRawItems(raw, 'file ' + f.name);
+      };
+      reader.readAsText(f);
+    } else {
+      reader.onload = function () {
+        try {
+          var wb = XLSX.read(new Uint8Array(reader.result), { type: 'array' });
+          var raw = null;
+          for (var i = 0; i < wb.SheetNames.length && !raw; i++) {
+            var rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]], { header: 1, raw: true, defval: '' });
+            raw = rowsToRaw(rows);
+          }
+          if (!raw || !raw.length) { alert('Không tìm thấy sheet TỒN KHO (cột "TỔNG TỒN CUỐI") trong file Excel.'); return; }
+          applyRawItems(raw, 'file ' + f.name);
+        } catch (e) {
+          alert('Không đọc được file Excel: ' + e.message);
+        }
+      };
+      reader.readAsArrayBuffer(f);
+    }
+  });
+
+  function syncSheet(url, silent) {
+    return fetch(url)
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(function (t) {
+        var raw = rowsToRaw(parseCSV(t));
+        if (!raw || !raw.length) throw new Error('không thấy cột "TỔNG TỒN CUỐI" — hãy xuất bản đúng trang TỒN KHO dạng CSV');
+        state.sheetUrl = url;
+        applyRawItems(raw, 'Google Sheet · đồng bộ ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), silent);
+      })
+      .catch(function (e) {
+        if (!silent) alert('Không đồng bộ được Google Sheet: ' + e.message +
+          '\n\nCách lấy link đúng:\n1. Mở Google Sheet chứa tab TỒN KHO\n2. Tệp → Chia sẻ → Xuất bản lên web\n3. Chọn trang "TỒN KHO" + định dạng CSV → Xuất bản\n4. Dán link đó vào đây');
+      });
+  }
+
+  $('btnSheet').addEventListener('click', function () {
+    var url = prompt(
+      'Dán link CSV của Google Sheet (Tệp → Chia sẻ → Xuất bản lên web → chọn trang TỒN KHO → CSV).\n' +
+      'App sẽ tự kéo số tồn mới và tự xếp lại sơ đồ mỗi lần mở.\n\nĐể trống rồi OK nếu muốn ngắt kết nối.',
+      state.sheetUrl || '');
+    if (url === null) return;
+    url = url.trim();
+    if (!url) {
+      delete state.sheetUrl;
+      save();
+      alert('Đã ngắt kết nối Google Sheet.');
+      return;
+    }
+    syncSheet(url, false);
+  });
+
+  $('btnExport').addEventListener('click', function () {
+    var placement = computePlacement();
+    var out = {
+      generated: new Date().toISOString(),
+      source: state.dataLabel || 'báo cáo 10/07/2026 (mặc định)',
+      warehouse: { width_m: CFG.width, depth_m: CFG.depth, ceiling_wall_m: CFG.hWall, ceiling_max_m: CFG.hMax, doors: DOORS, office: OFFICE },
+      blocks: state.blocks.map(function (b) {
+        return {
+          id: b.id, label: b.label, x: b.x, y: b.y, w: b.w, d: b.d,
+          area_m2: blockArea(b), used_m2: +((placement.blockUsed[b.id] || 0).toFixed(1)),
+          ceiling_m: +blockCeiling(b).toFixed(2),
+          groups: b.groupIds.map(function (id) { return groupOf(id).label; }),
+          items: placement.blockItems[b.id].map(function (it) {
+            return { brand: it.model.brand, sku: it.model.sku, name: it.model.name, qty: it.qty, cat: it.model.cat, size: it.model.size };
+          })
+        };
+      }),
+      unplaced: placement.overflow.map(function (o) { return { sku: o.model.sku, name: o.model.name, qty: o.qty }; })
+    };
+    var blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'so-do-kho.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
   // ---------- Toolbar ----------
   $('colorMode').addEventListener('change', function () { colorMode = this.value; renderMap(); });
 
@@ -695,8 +932,12 @@
   });
 
   $('btnReset').addEventListener('click', function () {
-    if (!confirm('Xoá bố trí đã chỉnh và quay về sơ đồ gợi ý mặc định (25 lô)?')) return;
+    if (!confirm('Xoá bố trí đã chỉnh và quay về sơ đồ gợi ý mặc định (25 lô)? Dữ liệu tồn kho đã nạp vẫn giữ nguyên.')) return;
+    var keepItems = state.items, keepLabel = state.dataLabel, keepUrl = state.sheetUrl;
     state = defaultState();
+    if (keepItems) state.items = keepItems;
+    if (keepLabel) state.dataLabel = keepLabel;
+    if (keepUrl) state.sheetUrl = keepUrl;
     selectedBlock = null; activeGroup = null; highlightBlocks = {};
     save();
     renderAll();
@@ -709,5 +950,8 @@
 
   // ---------- Khởi động ----------
   renderChecklist();
+  updateDataLabel();
   renderAll();
+  // có kết nối Google Sheet -> tự kéo số tồn mới nhất rồi tự xếp lại
+  if (state.sheetUrl) syncSheet(state.sheetUrl, true);
 })();

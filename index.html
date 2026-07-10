@@ -13,7 +13,7 @@
       <span class="brand-icon">🏭</span>
       <div>
         <h1>Sơ Đồ Kho 50×40m</h1>
-        <p>Gợi ý xếp kho theo tồn thật · báo cáo 10/07/2026</p>
+        <p>Gợi ý xếp kho theo tồn thật · <span id="dataLabel">báo cáo 10/07/2026</span></p>
       </div>
     </div>
     <div class="stats">
@@ -30,6 +30,10 @@
         <option value="layers">Màu: số lớp chồng</option>
       </select>
       <button class="btn blue" id="btnOptimize">⚡ Gợi ý xếp kho</button>
+      <button class="btn green" id="btnImport" title="Nạp file BÁO CÁO .xlsx hoặc .csv — sơ đồ tự xếp lại theo số mới">📥 Nạp Excel/CSV</button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
+      <button class="btn ghost" id="btnSheet" title="Kết nối Google Sheet: tự kéo tồn kho mỗi lần mở app">🔗 Google Sheet</button>
+      <button class="btn ghost" id="btnExport" title="Tải sơ đồ + vị trí hàng dạng JSON">⬇ JSON</button>
       <button class="btn ghost" id="btnEdit">✎ Sửa sơ đồ</button>
       <button class="btn ghost" id="btnReset" title="Xoá bố trí đã chỉnh, quay về sơ đồ gợi ý">↺ Mặc định</button>
     </div>
@@ -79,6 +83,7 @@
     </div>
   </div>
 
+  <script src="vendor/xlsx.full.min.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>

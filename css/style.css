@@ -255,6 +255,9 @@ body {
 }
 .tag.heavy { background: #fef3c7; color: var(--amber); }
 
+.qty-edit { cursor: pointer; border-bottom: 1px dashed var(--blue); color: var(--blue); }
+.qty-edit:hover { background: #e8f1ff; }
+
 .note {
   font-size: 12px;
   color: var(--muted);

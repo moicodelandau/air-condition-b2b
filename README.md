@@ -29,19 +29,22 @@
 
 ## Chạy app
 
-Mở `index.html` bằng trình duyệt, hoặc `python3 -m http.server 8000`.
+Tải repo về (Code → Download ZIP trên GitHub), mở `index.html` bằng trình duyệt là chạy — không cần cài gì.
 
-## Cập nhật tồn kho từ báo cáo Excel mới
+## Cập nhật số liệu → sơ đồ TỰ SẮP XẾP LẠI
 
-Sơ đồ đọc dữ liệu từ `js/data.js`, sinh tự động từ sheet **TỒN KHO** của file báo cáo:
+Có 4 cách, số thay đổi là sơ đồ tự điều chỉnh:
 
-```bash
-pip install openpyxl
-python3 tools/xlsx_to_data.py "BÁO CÁO NGÀY 10.07.2026.xlsx"
-# -> ghi đè js/data.js, mở lại app là thấy số mới
-```
+1. **📥 Nạp Excel/CSV ngay trong app**: bấm nút, chọn file BÁO CÁO (.xlsx) hoặc CSV có sheet/cột TỒN KHO — app đọc trực tiếp trong trình duyệt, tự phân loại, tự chạy lại gợi ý xếp kho. Không cần Python.
+2. **🔗 Kết nối Google Sheet**: đưa file báo cáo lên Google Sheets → Tệp → Chia sẻ → *Xuất bản lên web* → chọn trang **TỒN KHO** + định dạng **CSV** → copy link, dán vào nút 🔗. Từ đó **mỗi lần mở app sẽ tự kéo số tồn mới nhất và tự xếp lại**.
+3. **Sửa tay trong app**: bấm vào lô → bấm vào số lượng của model → nhập số mới (0 = hết hàng). Sơ đồ tự dồn chỗ; nếu hết chỗ sẽ tự chạy lại gợi ý.
+4. **Script Python** (tuỳ chọn, để cập nhật số mặc định trong repo): `python3 tools/xlsx_to_data.py "BÁO CÁO.xlsx"` → ghi đè `js/data.js`.
 
-Script tự phân loại từng model (treo tường / âm trần / tủ đứng / giấu trần / multi / dàn nóng / **VRV-VRF & máy ≥4-5HP** / phụ kiện / linh tinh) từ tên hàng, và lấy cột XUẤT làm độ bán chạy.
+App tự phân loại từng model từ tên hàng (treo tường / âm trần / tủ đứng / giấu trần / multi / dàn nóng / **VRV-VRF & máy ≥4-5HP** / phụ kiện / linh tinh) và lấy cột XUẤT làm độ bán chạy.
+
+## Xuất sơ đồ dạng JSON
+
+Nút **⬇ JSON** tải file `so-do-kho.json`: kích thước kho, cửa, văn phòng, từng lô (vị trí, m² dùng, trần, nhóm hàng) và **danh sách model + số lượng trên từng lô** — dùng để in, đối chiếu kiểm kê, hoặc nạp vào hệ thống khác.
 
 ## Cấu trúc
 
