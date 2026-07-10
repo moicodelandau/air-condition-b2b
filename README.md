@@ -1,48 +1,56 @@
-# Sơ Đồ Kho Điều Hòa – Warehouse Map Tracking
+# Sơ Đồ Kho 50×40m – Gợi ý & Mapping Hàng Hóa
 
-Ứng dụng web vẽ **sơ đồ mặt bằng bên trong kho** điều hòa để phân khu, tìm vị trí hàng và tối ưu sắp xếp. Không cần server, không cần internet — mở `index.html` là chạy.
+Ứng dụng web vẽ **sơ đồ mặt bằng kho điều hòa thật** và **gợi ý cách xếp hàng tối ưu** dựa trên số tồn thật từ file báo cáo Excel. Không cần server, không cần internet — mở `index.html` là chạy.
 
-## Bài toán
+## Kho thật được mô hình hóa
 
-- Kho chứa **19 hãng**, **~300 model** điều hòa.
-- Trần dốc: **cao nhất 5m** (tường sau) → **thấp nhất 3.5m** (tường trước).
-- Có **3 cửa**: cửa nhập (C1), cửa xuất chính (C2), cửa phụ (C3).
-- Cần sắp xếp sao cho dễ tìm, dễ lấy hàng, dễ kiểm kê và dọn kho.
+- Kho **dài 50m × ngang 40m** (2000m²).
+- **Cửa chính hướng Bắc**, rộng 4m cao 4m; **văn phòng kho ở góc phải cửa** (nhìn ra) = góc Đông-Bắc.
+- 2 cửa phụ: **Nam** và **Tây**.
+- Trần **cao nhất 5m ở giữa kho**, 4m tại tường — sơ đồ vẽ đường đồng mức trần 4.5m, số lớp chồng hàng tự tính theo trần tại từng lô.
+- Tồn thật (báo cáo 10/07/2026): **357 model còn hàng, 3136 máy, 30 nhóm hãng/loại** — gồm máy lớn/VRV-VRF, tủ đứng, dàn nóng, ~2650 máy treo tường và hàng linh tinh (nón BH, gia dụng, mô hình…).
+
+## Nguyên tắc gợi ý xếp kho (nút ⚡)
+
+1. **MÁY LỚN / VRV-VRF / tủ đứng** → chỉ để sàn, không chồng, sát **cửa Tây** + lối xe nâng 4m.
+2. **Hãng bán chạy + tồn nhiều** (Casper 838, Daikin 467, Panasonic…) → lô gần **CỬA CHÍNH Bắc** và khu tập kết.
+3. **Phụ kiện, remote, hàng linh tinh** → gần **văn phòng** để dễ quản lý, tránh thất thoát.
+4. Chồng hàng theo trần: treo tường tối đa **8 lớp** giữa kho (5m), ~7 lớp sát tường (4m); máy vừa 3 lớp, máy lớn 2 lớp, VRV không chồng; thùng nặng nằm dưới.
+5. Mỗi lô tối đa 3 nhóm hàng; lối đi chính Bắc–Nam 4m + lối ngang ra cửa Tây 4m luôn để trống.
 
 ## Tính năng
 
-- 🗺️ **Sơ đồ mặt bằng 2D** (SVG, lưới 1m): tường, 3 cửa, kệ hàng, khu nhận hàng / tập kết xuất / hàng lỗi / phụ kiện.
-- 📏 **Số tầng kệ tự tính theo độ cao trần** tại vị trí kệ: khu trần 5m được kệ 4 tầng, khu 3.5m chỉ 2 tầng (mỗi tầng ~1.1m + hở an toàn 0.4m). Sơ đồ vẽ sẵn các đường ranh giới đổi số tầng.
-- ⚡ **Tối ưu sắp xếp**: hãng bán chạy + tồn nhiều tự động được xếp vào kệ gần cửa xuất chính; mỗi kệ tối đa 2 hãng; máy nặng (tủ đứng, âm trần) ghi chú xếp tầng 1. Có báo cáo phân bổ và cảnh báo thiếu chỗ.
-- 🔍 **Tìm model/hãng** → chỉ ra đúng kệ chứa hàng (kệ nhấp nháy đỏ trên sơ đồ). Bấm tên hãng ở sidebar để tô sáng mọi kệ của hãng đó.
-- ✎ **Sửa sơ đồ**: kéo thả kệ (bám lưới 0.5m), xoay kệ, thêm/xoá kệ, gán hãng cho từng kệ bằng chip bấm.
-- 🎨 3 chế độ tô màu: theo hãng / theo độ lấp đầy / theo số tầng kệ.
-- ✅ **Checklist dọn kho 5S** (Sàng lọc, Sắp xếp, Sạch sẽ, Săn sóc, Sẵn sàng) có lưu tiến độ.
-- 📊 Thống kê: số hãng, model, máy tồn, % lấp đầy, số máy chưa có chỗ.
-- 💾 Bố trí kệ + checklist lưu **localStorage**; nút "↺ Mặc định" khôi phục sơ đồ chuẩn.
+- 🗺️ Sơ đồ 2D tỉ lệ thật (lưới 1m): tường, 3 cửa, văn phòng, khu tập kết, lối xe nâng, 25 lô hàng, la bàn.
+- 🔍 Tìm model/mã/hãng → lô chứa hàng nhấp nháy đỏ; bấm nhóm hàng ở sidebar để xem mọi lô của nhóm.
+- 📦 Bấm lô → chi tiết: trần, số lớp chồng, m² đã dùng, danh sách model thật + số lượng, cảnh báo máy lớn.
+- ✎ Sửa sơ đồ: kéo thả lô (bám lưới 0.5m), xoay, thêm/xoá lô, gán nhóm hàng bằng chip.
+- 🎨 3 chế độ màu: theo nhóm hàng / độ lấp đầy / số lớp chồng.
+- ✅ Checklist dọn kho 5S theo đúng kho này; 📊 thống kê; 💾 lưu localStorage, nút ↺ về sơ đồ gợi ý.
 
 ## Chạy app
 
-Mở trực tiếp `index.html` bằng trình duyệt, hoặc:
+Mở `index.html` bằng trình duyệt, hoặc `python3 -m http.server 8000`.
+
+## Cập nhật tồn kho từ báo cáo Excel mới
+
+Sơ đồ đọc dữ liệu từ `js/data.js`, sinh tự động từ sheet **TỒN KHO** của file báo cáo:
 
 ```bash
-python3 -m http.server 8000
+pip install openpyxl
+python3 tools/xlsx_to_data.py "BÁO CÁO NGÀY 10.07.2026.xlsx"
+# -> ghi đè js/data.js, mở lại app là thấy số mới
 ```
 
-## Tuỳ biến theo kho thật
-
-Sửa các hằng số đầu file `js/app.js`:
-
-- `DEFAULT_CONFIG`: kích thước kho (mặc định 30×20m) và độ cao trần (5m → 3.5m).
-- `DOORS`: vị trí 3 cửa trên tường (N/S/E/W + vị trí tương đối).
-- `BRAND_DEFS`: danh sách hãng và độ bán chạy (1–5 sao) — độ bán chạy quyết định hãng nào được ưu tiên gần cửa xuất.
-- `LEVEL_H`, `UNITS_PER_M`: chiều cao mỗi tầng kệ và số kiện/mét để tính sức chứa.
-- Danh mục ~300 model đang được sinh tự động trong `genModels()` — thay bằng danh sách thật khi có file kiểm kê.
+Script tự phân loại từng model (treo tường / âm trần / tủ đứng / giấu trần / multi / dàn nóng / **VRV-VRF & máy ≥4-5HP** / phụ kiện / linh tinh) từ tên hàng, và lấy cột XUẤT làm độ bán chạy.
 
 ## Cấu trúc
 
 ```
-index.html      – giao diện chính
-css/style.css   – style
-js/app.js       – logic: sơ đồ SVG, tính tầng kệ theo trần, tối ưu sắp xếp, tìm kiếm, kéo thả
+index.html            – giao diện
+css/style.css         – style
+js/app.js             – sơ đồ SVG, thuật toán gợi ý xếp lô, tìm kiếm, kéo thả
+js/data.js            – tồn kho thật (sinh tự động, KHÔNG sửa tay)
+tools/xlsx_to_data.py – chuyển Excel -> js/data.js
 ```
+
+Kích thước kho / cửa / văn phòng / thông số chồng hàng nằm ở đầu `js/app.js` (`CFG`, `DOORS`, `OFFICE`, `SIZE`).

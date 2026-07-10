@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sơ Đồ Kho – Warehouse Map Tracking</title>
+  <title>Sơ Đồ Kho 50×40m – Mapping Hàng Hóa</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏭</text></svg>">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -12,37 +12,37 @@
     <div class="brand">
       <span class="brand-icon">🏭</span>
       <div>
-        <h1>Sơ Đồ Kho Điều Hòa</h1>
-        <p>Phân khu · tìm vị trí · tối ưu sắp xếp</p>
+        <h1>Sơ Đồ Kho 50×40m</h1>
+        <p>Gợi ý xếp kho theo tồn thật · báo cáo 10/07/2026</p>
       </div>
     </div>
     <div class="stats">
-      <div class="stat"><span class="stat-value" id="statBrands">0</span><span class="stat-label">Hãng</span></div>
-      <div class="stat"><span class="stat-value" id="statModels">0</span><span class="stat-label">Model</span></div>
+      <div class="stat"><span class="stat-value" id="statBrands">0</span><span class="stat-label">Nhóm hàng</span></div>
+      <div class="stat"><span class="stat-value" id="statModels">0</span><span class="stat-label">Model tồn</span></div>
       <div class="stat"><span class="stat-value" id="statUnits">0</span><span class="stat-label">Máy tồn</span></div>
-      <div class="stat"><span class="stat-value" id="statFill">0%</span><span class="stat-label">Lấp đầy</span></div>
+      <div class="stat"><span class="stat-value" id="statFill">0%</span><span class="stat-label">Dùng diện tích</span></div>
       <div class="stat warn"><span class="stat-value" id="statOverflow">0</span><span class="stat-label">Chưa xếp</span></div>
     </div>
     <div class="toolbar">
       <select id="colorMode" title="Chế độ tô màu sơ đồ">
-        <option value="brand">Màu: theo hãng</option>
+        <option value="group">Màu: theo nhóm hàng</option>
         <option value="fill">Màu: độ lấp đầy</option>
-        <option value="levels">Màu: số tầng kệ</option>
+        <option value="layers">Màu: số lớp chồng</option>
       </select>
-      <button class="btn blue" id="btnOptimize">⚡ Tối ưu sắp xếp</button>
+      <button class="btn blue" id="btnOptimize">⚡ Gợi ý xếp kho</button>
       <button class="btn ghost" id="btnEdit">✎ Sửa sơ đồ</button>
-      <button class="btn ghost" id="btnReset" title="Xoá dữ liệu đã lưu, quay về mặc định">↺ Mặc định</button>
+      <button class="btn ghost" id="btnReset" title="Xoá bố trí đã chỉnh, quay về sơ đồ gợi ý">↺ Mặc định</button>
     </div>
   </header>
 
   <main class="layout">
     <aside class="sidebar">
       <div class="search-box">
-        <input type="search" id="searchInput" placeholder="Tìm model / hãng… (vd: FTKA35, Casper)">
+        <input type="search" id="searchInput" placeholder="Tìm model / mã / hãng… (vd: FTKF25, Casper)">
       </div>
       <div id="searchResults" class="search-results hidden"></div>
 
-      <h2 class="side-title">Hãng trong kho <span class="muted-inline">(bấm để xem vị trí)</span></h2>
+      <h2 class="side-title">Nhóm hàng <span class="muted-inline">(bấm để xem vị trí)</span></h2>
       <ul class="brand-list" id="brandList"></ul>
 
       <h2 class="side-title">Checklist dọn kho (5S)</h2>
@@ -53,7 +53,7 @@
       <div class="map-scroll" id="mapScroll">
         <div id="mapHost"></div>
       </div>
-      <div class="map-hint" id="mapHint">Bấm vào kệ để xem chi tiết · kéo thả kệ ở chế độ ✎ Sửa sơ đồ</div>
+      <div class="map-hint" id="mapHint">Bấm vào lô hàng để xem chi tiết · kéo thả lô ở chế độ ✎ Sửa sơ đồ</div>
     </section>
 
     <aside class="detail hidden" id="detailPanel">
@@ -68,10 +68,10 @@
     </aside>
   </main>
 
-  <!-- Modal kết quả tối ưu -->
+  <!-- Modal kết quả gợi ý -->
   <div class="modal-backdrop hidden" id="modal">
     <div class="modal">
-      <h3 id="modalTitle">Kết quả tối ưu</h3>
+      <h3 id="modalTitle">Gợi ý sơ đồ xếp kho</h3>
       <div id="modalBody" class="modal-body"></div>
       <div class="modal-actions">
         <button type="button" class="btn blue" id="btnModalClose">Đóng</button>
@@ -79,6 +79,7 @@
     </div>
   </div>
 
+  <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

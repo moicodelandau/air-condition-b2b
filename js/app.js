@@ -1,162 +1,157 @@
-/* Sơ Đồ Kho Điều Hòa – bản đồ mặt bằng bên trong kho.
- * - Trần dốc: cao nhất (tường sau) -> thấp nhất (tường trước); số tầng kệ tính theo độ cao trần tại vị trí kệ.
- * - 3 cửa: nhập, xuất chính, phụ. Thuật toán tối ưu xếp hãng bán chạy gần cửa xuất.
- * - Dữ liệu bố trí kệ + checklist lưu localStorage. Đơn vị: mét. */
+/* Sơ Đồ Kho Điều Hòa – gợi ý & mapping sơ đồ hàng hóa trong kho.
+ *
+ * Kho thật: dài 50m (Bắc->Nam) x ngang 40m (Tây->Đông).
+ * - Cửa chính hướng BẮC (4m rộng, 4m cao); văn phòng kho ở góc phải cửa (nhìn ra) = góc Đông-Bắc.
+ * - 2 cửa phụ: NAM và TÂY. Trần cao nhất 5m (giữa kho), 4m tại tường.
+ * - Hàng đặt sàn theo LÔ, xếp chồng; số lớp chồng tính theo loại máy + trần tại vị trí lô.
+ * - Tồn kho thật nạp từ js/data.js (sinh bởi tools/xlsx_to_data.py từ file báo cáo Excel).
+ * Đơn vị: mét. Trục x: 0 = tường Tây -> 40 = Đông. Trục y: 0 = tường Bắc -> 50 = Nam. */
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'ac-warehouse-floor-v1';
+  var STORAGE_KEY = 'ac-warehouse-real-v1';
 
   // ---------- Cấu hình kho ----------
-  var DEFAULT_CONFIG = {
-    width: 30,   // chiều rộng (m, trục x)
-    depth: 20,   // chiều sâu (m, trục y)
-    hMax: 5.0,   // trần cao nhất – tại tường sau (y = 0)
-    hMin: 3.5    // trần thấp nhất – tại tường trước (y = depth)
+  var CFG = {
+    width: 40,   // ngang (m, trục x, Tây->Đông)
+    depth: 50,   // dài (m, trục y, Bắc->Nam)
+    hWall: 4.0,  // trần tại tường Bắc/Nam (bằng chiều cao cửa chính)
+    hMax: 5.0    // trần cao nhất – giữa kho
   };
-  var LEVEL_H = 1.1;      // mỗi tầng kệ ~1.1m (kiện máy + kệ)
-  var CLEARANCE = 0.4;    // khoảng hở an toàn dưới trần
-  var UNITS_PER_M = 3;    // số kiện máy xếp được trên 1m dài kệ / tầng
+  var CLEARANCE = 0.3; // hở an toàn dưới trần khi chồng hàng
 
-  // Cửa: side N/S/E/W, frac = vị trí tương đối dọc tường (0-1), width (m)
+  // Thông số xếp chồng theo cỡ máy: S treo tường, M dàn nóng/âm trần/multi, L tủ đứng/giấu trần, X máy lớn/VRV
+  var SIZE = {
+    S: { label: 'Nhỏ (treo tường, hàng nhẹ)', perM2: 1.6, layerH: 0.32, maxLayers: 8 },
+    M: { label: 'Vừa (dàn nóng, âm trần, multi)', perM2: 0.9, layerH: 0.7, maxLayers: 3 },
+    L: { label: 'Lớn (tủ đứng, giấu trần)', perM2: 0.5, layerH: 1.0, maxLayers: 2 },
+    X: { label: 'Siêu lớn (VRV/VRF, máy ≥5HP)', perM2: 0.3, layerH: 1.8, maxLayers: 1 }
+  };
+
   var DOORS = [
-    { id: 'c1', name: 'Cửa nhập (C1)', side: 'W', frac: 0.125, width: 3, color: '#16a34a' },
-    { id: 'c2', name: 'Cửa xuất chính (C2)', side: 'S', frac: 0.5, width: 4, color: '#1668dc' },
-    { id: 'c3', name: 'Cửa phụ (C3)', side: 'E', frac: 0.78, width: 1.6, color: '#d97706' }
+    { id: 'bac', name: 'CỬA CHÍNH (Bắc) 4×4m', side: 'N', x: 24, w: 4, color: '#1668dc' },
+    { id: 'nam', name: 'Cửa Nam', side: 'S', x: 24, w: 3, color: '#16a34a' },
+    { id: 'tay', name: 'Cửa Tây', side: 'W', y: 22.5, w: 3, color: '#d97706' }
   ];
+  var OFFICE = { x: 31, y: 0, w: 9, d: 7 };
+  var ANCHORS = {
+    north: { x: 26, y: 0 },
+    west: { x: 0, y: 24 },
+    south: { x: 25.5, y: 50 },
+    office: { x: 35.5, y: 3.5 }
+  };
 
-  // Khu vực sàn (toạ độ tương đối theo kích thước kho để tự co giãn)
+  // Khu chức năng (vẽ nền, không chứa lô)
   var ZONES = [
-    { id: 'recv', lines: ['Khu nhận &', 'kiểm hàng'], fx: .017, fy: .025, fw: .133, fh: .25, fill: '#dbeafe', stroke: '#1668dc' },
-    { id: 'ship', lines: ['Khu tập kết xuất'], fx: .333, fy: .825, fw: .334, fh: .15, fill: '#dcfce7', stroke: '#16a34a' },
-    { id: 'defect', lines: ['Hàng lỗi /', 'bảo hành'], fx: .85, fy: .025, fw: .133, fh: .21, fill: '#fee2e2', stroke: '#dc2626' },
-    { id: 'acc', lines: ['Phụ kiện', '& vật tư'], fx: .867, fy: .64, fw: .117, fh: .33, fill: '#fef9c3', stroke: '#d97706' }
+    { lines: ['Tập kết', 'nhập / xuất'], x: 21, y: 0.5, w: 9.5, d: 7, fill: '#dcfce7', stroke: '#16a34a' },
+    { lines: ['Tập kết cửa Nam'], x: 16, y: 45.5, w: 19, d: 4, fill: '#dcfce7', stroke: '#16a34a' },
+    { lines: ['Lối đi chính 4m', '(xe nâng)'], x: 23, y: 7.5, w: 4, d: 42, fill: '#eef2f7', stroke: '#9aa8bd', vertical: true },
+    { lines: ['Lối đi ngang 4m (xe nâng)'], x: 0, y: 21.5, w: 40, d: 4, fill: '#eef2f7', stroke: '#9aa8bd' }
   ];
 
-  // ---------- Hãng (19 hãng) ----------
-  // [id, tên, tên ngắn, độ bán chạy 1-5, seri treo tường 1, seri treo tường 2]
-  var BRAND_DEFS = [
-    ['daikin', 'Daikin', 'Daikin', 5, 'FTKA', 'FTKY'],
-    ['panasonic', 'Panasonic', 'Pana', 5, 'XU', 'PU'],
-    ['casper', 'Casper', 'Casper', 5, 'GC', 'SC'],
-    ['lg', 'LG', 'LG', 4, 'V', 'B'],
-    ['midea', 'Midea', 'Midea', 4, 'MSAF', 'MSAG'],
-    ['gree', 'Gree', 'Gree', 4, 'GWC', 'CHARM'],
-    ['aqua', 'Aqua', 'Aqua', 3, 'AQA-KCR', 'AQA-RV'],
-    ['sharp', 'Sharp', 'Sharp', 3, 'AH-X', 'AH-A'],
-    ['toshiba', 'Toshiba', 'Toshiba', 3, 'RAS-H', 'RAS-U'],
-    ['samsung', 'Samsung', 'Samsung', 3, 'AR-TY', 'AR-BY'],
-    ['mitsuele', 'Mitsubishi Electric', 'Mitsu E', 3, 'MSY-JW', 'MS-JS'],
-    ['mitsuheavy', 'Mitsubishi Heavy', 'Mitsu H', 2, 'SRK-YXP', 'SRK-CS'],
-    ['hitachi', 'Hitachi', 'Hitachi', 2, 'RAK-DJ', 'RAK-F'],
-    ['electrolux', 'Electrolux', 'Electrolux', 2, 'ESV-CRO', 'ESM-CRM'],
-    ['funiki', 'Funiki', 'Funiki', 2, 'HIC', 'SIC'],
-    ['nagakawa', 'Nagakawa', 'Nagakawa', 2, 'NIS-C', 'NS-C'],
-    ['sumikura', 'Sumikura', 'Sumikura', 1, 'APS/APO-092', 'APS/APO-H'],
-    ['reetech', 'Reetech', 'Reetech', 1, 'RT-RC', 'RTV-BF'],
-    ['tcl', 'TCL', 'TCL', 1, 'TAC-XA', 'TAC-XAB']
-  ];
+  // ---------- Lô hàng mặc định (25 lô, hai bên lối đi) ----------
+  function defaultBlocks() {
+    var rowsY = [8, 14.5, 26.5, 33, 39.5];           // 5 hàng lô, sâu 4m
+    var leftX = [[0.5, 6], [8, 6], [15.5, 6.5]];     // phía Tây lối đi chính
+    var rightX = [[28, 5.5], [34.5, 5]];             // phía Đông
+    var blocks = [], n = 1;
+    rowsY.forEach(function (y) {
+      leftX.concat(rightX).forEach(function (xw) {
+        blocks.push({ id: 'b' + n, label: 'L' + n, x: xw[0], y: y, w: xw[1], d: 4, groupIds: [] });
+        n++;
+      });
+    });
+    return blocks;
+  }
+
+  // ---------- Nạp tồn kho thật ----------
+  // INVENTORY_DATA: [hãng, mã, tên, tồn, xuất, cat, size]
+  var ITEMS = (typeof INVENTORY_DATA !== 'undefined' ? INVENTORY_DATA : []).map(function (r) {
+    return { brand: r[0], sku: r[1], name: r[2], qty: r[3], out: r[4], cat: r[5], size: r[6] };
+  });
+
+  var CAT_LABEL = {
+    treo: 'Treo tường', amtran: 'Âm trần', aptran: 'Áp trần', tudung: 'Tủ đứng',
+    giautran: 'Giấu trần', multi: 'Multi', dannong: 'Dàn nóng', vrv: 'VRV/VRF',
+    phukien: 'Phụ kiện', linhtinh: 'Hàng linh tinh', khac: 'Khác'
+  };
 
   var PALETTE = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2',
     '#7f7f7f', '#bcbd22', '#17becf', '#3b82f6', '#f59e0b', '#10b981', '#ef4444',
-    '#8b5cf6', '#f97316', '#14b8a6', '#a855f7', '#65a30d'
+    '#8b5cf6', '#f97316', '#14b8a6', '#a855f7', '#65a30d', '#0ea5e9', '#e11d48'
   ];
 
-  // ---------- RNG có seed (dữ liệu mẫu ổn định) ----------
-  function mulberry32(a) {
-    return function () {
-      a |= 0; a = a + 0x6D2B79F5 | 0;
-      var t = Math.imul(a ^ a >>> 15, 1 | a);
-      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-      return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    };
-  }
+  // ---------- Gom nhóm hàng để xếp lô ----------
+  // Máy lớn/VRV + hàng cỡ L -> 1 nhóm sát cửa Tây (xe nâng). Dàn nóng cỡ M -> gần đó.
+  // Phụ kiện + linh tinh -> gần văn phòng (dễ quản lý, tránh thất thoát).
+  // Treo tường: mỗi hãng >= 30 máy là 1 nhóm, ưu tiên bán chạy gần CỬA CHÍNH Bắc.
+  function buildGroups() {
+    var groups = [];
+    function grp(id, label, short, anchor, color, filter) {
+      var items = ITEMS.filter(filter);
+      if (!items.length) return null;
+      var g = {
+        id: id, label: label, short: short, anchor: anchor, color: color, items: items,
+        qty: items.reduce(function (a, m) { return a + m.qty; }, 0),
+        out: items.reduce(function (a, m) { return a + m.out; }, 0)
+      };
+      groups.push(g);
+      return g;
+    }
 
-  // ---------- Sinh danh mục hãng + ~300 model ----------
-  var BRANDS = BRAND_DEFS.map(function (d, i) {
-    return { id: d[0], name: d[1], short: d[2], vel: d[3], s1: d[4], s2: d[5], color: PALETTE[i % PALETTE.length] };
-  });
+    var taken = {};
+    function untaken(m) { return !taken[m.sku + '|' + m.name]; }
+    function mark(g) { if (g) g.items.forEach(function (m) { taken[m.sku + '|' + m.name] = true; }); }
 
-  function genModels() {
-    var rnd = mulberry32(20260708);
-    var models = [];
-    var HPS = [1.0, 1.5, 2.0, 2.5];
-    BRANDS.forEach(function (b) {
-      function add(sku, name, type, heavy) {
-        var qty = Math.floor(rnd() * (2.2 + b.vel * 1.1));
-        models.push({ sku: sku, brand: b.id, name: name, type: type, heavy: !!heavy, qty: qty });
-      }
-      HPS.forEach(function (hp) {
-        add(b.short.toUpperCase().replace(/\s/g, '') + '-' + b.s1 + Math.round(hp * 10),
-          b.name + ' ' + b.s1 + Math.round(hp * 10) + ' ' + hp + 'HP Inverter', 'Treo tường');
-      });
-      HPS.forEach(function (hp) {
-        add(b.short.toUpperCase().replace(/\s/g, '') + '-' + b.s2 + Math.round(hp * 10),
-          b.name + ' ' + b.s2 + Math.round(hp * 10) + ' ' + hp + 'HP Mono', 'Treo tường');
-      });
-      if (b.vel >= 2) { // hầu hết hãng có thêm dòng cao cấp
-        HPS.forEach(function (hp) {
-          add(b.short.toUpperCase().replace(/\s/g, '') + '-PR' + Math.round(hp * 10),
-            b.name + ' Premium ' + hp + 'HP Inverter WiFi', 'Treo tường');
-        });
-      }
-      [2.5, 5.0].forEach(function (hp) {
-        add(b.short.toUpperCase().replace(/\s/g, '') + '-TD' + Math.round(hp * 10),
-          b.name + ' tủ đứng ' + hp + 'HP', 'Tủ đứng', true);
-      });
-      [2.0, 3.0].forEach(function (hp) {
-        add(b.short.toUpperCase().replace(/\s/g, '') + '-CT' + Math.round(hp * 10),
-          b.name + ' âm trần cassette ' + hp + 'HP', 'Âm trần', true);
-      });
+    mark(grp('g_maylon', 'MÁY LỚN & VRV/VRF & tủ đứng', 'MÁY LỚN', 'west', '#b91c1c',
+      function (m) { return untaken(m) && (m.size === 'X' || m.size === 'L'); }));
+    mark(grp('g_dannong', 'Dàn nóng / Multi / Âm trần (cỡ vừa)', 'DÀN NÓNG', 'west', '#c2660a',
+      function (m) { return untaken(m) && m.size === 'M'; }));
+    mark(grp('g_phukien', 'Phụ kiện, mặt nạ, remote', 'PHỤ KIỆN', 'office', '#0e7490',
+      function (m) { return untaken(m) && m.cat === 'phukien'; }));
+    mark(grp('g_linhtinh', 'Hàng linh tinh (nón BH, gia dụng…)', 'LINH TINH', 'office', '#a16207',
+      function (m) { return untaken(m) && m.cat === 'linhtinh'; }));
+
+    // treo tường + còn lại cỡ S: chia theo hãng
+    var perBrand = {};
+    ITEMS.forEach(function (m) {
+      if (!untaken(m)) return;
+      perBrand[m.brand] = (perBrand[m.brand] || 0) + m.qty;
     });
-    return models;
-  }
-
-  var MODELS = genModels();
-
-  // ---------- Bố trí kệ mặc định (kho 30 x 20m) ----------
-  function defaultRacks() {
-    var defs = [
-      // [x, y, w(dài theo x), d(sâu theo y)]
-      [5.5, 1.0, 8, 1.2], [15.5, 1.0, 8, 1.2],                    // hàng 1 – trần ~5m, kệ 4 tầng
-      [1.0, 4.8, 8, 1.2], [11.0, 4.8, 8, 1.2], [21.0, 4.8, 8, 1.2],
-      [1.0, 8.6, 8, 1.2], [11.0, 8.6, 8, 1.2], [21.0, 8.6, 8, 1.2],
-      [1.0, 12.4, 8, 1.2], [11.0, 12.4, 8, 1.2], [21.0, 12.4, 4, 1.2],
-      [1.0, 16.6, 7.5, 1.2], [21.0, 16.6, 4, 1.2]                 // hàng cuối – trần ~3.6m, kệ 2 tầng
-    ];
-    return defs.map(function (d, i) {
-      return { id: 'k' + (i + 1), label: 'K' + (i + 1), x: d[0], y: d[1], w: d[2], d: d[3], brandIds: [] };
+    var bigBrands = Object.keys(perBrand).filter(function (b) { return perBrand[b] >= 30; });
+    bigBrands.sort(function (a, b) { return perBrand[b] - perBrand[a]; });
+    bigBrands.forEach(function (b, i) {
+      mark(grp('g_br_' + i, b + ' (treo tường & hàng nhẹ)', b, 'north', PALETTE[i % PALETTE.length],
+        function (m) { return untaken(m) && m.brand === b; }));
     });
+    mark(grp('g_khac', 'Hãng nhỏ & hàng khác', 'KHÁC', 'south', '#64748b', untaken));
+
+    // độ ưu tiên (điểm cao xếp trước, gần cửa hơn): bán chạy hôm nay x10 + tồn x0.05
+    groups.forEach(function (g) { g.priority = g.out * 10 + g.qty * 0.05; });
+    return groups;
   }
 
-  var CHECKLIST = [
-    { group: '1. Sàng lọc' },
-    { id: 's1', text: 'Gom máy lỗi / trưng bày / trả bảo hành về khu Hàng lỗi, không để lẫn trên kệ bán' },
-    { id: 's2', text: 'Lập danh sách hàng tồn quá 12 tháng để thanh lý / khuyến mãi' },
-    { group: '2. Sắp xếp' },
-    { id: 's3', text: 'Dán nhãn kệ (K1–K13) và in sơ đồ này dán ở 3 cửa' },
-    { id: 's4', text: 'Máy nặng (tủ đứng, âm trần) chỉ để tầng 1; máy treo tường nhẹ để tầng trên' },
-    { id: 's5', text: 'Hãng bán chạy xếp gần Cửa xuất chính (C2) — bấm ⚡ Tối ưu sắp xếp' },
-    { id: 's6', text: 'Lối đi giữa các kệ giữ trống ≥ 2.5m, không để hàng chắn 3 cửa' },
-    { group: '3. Sạch sẽ' },
-    { id: 's7', text: 'Quét sàn, hút bụi nóc kiện hàng mỗi tuần' },
-    { id: 's8', text: 'Kiểm tra dột / ẩm khu trần thấp 3.5m (gần tường trước) sau mưa' },
-    { group: '4. Săn sóc' },
-    { id: 's9', text: 'Kiểm kê chéo mỗi tháng, đối chiếu số tồn với sơ đồ' },
-    { id: 's10', text: 'Đổi vị trí kệ xong phải cập nhật lại sơ đồ ngay' },
-    { group: '5. Sẵn sàng' },
-    { id: 's11', text: 'Phân công mỗi nhân viên phụ trách 1 dãy kệ cụ thể' }
-  ];
+  var GROUPS = buildGroups();
+  function groupOf(id) { return GROUPS.filter(function (g) { return g.id === id; })[0]; }
+
+  // Thứ tự phân bổ diện tích: nhóm đặc thù trước (cần vị trí riêng), rồi hãng theo độ ưu tiên
+  function groupOrder() {
+    var special = ['g_maylon', 'g_dannong', 'g_phukien', 'g_linhtinh'];
+    var rest = GROUPS.filter(function (g) { return special.indexOf(g.id) === -1 && g.id !== 'g_khac'; })
+      .sort(function (a, b) { return b.priority - a.priority; });
+    var order = [];
+    special.forEach(function (id) { var g = groupOf(id); if (g) order.push(g); });
+    order = order.concat(rest);
+    var khac = groupOf('g_khac');
+    if (khac) order.push(khac);
+    return order;
+  }
 
   // ---------- State ----------
   function defaultState() {
-    var st = {
-      config: JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
-      racks: defaultRacks(),
-      checked: {}
-    };
-    runOptimize(st, true); // bố trí mặc định = kết quả tối ưu
+    var st = { blocks: defaultBlocks(), checked: {} };
+    runOptimize(st, true);
     return st;
   }
 
@@ -165,9 +160,9 @@
       var raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         var st = JSON.parse(raw);
-        if (st && st.racks && st.config) return st;
+        if (st && st.blocks) return st;
       }
-    } catch (e) { /* dữ liệu hỏng -> dùng mặc định */ }
+    } catch (e) { /* dữ liệu hỏng -> mặc định */ }
     return defaultState();
   }
 
@@ -176,309 +171,246 @@
   }
 
   var state = load();
-  var selectedRack = null;
-  var highlightRacks = {};   // rackId -> true (kết quả tìm kiếm / lọc hãng)
-  var activeBrand = null;
+  var selectedBlock = null;
+  var highlightBlocks = {};
+  var activeGroup = null;
   var editMode = false;
-  var colorMode = 'brand';
+  var colorMode = 'group';
 
   // ---------- Helpers ----------
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-  function brandOf(id) { return BRANDS.filter(function (b) { return b.id === id; })[0]; }
-  function rackOf(id) { return state.racks.filter(function (r) { return r.id === id; })[0]; }
+  function blockOf(id) { return state.blocks.filter(function (b) { return b.id === id; })[0]; }
 
-  function ceilingAt(y) {
-    var c = state.config;
-    return c.hMax + (c.hMin - c.hMax) * (y / c.depth);
+  function ceilingAt(y) { // 4m tại tường Bắc/Nam, 5m giữa kho
+    return CFG.hMax - (CFG.hMax - CFG.hWall) * Math.abs(y - CFG.depth / 2) / (CFG.depth / 2);
   }
-  function rackCeiling(r) { return ceilingAt(r.y + r.d / 2); }
-  function rackLevels(r) {
-    var lv = Math.floor((rackCeiling(r) - CLEARANCE) / LEVEL_H);
-    return Math.max(1, Math.min(5, lv));
+  function blockCeiling(b) { return ceilingAt(b.y + b.d / 2); }
+  function layersFor(b, size) {
+    var s = SIZE[size];
+    return Math.max(1, Math.min(s.maxLayers, Math.floor((blockCeiling(b) - CLEARANCE) / s.layerH)));
   }
-  function rackLength(r) { return Math.max(r.w, r.d); }
-  function rackCapacity(r) { return Math.round(rackLength(r) * UNITS_PER_M) * rackLevels(r); }
-
-  function doorRect(door) {
-    var c = state.config, t = 0.5; // độ dày vẽ cửa
-    var len = (door.side === 'N' || door.side === 'S') ? c.width : c.depth;
-    var pos = Math.max(0.3, Math.min(len - door.width - 0.3, door.frac * len - door.width / 2));
-    switch (door.side) {
-      case 'N': return { x: pos, y: -t / 2, w: door.width, h: t };
-      case 'S': return { x: pos, y: c.depth - t / 2, w: door.width, h: t };
-      case 'W': return { x: -t / 2, y: pos, w: t, h: door.width };
-      default:  return { x: c.width - t / 2, y: pos, w: t, h: door.width };
-    }
-  }
-  function doorCenter(door) {
-    var r = doorRect(door);
-    return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
+  function density(b, size) { return SIZE[size].perM2 * layersFor(b, size); }
+  function blockArea(b) { return b.w * b.d; }
+  function distTo(b, anchor) {
+    return Math.hypot(b.x + b.w / 2 - anchor.x, b.y + b.d / 2 - anchor.y);
   }
 
-  // ---------- Phân bổ model vào kệ (suy ra từ rack.brandIds) ----------
-  // Duyệt hãng theo cùng thứ tự ưu tiên với thuật toán tối ưu (bán chạy trước),
-  // mỗi hãng đổ hàng vào các kệ của mình theo thứ tự gần cửa xuất, tới đâu hết chỗ tới đó.
-  // Trả về: { modelLoc: sku->rackId, rackItems: rackId->[{model, qty}], rackLoad: rackId->units, overflow: [{model, qty}] }
-  function distToOut(r) {
-    var out = DOORS.filter(function (d) { return d.id === 'c2'; })[0];
-    var p = doorCenter(out);
-    return Math.hypot(r.x + r.w / 2 - p.x, r.y + r.d / 2 - p.y);
-  }
-
-  function brandPriorityOrder() {
-    var need = {};
-    MODELS.forEach(function (m) { need[m.brand] = (need[m.brand] || 0) + m.qty; });
-    return BRANDS.slice().sort(function (a, b) {
-      return (b.vel - a.vel) || ((need[b.id] || 0) - (need[a.id] || 0));
-    });
-  }
-
+  // ---------- Phân bổ model vào lô (suy ra từ block.groupIds, theo DIỆN TÍCH) ----------
   function computePlacement() {
-    var res = { modelLoc: {}, rackItems: {}, rackLoad: {}, overflow: [] };
+    var res = { modelLoc: {}, blockItems: {}, blockUsed: {}, overflow: [] };
     var free = {};
-    state.racks.forEach(function (r) {
-      res.rackItems[r.id] = []; res.rackLoad[r.id] = 0;
-      free[r.id] = rackCapacity(r);
+    state.blocks.forEach(function (b) {
+      res.blockItems[b.id] = []; res.blockUsed[b.id] = 0;
+      free[b.id] = blockArea(b);
     });
 
-    brandPriorityOrder().forEach(function (b) {
-      var racks = state.racks.filter(function (r) { return r.brandIds.indexOf(b.id) !== -1; })
-        .sort(function (x, y) { return distToOut(x) - distToOut(y); });
-      MODELS.filter(function (m) { return m.brand === b.id && m.qty > 0; }).forEach(function (m) {
-        var r = null;
-        for (var i = 0; i < racks.length; i++) {
-          if (free[racks[i].id] >= m.qty) { r = racks[i]; break; }
+    groupOrder().forEach(function (g) {
+      var blocks = state.blocks.filter(function (b) { return b.groupIds.indexOf(g.id) !== -1; })
+        .sort(function (a, b) { return distTo(a, ANCHORS[g.anchor]) - distTo(b, ANCHORS[g.anchor]); });
+      g.items.forEach(function (m) {
+        var need = m.qty / 1; // diện tích tính theo lô cụ thể (mật độ phụ thuộc trần)
+        var target = null;
+        for (var i = 0; i < blocks.length; i++) {
+          var a = m.qty / density(blocks[i], m.size);
+          if (free[blocks[i].id] >= a) { target = blocks[i]; break; }
         }
-        if (!r) { // không kệ nào đủ chỗ nguyên kiện -> nhét kệ còn trống nhiều nhất
-          racks.forEach(function (x) { if (!r || free[x.id] > free[r.id]) r = x; });
-          if (r && free[r.id] <= 0) r = null;
+        if (!target) { // nhét lô còn trống nhất của nhóm
+          blocks.forEach(function (b) { if (!target || free[b.id] > free[target.id]) target = b; });
+          if (target && free[target.id] <= 0.05) target = null;
         }
-        if (!r) { res.overflow.push({ model: m, qty: m.qty }); return; }
-        res.modelLoc[m.sku] = r.id;
-        res.rackItems[r.id].push({ model: m, qty: m.qty });
-        res.rackLoad[r.id] += m.qty;
-        free[r.id] -= m.qty;
+        if (!target) { res.overflow.push({ model: m, qty: m.qty }); return; }
+        var area = m.qty / density(target, m.size);
+        res.modelLoc[m.sku + '|' + m.name] = target.id;
+        res.blockItems[target.id].push({ model: m, qty: m.qty, area: area });
+        res.blockUsed[target.id] += area;
+        free[target.id] -= area;
       });
     });
     return res;
   }
 
-  // ---------- Thuật toán tối ưu ----------
-  // Hãng bán chạy (vel cao) + tồn nhiều -> kệ gần Cửa xuất chính; mỗi kệ tối đa 2 hãng.
+  // ---------- Thuật toán gợi ý xếp kho ----------
   function runOptimize(st, silent) {
-    var need = {};
-    MODELS.forEach(function (m) { need[m.brand] = (need[m.brand] || 0) + m.qty; });
-
-    var out = DOORS.filter(function (d) { return d.id === 'c2'; })[0];
-    var dc = (function () {
-      var c = st.config, len = c.width;
-      var pos = out.frac * len;
-      return { x: pos, y: c.depth };
-    })();
-
-    var slots = st.racks.map(function (r) {
-      var cap = (function () {
-        var lv = Math.floor(((st.config.hMax + (st.config.hMin - st.config.hMax) * ((r.y + r.d / 2) / st.config.depth)) - CLEARANCE) / LEVEL_H);
-        lv = Math.max(1, Math.min(5, lv));
-        return Math.round(Math.max(r.w, r.d) * UNITS_PER_M) * lv;
-      })();
-      var cx = r.x + r.w / 2, cy = r.y + r.d / 2;
-      return { r: r, cap: cap, free: cap, brands: [], dist: Math.hypot(cx - dc.x, cy - dc.y) };
-    }).sort(function (a, b) { return a.dist - b.dist; });
-
-    var order = BRANDS.slice().sort(function (a, b) {
-      return (b.vel - a.vel) || ((need[b.id] || 0) - (need[a.id] || 0));
+    var slots = st.blocks.map(function (b) {
+      return { b: b, free: b.w * b.d, groups: [] };
     });
 
-    var overflow = [];
-    order.forEach(function (b) {
-      var q = need[b.id] || 0;
-      if (q <= 0) return;
-      var guard = 0;
-      while (q > 0 && guard++ < 100) {
-        var cand = null;
-        for (var i = 0; i < slots.length; i++) {
-          var s = slots[i];
-          if (s.brands.length >= 2 || s.free <= 0) continue;
-          if (s.brands.length === 1 && s.free < Math.min(q, s.cap) * 0.5) continue;
-          cand = s; break;
-        }
-        if (!cand) { overflow.push({ brand: b, qty: q }); break; }
-        var take = Math.min(q, cand.free);
-        cand.brands.push(b.id);
-        cand.free -= take;
-        q -= take;
+    var report = [];
+    groupOrder().forEach(function (g) {
+      // diện tích nhóm cần (ước theo lô trần trung bình giữa kho)
+      var need = 0;
+      g.items.forEach(function (m) {
+        var s = SIZE[m.size];
+        var layers = Math.max(1, Math.min(s.maxLayers, Math.floor((4.6 - CLEARANCE) / s.layerH)));
+        need += m.qty / (s.perM2 * layers);
+      });
+      var got = 0, used = [];
+      var sorted = slots.slice().sort(function (a, b) {
+        return distTo(a.b, ANCHORS[g.anchor]) - distTo(b.b, ANCHORS[g.anchor]);
+      });
+      for (var i = 0; i < sorted.length && got < need; i++) {
+        var s = sorted[i];
+        if (s.groups.length >= 3 || s.free <= 0.5) continue;
+        if (s.groups.length > 0 && s.free < Math.min(need - got, blockArea(s.b)) * 0.4) continue;
+        var take = Math.min(need - got, s.free);
+        s.groups.push(g.id);
+        s.free -= take;
+        got += take;
+        used.push(s.b.label);
       }
+      report.push({ g: g, need: need, got: got, blocks: used });
     });
 
-    slots.forEach(function (s) { s.r.brandIds = s.brands; });
-    if (!silent) showOptimizeResult(slots, overflow);
+    slots.forEach(function (s) { s.b.groupIds = s.groups; });
+    if (!silent) showOptimizeResult(report);
   }
 
-  function showOptimizeResult(slots, overflow) {
-    var rows = slots.slice().sort(function (a, b) { return a.r.label.localeCompare(b.r.label, 'vi', { numeric: true }); })
-      .map(function (s) {
-        var names = s.brands.map(function (id) { return brandOf(id).name; }).join(' + ') || '<i>trống</i>';
-        return '<li><b>' + s.r.label + '</b> (' + rackLevels(s.r) + ' tầng, sức chứa ' + s.cap + '): ' + names + '</li>';
-      }).join('');
-    var ovr = overflow.length
-      ? '<p style="color:var(--red)"><b>⚠ Thiếu chỗ:</b> ' + overflow.map(function (o) { return o.brand.name + ' (' + o.qty + ' máy)'; }).join(', ') + ' — cần thêm kệ (bật ✎ Sửa sơ đồ → ＋ Thêm kệ).</p>'
-      : '<p style="color:var(--green)"><b>✔</b> Tất cả hàng đều có chỗ trên kệ.</p>';
-    $('modalTitle').textContent = 'Kết quả tối ưu sắp xếp';
+  function showOptimizeResult(report) {
+    var rows = report.map(function (r) {
+      var warn = r.got < r.need - 0.5 ? ' <b style="color:var(--red)">⚠ thiếu ' + Math.ceil(r.need - r.got) + 'm²</b>' : '';
+      return '<li><span class="swatch" style="background:' + r.g.color + ';display:inline-block;vertical-align:-1px"></span> <b>' +
+        esc(r.g.label) + '</b> (' + r.g.qty + ' máy, cần ~' + Math.ceil(r.need) + 'm²) → ' +
+        (r.blocks.length ? 'lô ' + r.blocks.join(', ') : '<i>chưa có lô</i>') + warn + '</li>';
+    }).join('');
+    $('modalTitle').textContent = 'Gợi ý sơ đồ xếp kho';
     $('modalBody').innerHTML =
-      '<p><b>Nguyên tắc áp dụng:</b></p><ul>' +
-      '<li>Hãng <b>bán chạy + tồn nhiều</b> → kệ gần <b>Cửa xuất chính (C2)</b> để lấy hàng nhanh.</li>' +
-      '<li>Khu trần cao 5m (tường sau) dùng kệ <b>4 tầng</b>; khu trần 3.5m chỉ <b>2 tầng</b>.</li>' +
-      '<li>Mỗi kệ tối đa <b>2 hãng</b> để dễ tìm, dễ kiểm kê.</li>' +
-      '<li>Máy nặng (tủ đứng, âm trần) luôn để <b>tầng 1</b> (ghi chú trong chi tiết kệ).</li>' +
-      '</ul>' + ovr + '<p><b>Phân bổ kệ:</b></p><ul>' + rows + '</ul>';
+      '<p><b>Nguyên tắc áp dụng cho kho 50×40m này:</b></p><ul>' +
+      '<li><b>MÁY LỚN / VRV-VRF / tủ đứng</b>: chỉ để sàn (không chồng cao), sát <b>cửa Tây</b> + lối xe nâng 4m.</li>' +
+      '<li><b>Hãng bán chạy, tồn nhiều</b> (Panasonic, Casper, Daikin…): gần <b>CỬA CHÍNH Bắc</b> và khu tập kết.</li>' +
+      '<li><b>Phụ kiện + hàng linh tinh</b>: gần <b>văn phòng</b> (góc Đông-Bắc) để dễ quản lý, tránh thất thoát.</li>' +
+      '<li>Giữa kho trần 5m → treo tường chồng tối đa 8 lớp; sát tường 4m → giảm còn ~7 lớp. Máy vừa tối đa 3 lớp, máy lớn 2, VRV không chồng.</li>' +
+      '<li>Mỗi lô tối đa 3 nhóm hàng; lối đi chính + lối ngang giữ trống 4m cho xe nâng.</li>' +
+      '</ul><p><b>Phân bổ:</b></p><ul>' + rows + '</ul>' +
+      '<p class="muted">Kéo thả lô ở chế độ ✎ Sửa sơ đồ nếu muốn chỉnh tay, sơ đồ sẽ lưu lại.</p>';
     $('modal').classList.remove('hidden');
   }
 
   // ---------- Vẽ sơ đồ SVG ----------
-  function levelBoundaries() {
-    // các đường ranh giới nơi số tầng kệ thay đổi (do trần dốc)
-    var c = state.config, res = [];
-    for (var lv = 5; lv >= 2; lv--) {
-      var cNeed = CLEARANCE + LEVEL_H * lv;
-      if (c.hMax === c.hMin) continue;
-      var y = (c.hMax - cNeed) / (c.hMax - c.hMin) * c.depth;
-      if (y > 0.5 && y < c.depth - 0.5) res.push({ y: y, lv: lv });
-    }
+  function ceilBoundaries() {
+    // đường đồng mức trần 4.5m (2 bên vì trần cao nhất ở giữa)
+    var res = [];
+    var frac = (CFG.hMax - 4.5) / (CFG.hMax - CFG.hWall); // = 0.5
+    res.push({ y: CFG.depth / 2 - frac * CFG.depth / 2, label: 'trần 4.5m' });
+    res.push({ y: CFG.depth / 2 + frac * CFG.depth / 2, label: 'trần 4.5m' });
     return res;
   }
 
-  function fillColor(r, placement) {
+  function blockFillPct(b, placement) {
+    return Math.round((placement.blockUsed[b.id] || 0) / blockArea(b) * 100);
+  }
+
+  function blockColor(b, placement) {
     if (colorMode === 'fill') {
-      var cap = rackCapacity(r);
-      var ratio = cap ? placement.rackLoad[r.id] / cap : 0;
-      var hue = Math.max(0, 120 - 120 * Math.min(1, ratio));
-      return 'hsl(' + hue + ',62%,58%)';
+      var ratio = Math.min(1, (placement.blockUsed[b.id] || 0) / blockArea(b));
+      return 'hsl(' + Math.max(0, 120 - 120 * ratio) + ',62%,58%)';
     }
-    if (colorMode === 'levels') {
-      var lv = rackLevels(r);
-      return { 2: '#cdddf2', 3: '#8fb3e2', 4: '#4a7cc4', 5: '#2b5a9e' }[lv] || '#cdddf2';
+    if (colorMode === 'layers') {
+      var lv = layersFor(b, 'S');
+      return { 5: '#dbe7f5', 6: '#a8c4e5', 7: '#6d9bd1', 8: '#3c72bd' }[lv] || '#dbe7f5';
     }
-    return null; // chế độ brand vẽ riêng
+    return null;
   }
 
   function renderMap() {
-    var c = state.config;
     var placement = computePlacement();
-    var pad = 2.2;
-    var s = '';
-    s += '<svg id="floorSvg" viewBox="' + (-pad) + ' ' + (-pad) + ' ' + (c.width + pad * 2) + ' ' + (c.depth + pad * 2) + '" xmlns="http://www.w3.org/2000/svg">';
-    s += '<defs><linearGradient id="ceilGrad" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0" stop-color="#e2ebf7"/><stop offset="1" stop-color="#f6f1e4"/></linearGradient></defs>';
+    var pad = 3;
+    var s = '<svg id="floorSvg" viewBox="' + (-pad) + ' ' + (-pad) + ' ' + (CFG.width + pad * 2) + ' ' + (CFG.depth + pad * 2) + '" xmlns="http://www.w3.org/2000/svg">';
+    s += '<defs><radialGradient id="ceilGrad" cx="0.5" cy="0.5" r="0.75">' +
+      '<stop offset="0" stop-color="#eef4fb"/><stop offset="1" stop-color="#f7f2e3"/></radialGradient></defs>';
 
     // sàn + lưới 1m
-    s += '<rect x="0" y="0" width="' + c.width + '" height="' + c.depth + '" fill="url(#ceilGrad)"/>';
-    for (var gx = 1; gx < c.width; gx++)
-      s += '<line x1="' + gx + '" y1="0" x2="' + gx + '" y2="' + c.depth + '" stroke="#000" stroke-opacity="' + (gx % 5 ? .04 : .1) + '" stroke-width="0.03"/>';
-    for (var gy = 1; gy < c.depth; gy++)
-      s += '<line x1="0" y1="' + gy + '" x2="' + c.width + '" y2="' + gy + '" stroke="#000" stroke-opacity="' + (gy % 5 ? .04 : .1) + '" stroke-width="0.03"/>';
+    s += '<rect x="0" y="0" width="' + CFG.width + '" height="' + CFG.depth + '" fill="url(#ceilGrad)"/>';
+    for (var gx = 1; gx < CFG.width; gx++)
+      s += '<line x1="' + gx + '" y1="0" x2="' + gx + '" y2="' + CFG.depth + '" stroke="#000" stroke-opacity="' + (gx % 5 ? .04 : .09) + '" stroke-width="0.04"/>';
+    for (var gy = 1; gy < CFG.depth; gy++)
+      s += '<line x1="0" y1="' + gy + '" x2="' + CFG.width + '" y2="' + gy + '" stroke="#000" stroke-opacity="' + (gy % 5 ? .04 : .09) + '" stroke-width="0.04"/>';
 
-    // ranh giới số tầng theo trần dốc
-    levelBoundaries().forEach(function (b) {
-      s += '<line x1="0" y1="' + b.y + '" x2="' + c.width + '" y2="' + b.y + '" stroke="#7c93b5" stroke-width="0.06" stroke-dasharray="0.6 0.4"/>';
-      s += '<text x="' + (c.width / 2) + '" y="' + (b.y - 0.18) + '" font-size="0.5" fill="#5b7396" text-anchor="middle">— phía trên: kệ ' + b.lv + ' tầng —</text>';
+    // đồng mức trần
+    ceilBoundaries().forEach(function (bd) {
+      s += '<line x1="0" y1="' + bd.y + '" x2="' + CFG.width + '" y2="' + bd.y + '" stroke="#7c93b5" stroke-width="0.07" stroke-dasharray="0.7 0.5"/>';
+      s += '<text x="1" y="' + (bd.y - 0.25) + '" font-size="0.6" fill="#5b7396">' + bd.label + '</text>';
     });
+    s += '<text x="1" y="' + (CFG.depth / 2 + 0.25) + '" font-size="0.6" fill="#41618f">— giữa kho trần ' + CFG.hMax.toFixed(1) + 'm —</text>';
 
-    // chú thích độ cao trần (bên trái)
-    s += '<text x="-0.5" y="0.7" font-size="0.6" fill="#41618f" text-anchor="end">trần ' + c.hMax.toFixed(1) + 'm</text>';
-    s += '<text x="-0.5" y="' + (c.depth - 0.2) + '" font-size="0.6" fill="#8a7a4e" text-anchor="end">trần ' + c.hMin.toFixed(1) + 'm</text>';
-    s += '<line x1="-1.4" y1="1" x2="-1.4" y2="' + (c.depth - 1) + '" stroke="#9aa8bd" stroke-width="0.05" marker-end="url(#)"/>';
-
-    // khu vực sàn
+    // khu chức năng
     ZONES.forEach(function (z) {
-      var x = z.fx * c.width, y = z.fy * c.depth, w = z.fw * c.width, h = z.fh * c.depth;
-      s += '<g class="zone"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="0.3" fill="' + z.fill + '" fill-opacity="0.75" stroke="' + z.stroke + '"/>';
-      var ly0 = y + h / 2 - (z.lines.length - 1) * 0.33 + 0.18;
+      s += '<g class="zone"><rect x="' + z.x + '" y="' + z.y + '" width="' + z.w + '" height="' + z.d + '" rx="0.3" fill="' + z.fill + '" fill-opacity="0.8" stroke="' + z.stroke + '"/>';
+      var cx = z.x + z.w / 2, cy = z.y + z.d / 2;
+      var rot = z.vertical ? ' transform="rotate(-90 ' + cx + ' ' + cy + ')"' : '';
+      var ly0 = cy - (z.lines.length - 1) * 0.4 + 0.22;
+      s += '<g' + rot + '>';
       z.lines.forEach(function (line, i) {
-        s += '<text x="' + (x + w / 2) + '" y="' + (ly0 + i * 0.66) + '" font-size="0.52" font-weight="600" fill="' + z.stroke + '" text-anchor="middle">' + esc(line) + '</text>';
+        s += '<text x="' + cx + '" y="' + (ly0 + i * 0.8) + '" font-size="0.6" font-weight="600" fill="' + z.stroke + '" text-anchor="middle">' + esc(line) + '</text>';
       });
-      s += '</g>';
-    });
-
-    // tường
-    s += '<rect x="0" y="0" width="' + c.width + '" height="' + c.depth + '" fill="none" stroke="#33465e" stroke-width="0.28"/>';
-
-    // cửa (nhãn tường trái/phải xoay dọc để không tràn ra ngoài)
-    DOORS.forEach(function (d) {
-      var r = doorRect(d);
-      s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" fill="#fff" stroke="' + d.color + '" stroke-width="0.1"/>';
-      s += doorArrow(d, r);
-      var t = '<text font-size="0.62" font-weight="700" fill="' + d.color + '" text-anchor="middle"';
-      if (d.side === 'S') {
-        s += t + ' x="' + (r.x + r.w / 2) + '" y="' + (c.depth + 1.1) + '">' + esc(d.name) + '</text>';
-      } else if (d.side === 'N') {
-        s += t + ' x="' + (r.x + r.w / 2) + '" y="-0.6">' + esc(d.name) + '</text>';
-      } else if (d.side === 'W') {
-        var cyw = r.y + r.h / 2;
-        s += t + ' x="-0.8" y="' + cyw + '" transform="rotate(-90 -0.8 ' + cyw + ')">' + esc(d.name) + '</text>';
-      } else {
-        var cye = r.y + r.h / 2;
-        s += t + ' x="' + (c.width + 0.9) + '" y="' + cye + '" transform="rotate(90 ' + (c.width + 0.9) + ' ' + cye + ')">' + esc(d.name) + '</text>';
-      }
-    });
-
-    // kệ hàng
-    state.racks.forEach(function (r) {
-      var cap = rackCapacity(r);
-      var loadPct = cap ? Math.round(placement.rackLoad[r.id] / cap * 100) : 0;
-      var cls = 'rack' + (selectedRack === r.id ? ' selected' : '') + (highlightRacks[r.id] ? ' highlight' : '');
-      s += '<g class="' + cls + '" data-id="' + r.id + '">';
-      var col = fillColor(r, placement);
-      if (col) {
-        s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.d + '" fill="' + col + '"/>';
-      } else if (r.brandIds.length === 0) {
-        s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.d + '" fill="#d8dee8"/>';
-      } else if (r.brandIds.length === 1) {
-        s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.d + '" fill="' + brandOf(r.brandIds[0]).color + '"/>';
-      } else {
-        var horiz = r.w >= r.d;
-        var b0 = brandOf(r.brandIds[0]).color, b1 = brandOf(r.brandIds[1]).color;
-        if (horiz) {
-          s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + (r.w / 2) + '" height="' + r.d + '" fill="' + b0 + '"/>';
-          s += '<rect x="' + (r.x + r.w / 2) + '" y="' + r.y + '" width="' + (r.w / 2) + '" height="' + r.d + '" fill="' + b1 + '"/>';
-        } else {
-          s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + (r.d / 2) + '" fill="' + b0 + '"/>';
-          s += '<rect x="' + r.x + '" y="' + (r.y + r.d / 2) + '" width="' + r.w + '" height="' + (r.d / 2) + '" fill="' + b1 + '"/>';
-        }
-      }
-      s += '<rect class="body" x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.d + '" fill="none"/>';
-
-      // nhãn kệ
-      var cx = r.x + r.w / 2, cy = r.y + r.d / 2;
-      var vertical = r.d > r.w;
-      var line1 = r.label + ' · ' + rackLevels(r) + 'T · ' + loadPct + '%';
-      var line2 = r.brandIds.map(function (id) { return brandOf(id).short; }).join(' + ');
-      var rot = vertical ? ' transform="rotate(-90 ' + cx + ' ' + cy + ')"' : '';
-      s += '<g' + rot + ' text-anchor="middle" font-size="0.42" fill="#102038">';
-      s += '<text x="' + cx + '" y="' + (cy - 0.08) + '" font-weight="700">' + esc(line1) + '</text>';
-      if (line2) s += '<text x="' + cx + '" y="' + (cy + 0.44) + '">' + esc(line2) + '</text>';
       s += '</g></g>';
     });
 
-    // thước tỉ lệ
-    s += '<g font-size="0.55" fill="#6b7a8c"><line x1="0" y1="' + (c.depth + 1.3) + '" x2="5" y2="' + (c.depth + 1.3) + '" stroke="#6b7a8c" stroke-width="0.08"/>' +
-      '<text x="5.3" y="' + (c.depth + 1.5) + '">5m — kho ' + c.width + '×' + c.depth + 'm</text></g>';
+    // văn phòng
+    s += '<g class="zone"><rect x="' + OFFICE.x + '" y="' + OFFICE.y + '" width="' + OFFICE.w + '" height="' + OFFICE.d + '" fill="#e7e2f7" stroke="#6d5bb8" stroke-width="0.12"/>' +
+      '<text x="' + (OFFICE.x + OFFICE.w / 2) + '" y="' + (OFFICE.y + OFFICE.d / 2 - 0.2) + '" font-size="0.72" font-weight="700" fill="#4c3d99" text-anchor="middle">VĂN PHÒNG</text>' +
+      '<text x="' + (OFFICE.x + OFFICE.w / 2) + '" y="' + (OFFICE.y + OFFICE.d / 2 + 0.75) + '" font-size="0.55" fill="#4c3d99" text-anchor="middle">KHO</text></g>';
+
+    // tường
+    s += '<rect x="0" y="0" width="' + CFG.width + '" height="' + CFG.depth + '" fill="none" stroke="#33465e" stroke-width="0.32"/>';
+
+    // cửa + la bàn
+    DOORS.forEach(function (d) {
+      var t = 0.55;
+      if (d.side === 'N') {
+        s += '<rect x="' + d.x + '" y="' + (-t / 2) + '" width="' + d.w + '" height="' + t + '" fill="#fff" stroke="' + d.color + '" stroke-width="0.12"/>';
+        s += '<text x="' + (d.x + d.w / 2) + '" y="-0.9" font-size="0.7" font-weight="700" fill="' + d.color + '" text-anchor="middle">' + esc(d.name) + '</text>';
+        s += '<text x="' + (d.x + d.w / 2) + '" y="' + 1.2 + '" font-size="0.8" fill="' + d.color + '" text-anchor="middle">⬍</text>';
+      } else if (d.side === 'S') {
+        s += '<rect x="' + d.x + '" y="' + (CFG.depth - t / 2) + '" width="' + d.w + '" height="' + t + '" fill="#fff" stroke="' + d.color + '" stroke-width="0.12"/>';
+        s += '<text x="' + (d.x + d.w / 2) + '" y="' + (CFG.depth + 1.4) + '" font-size="0.7" font-weight="700" fill="' + d.color + '" text-anchor="middle">' + esc(d.name) + '</text>';
+      } else {
+        s += '<rect x="' + (-t / 2) + '" y="' + d.y + '" width="' + t + '" height="' + d.w + '" fill="#fff" stroke="' + d.color + '" stroke-width="0.12"/>';
+        var cyd = d.y + d.w / 2;
+        s += '<text x="-1" y="' + cyd + '" font-size="0.7" font-weight="700" fill="' + d.color + '" text-anchor="middle" transform="rotate(-90 -1 ' + cyd + ')">' + esc(d.name) + '</text>';
+      }
+    });
+    // la bàn: Bắc hướng lên
+    s += '<g font-weight="700" text-anchor="middle"><circle cx="' + (CFG.width + 1.6) + '" cy="-1" r="1.05" fill="#fff" stroke="#33465e" stroke-width="0.08"/>' +
+      '<text x="' + (CFG.width + 1.6) + '" y="-0.6" font-size="0.9" fill="#d62728">B↑</text></g>';
+
+    // lô hàng
+    state.blocks.forEach(function (b) {
+      var pct = blockFillPct(b, placement);
+      var cls = 'rack' + (selectedBlock === b.id ? ' selected' : '') + (highlightBlocks[b.id] ? ' highlight' : '');
+      s += '<g class="' + cls + '" data-id="' + b.id + '">';
+      var col = blockColor(b, placement);
+      var gids = b.groupIds;
+      if (col) {
+        s += '<rect x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.d + '" fill="' + col + '"/>';
+      } else if (!gids.length) {
+        s += '<rect x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.d + '" fill="#d8dee8"/>';
+      } else {
+        var seg = b.w / gids.length;
+        gids.forEach(function (gid, i) {
+          s += '<rect x="' + (b.x + seg * i) + '" y="' + b.y + '" width="' + seg + '" height="' + b.d + '" fill="' + groupOf(gid).color + '"/>';
+        });
+      }
+      s += '<rect class="body" x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.d + '" fill="none"/>';
+
+      var cx = b.x + b.w / 2, cy = b.y + b.d / 2;
+      var names = gids.map(function (id) { return groupOf(id).short; }).join('+');
+      s += '<g text-anchor="middle" font-size="0.52" fill="#0d1b2e">';
+      s += '<text x="' + cx + '" y="' + (cy - 0.12) + '" font-weight="700">' + esc(b.label) + ' · ' + pct + '%</text>';
+      if (names) s += '<text x="' + cx + '" y="' + (cy + 0.55) + '">' + esc(names.length > 22 ? names.slice(0, 21) + '…' : names) + '</text>';
+      s += '</g></g>';
+    });
+
+    // thước
+    s += '<g font-size="0.65" fill="#6b7a8c"><line x1="0" y1="' + (CFG.depth + 1.8) + '" x2="10" y2="' + (CFG.depth + 1.8) + '" stroke="#6b7a8c" stroke-width="0.1"/>' +
+      '<text x="10.4" y="' + (CFG.depth + 2.05) + '">10m — kho ' + CFG.depth + '×' + CFG.width + 'm, ô lưới 1m</text></g>';
 
     s += '</svg>';
     $('mapHost').innerHTML = s;
     bindMapEvents();
   }
 
-  function doorArrow(d, r) {
-    // mũi tên chỉ hướng nhập/xuất
-    var a = '';
-    if (d.id === 'c1') a = '<text x="' + (r.x + 0.9) + '" y="' + (r.y + r.h / 2 + 0.18) + '" font-size="0.7" fill="' + d.color + '">➜</text>';
-    if (d.id === 'c2') a = '<text x="' + (r.x + r.w / 2 - 0.35) + '" y="' + (r.y + 0.15) + '" font-size="0.7" fill="' + d.color + '">⬇</text>';
-    return a;
-  }
-
-  // ---------- Sự kiện trên bản đồ (click + kéo thả) ----------
+  // ---------- Kéo thả + click ----------
   function svgPoint(evt) {
     var svg = $('floorSvg');
     var pt = new DOMPoint(evt.clientX, evt.clientY);
@@ -490,14 +422,14 @@
     if (editMode) svg.classList.add('edit-mode');
     svg.querySelectorAll('.rack').forEach(function (g) {
       var id = g.getAttribute('data-id');
-      var dragging = false, moved = false, start = null, r0 = null;
+      var dragging = false, moved = false, start = null, p0 = null;
 
       g.addEventListener('pointerdown', function (e) {
         if (!editMode) return;
         dragging = true; moved = false;
         start = svgPoint(e);
-        var r = rackOf(id);
-        r0 = { x: r.x, y: r.y };
+        var b = blockOf(id);
+        p0 = { x: b.x, y: b.y };
         g.classList.add('dragging');
         g.setPointerCapture(e.pointerId);
         e.preventDefault();
@@ -507,12 +439,11 @@
         var p = svgPoint(e);
         var dx = p.x - start.x, dy = p.y - start.y;
         if (Math.abs(dx) + Math.abs(dy) > 0.15) moved = true;
-        var r = rackOf(id);
-        var c = state.config;
-        var nx = Math.round((r0.x + dx) * 2) / 2, ny = Math.round((r0.y + dy) * 2) / 2;
-        nx = Math.max(0.2, Math.min(c.width - r.w - 0.2, nx));
-        ny = Math.max(0.2, Math.min(c.depth - r.d - 0.2, ny));
-        g.setAttribute('transform', 'translate(' + (nx - r0.x) + ' ' + (ny - r0.y) + ')');
+        var b = blockOf(id);
+        var nx = Math.round((p0.x + dx) * 2) / 2, ny = Math.round((p0.y + dy) * 2) / 2;
+        nx = Math.max(0.2, Math.min(CFG.width - b.w - 0.2, nx));
+        ny = Math.max(0.2, Math.min(CFG.depth - b.d - 0.2, ny));
+        g.setAttribute('transform', 'translate(' + (nx - p0.x) + ' ' + (ny - p0.y) + ')');
         g._nx = nx; g._ny = ny;
       });
       g.addEventListener('pointerup', function () {
@@ -520,127 +451,142 @@
         dragging = false;
         g.classList.remove('dragging');
         if (moved) {
-          var r = rackOf(id);
-          r.x = (typeof g._nx === 'number') ? g._nx : r.x;
-          r.y = (typeof g._ny === 'number') ? g._ny : r.y;
+          var b = blockOf(id);
+          b.x = (typeof g._nx === 'number') ? g._nx : b.x;
+          b.y = (typeof g._ny === 'number') ? g._ny : b.y;
           save();
           renderAll();
         }
       });
       g.addEventListener('click', function () {
         if (moved) { moved = false; return; }
-        selectRack(id);
+        selectedBlock = (selectedBlock === id) ? null : id;
+        renderAll();
       });
     });
   }
 
-  function selectRack(id) {
-    selectedRack = (selectedRack === id) ? null : id;
-    renderAll();
-  }
-
-  // ---------- Panel chi tiết kệ ----------
+  // ---------- Panel chi tiết lô ----------
   function renderDetail() {
     var panel = $('detailPanel');
-    if (!selectedRack) { panel.classList.add('hidden'); return; }
-    var r = rackOf(selectedRack);
-    if (!r) { selectedRack = null; panel.classList.add('hidden'); return; }
+    if (!selectedBlock) { panel.classList.add('hidden'); return; }
+    var b = blockOf(selectedBlock);
+    if (!b) { selectedBlock = null; panel.classList.add('hidden'); return; }
     panel.classList.remove('hidden');
 
     var placement = computePlacement();
-    var cap = rackCapacity(r), load = placement.rackLoad[r.id];
-    var pct = cap ? Math.round(load / cap * 100) : 0;
-    var lv = rackLevels(r), ceil = rackCeiling(r);
+    var used = placement.blockUsed[b.id] || 0;
+    var pct = blockFillPct(b, placement);
+    var ceil = blockCeiling(b);
 
-    $('detailName').textContent = 'Kệ ' + r.label;
-    $('detailMeta').textContent = rackLength(r) + 'm dài · vị trí (' + r.x + ', ' + r.y + ')m';
+    $('detailName').textContent = 'Lô ' + b.label;
+    $('detailMeta').textContent = b.w + '×' + b.d + 'm (' + blockArea(b).toFixed(0) + 'm²) · vị trí (' + b.x + ', ' + b.y + ')m';
 
     var html = '';
     html += '<div class="kv">' +
       '<div class="cell">Trần tại đây<b>' + ceil.toFixed(2) + ' m</b></div>' +
-      '<div class="cell">Số tầng kệ<b>' + lv + ' tầng</b></div>' +
-      '<div class="cell">Sức chứa<b>' + cap + ' máy</b></div>' +
-      '<div class="cell">Đang chứa<b>' + load + ' máy (' + pct + '%)</b></div></div>';
+      '<div class="cell">Chồng treo tường<b>' + layersFor(b, 'S') + ' lớp</b></div>' +
+      '<div class="cell">Diện tích dùng<b>' + used.toFixed(1) + ' / ' + blockArea(b).toFixed(0) + ' m²</b></div>' +
+      '<div class="cell">Lấp đầy<b>' + pct + '%</b></div></div>';
     html += '<div class="fillbar' + (pct > 100 ? ' crit' : pct > 85 ? ' warn' : '') + '"><div style="width:' + Math.min(100, pct) + '%"></div></div>';
 
-    html += '<p style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase">Hãng trên kệ (tối đa 2 — bấm để gán/bỏ)</p><div class="chips">';
-    BRANDS.forEach(function (b) {
-      var on = r.brandIds.indexOf(b.id) !== -1;
-      html += '<span class="chip' + (on ? ' on' : '') + '" data-brand="' + b.id + '"' + (on ? ' style="background:' + b.color + '"' : '') + '>' + esc(b.short) + '</span>';
+    html += '<p style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase">Nhóm hàng trên lô (tối đa 3 — bấm để gán/bỏ)</p><div class="chips">';
+    GROUPS.forEach(function (g) {
+      var on = b.groupIds.indexOf(g.id) !== -1;
+      html += '<span class="chip' + (on ? ' on' : '') + '" data-group="' + g.id + '"' + (on ? ' style="background:' + g.color + '"' : '') + '>' + esc(g.short) + '</span>';
     });
     html += '</div>';
 
-    html += '<div class="note">📌 Máy <b>tủ đứng / âm trần</b> (gắn nhãn NẶNG) luôn xếp <b>tầng 1</b>; máy treo tường nhẹ xếp tầng 2–' + lv + '.</div>';
+    html += '<div class="note">📌 Chồng tối đa tại lô này: treo tường <b>' + layersFor(b, 'S') + '</b> lớp · máy vừa <b>' + layersFor(b, 'M') +
+      '</b> · máy lớn <b>' + layersFor(b, 'L') + '</b> · VRV/máy ≥5HP <b>không chồng</b>. Máy nặng luôn nằm dưới.</div>';
 
     if (editMode) {
       html += '<div class="detail-actions">' +
-        '<button class="btn ghost" id="btnRotate">⟳ Xoay kệ</button>' +
-        '<button class="btn red" id="btnDelete">🗑 Xoá kệ</button></div>';
+        '<button class="btn ghost" id="btnRotate">⟳ Xoay lô</button>' +
+        '<button class="btn red" id="btnDelete">🗑 Xoá lô</button></div>';
     }
 
-    var items = placement.rackItems[r.id];
-    html += '<table class="inv-table"><thead><tr><th>Model trên kệ (' + items.length + ')</th><th>SL</th></tr></thead><tbody>';
-    if (!items.length) html += '<tr><td colspan="2" style="color:var(--muted)">Kệ trống — gán hãng ở trên để chứa hàng.</td></tr>';
-    items.forEach(function (it) {
-      html += '<tr><td>' + esc(it.model.name) +
-        (it.model.heavy ? '<span class="tag heavy">NẶNG · TẦNG 1</span>' : '') +
-        '<div class="p-sku">' + esc(it.model.sku) + ' · ' + esc(it.model.type) + '</div></td>' +
+    var items = placement.blockItems[b.id].slice().sort(function (a, c) { return c.qty - a.qty; });
+    html += '<table class="inv-table"><thead><tr><th>Model trên lô (' + items.length + ')</th><th>SL</th></tr></thead><tbody>';
+    if (!items.length) html += '<tr><td colspan="2" style="color:var(--muted)">Lô trống — gán nhóm hàng ở trên.</td></tr>';
+    items.slice(0, 80).forEach(function (it) {
+      var m = it.model;
+      var tag = m.size === 'X' ? '<span class="tag heavy">MÁY LỚN · SÀN</span>' :
+        m.size === 'L' ? '<span class="tag heavy">NẶNG</span>' : '';
+      html += '<tr><td>' + esc(m.name) + tag +
+        '<div class="p-sku">' + esc(m.sku) + ' · ' + esc(CAT_LABEL[m.cat] || m.cat) + ' · ' + esc(m.brand) + '</div></td>' +
         '<td><b>' + it.qty + '</b></td></tr>';
     });
+    if (items.length > 80) html += '<tr><td colspan="2" class="p-sku">… và ' + (items.length - 80) + ' model nữa</td></tr>';
     html += '</tbody></table>';
 
     $('detailBody').innerHTML = html;
 
     $('detailBody').querySelectorAll('.chip').forEach(function (chip) {
       chip.addEventListener('click', function () {
-        var bid = chip.getAttribute('data-brand');
-        var i = r.brandIds.indexOf(bid);
-        if (i !== -1) r.brandIds.splice(i, 1);
-        else if (r.brandIds.length >= 2) { alert('Mỗi kệ tối đa 2 hãng để dễ tìm và kiểm kê. Bỏ bớt 1 hãng trước.'); return; }
-        else r.brandIds.push(bid);
-        save();
-        renderAll();
+        var gid = chip.getAttribute('data-group');
+        var i = b.groupIds.indexOf(gid);
+        if (i !== -1) b.groupIds.splice(i, 1);
+        else if (b.groupIds.length >= 3) { alert('Mỗi lô tối đa 3 nhóm hàng cho dễ tìm. Bỏ bớt 1 nhóm trước.'); return; }
+        else b.groupIds.push(gid);
+        save(); renderAll();
       });
     });
     var rot = $('btnRotate');
     if (rot) rot.addEventListener('click', function () {
-      var c = state.config, t = r.w; r.w = r.d; r.d = t;
-      r.x = Math.min(r.x, c.width - r.w - 0.2);
-      r.y = Math.min(r.y, c.depth - r.d - 0.2);
+      var t = b.w; b.w = b.d; b.d = t;
+      b.x = Math.min(b.x, CFG.width - b.w - 0.2);
+      b.y = Math.min(b.y, CFG.depth - b.d - 0.2);
       save(); renderAll();
     });
     var del = $('btnDelete');
     if (del) del.addEventListener('click', function () {
-      if (!confirm('Xoá kệ ' + r.label + '? Hàng của hãng trên kệ sẽ chuyển sang trạng thái "chưa xếp".')) return;
-      state.racks = state.racks.filter(function (x) { return x.id !== r.id; });
-      selectedRack = null;
+      if (!confirm('Xoá lô ' + b.label + '? Hàng trên lô sẽ thành "chưa xếp".')) return;
+      state.blocks = state.blocks.filter(function (x) { return x.id !== b.id; });
+      selectedBlock = null;
       save(); renderAll();
     });
   }
 
   // ---------- Sidebar ----------
-  function renderBrandList(placement) {
+  function renderGroupList() {
     var ul = $('brandList');
     ul.innerHTML = '';
-    BRANDS.forEach(function (b) {
-      var ms = MODELS.filter(function (m) { return m.brand === b.id; });
-      var units = ms.reduce(function (a, m) { return a + m.qty; }, 0);
+    GROUPS.forEach(function (g) {
       var li = document.createElement('li');
-      if (activeBrand === b.id) li.className = 'active';
-      li.innerHTML = '<span class="swatch" style="background:' + b.color + '"></span>' + esc(b.name) +
-        ' <span class="vel">' + '★'.repeat(b.vel) + '</span>' +
-        '<span class="b-meta">' + ms.length + ' model · ' + units + '</span>';
+      if (activeGroup === g.id) li.className = 'active';
+      li.innerHTML = '<span class="swatch" style="background:' + g.color + '"></span>' + esc(g.label) +
+        '<span class="b-meta">' + g.items.length + ' model · ' + g.qty + '</span>';
       li.addEventListener('click', function () {
-        activeBrand = (activeBrand === b.id) ? null : b.id;
-        highlightRacks = {};
-        if (activeBrand) {
-          state.racks.forEach(function (r) { if (r.brandIds.indexOf(b.id) !== -1) highlightRacks[r.id] = true; });
+        activeGroup = (activeGroup === g.id) ? null : g.id;
+        highlightBlocks = {};
+        if (activeGroup) {
+          state.blocks.forEach(function (b) { if (b.groupIds.indexOf(g.id) !== -1) highlightBlocks[b.id] = true; });
         }
         renderAll();
       });
       ul.appendChild(li);
     });
   }
+
+  var CHECKLIST = [
+    { group: '1. Sàng lọc' },
+    { id: 's1', text: 'Lập danh sách hàng tồn lâu (catalog có 1259 mã đã hết/bán chậm) để thanh lý' },
+    { id: 's2', text: 'Hàng lỗi / trả bảo hành gom về 1 lô riêng, không lẫn hàng bán' },
+    { group: '2. Sắp xếp' },
+    { id: 's3', text: 'Kẻ vạch sơn lối đi chính 4m (Bắc–Nam) + lối ngang 4m (ra cửa Tây), tuyệt đối không để hàng' },
+    { id: 's4', text: 'VRV/VRF, máy ≥5HP, tủ đứng: để sàn sát cửa Tây, KHÔNG chồng, chừa lối xe nâng' },
+    { id: 's5', text: 'Treo tường chồng tối đa 8 lớp giữa kho (trần 5m), 7 lớp sát tường (4m); thùng nặng nằm dưới' },
+    { id: 's6', text: 'Phụ kiện, remote, hàng linh tinh: đưa về gần văn phòng, có khoá/tủ riêng' },
+    { id: 's7', text: 'In sơ đồ này dán ở 3 cửa + văn phòng; dán nhãn lô L1–L25 xuống sàn' },
+    { group: '3. Sạch sẽ' },
+    { id: 's8', text: 'Quét sàn + hút bụi nóc kiện mỗi tuần; kiểm tra dột sau mưa (nhất là 2 mép trần 4m)' },
+    { group: '4. Săn sóc' },
+    { id: 's9', text: 'Cập nhật file BÁO CÁO hằng ngày rồi chạy lại tools/xlsx_to_data.py để sơ đồ khớp tồn thật' },
+    { id: 's10', text: 'Kiểm kê chéo mỗi tháng theo từng lô' },
+    { group: '5. Sẵn sàng' },
+    { id: 's11', text: 'Phân công mỗi nhân viên kho phụ trách dãy lô cụ thể' }
+  ];
 
   function renderChecklist() {
     var ul = $('checklist');
@@ -668,28 +614,26 @@
     q = q.trim().toLowerCase();
     if (!q) {
       box.classList.add('hidden'); box.innerHTML = '';
-      if (!activeBrand) { highlightRacks = {}; renderMap(); }
+      if (!activeGroup) { highlightBlocks = {}; renderMap(); }
       return;
     }
     var placement = computePlacement();
-    var hits = MODELS.filter(function (m) {
-      var b = brandOf(m.brand);
-      return m.sku.toLowerCase().indexOf(q) !== -1 || m.name.toLowerCase().indexOf(q) !== -1 || b.name.toLowerCase().indexOf(q) !== -1;
+    var hits = ITEMS.filter(function (m) {
+      return m.sku.toLowerCase().indexOf(q) !== -1 || m.name.toLowerCase().indexOf(q) !== -1 || m.brand.toLowerCase().indexOf(q) !== -1;
     }).slice(0, 10);
 
     box.classList.remove('hidden');
-    if (!hits.length) { box.innerHTML = '<div class="sr-empty">Không tìm thấy model nào.</div>'; return; }
+    if (!hits.length) { box.innerHTML = '<div class="sr-empty">Không tìm thấy trong hàng còn tồn.</div>'; return; }
     box.innerHTML = '';
-    highlightRacks = {};
+    highlightBlocks = {};
     hits.forEach(function (m) {
-      var rid = placement.modelLoc[m.sku];
-      if (rid) highlightRacks[rid] = true;
-      var loc = rid ? 'Kệ <span class="sr-loc">' + rackOf(rid).label + '</span>' :
-        (m.qty > 0 ? '<span style="color:var(--red)">chưa xếp</span>' : 'hết hàng');
+      var bid = placement.modelLoc[m.sku + '|' + m.name];
+      if (bid) highlightBlocks[bid] = true;
+      var loc = bid ? 'Lô <span class="sr-loc">' + blockOf(bid).label + '</span>' : '<span style="color:var(--red)">chưa xếp</span>';
       var div = document.createElement('div');
       div.className = 'sr-item';
       div.innerHTML = '<b>' + esc(m.name) + '</b><br>' + esc(m.sku) + ' · tồn <b>' + m.qty + '</b> · ' + loc;
-      div.addEventListener('click', function () { if (rid) { selectedRack = rid; renderAll(); } });
+      div.addEventListener('click', function () { if (bid) { selectedBlock = bid; renderAll(); } });
       box.appendChild(div);
     });
     renderMap();
@@ -697,21 +641,21 @@
 
   // ---------- Thống kê ----------
   function renderStats(placement) {
-    var units = MODELS.reduce(function (a, m) { return a + m.qty; }, 0);
-    var cap = state.racks.reduce(function (a, r) { return a + rackCapacity(r); }, 0);
-    var placed = Object.keys(placement.rackLoad).reduce(function (a, k) { return a + placement.rackLoad[k]; }, 0);
+    var units = ITEMS.reduce(function (a, m) { return a + m.qty; }, 0);
+    var area = state.blocks.reduce(function (a, b) { return a + blockArea(b); }, 0);
+    var used = Object.keys(placement.blockUsed).reduce(function (a, k) { return a + placement.blockUsed[k]; }, 0);
     var ovr = placement.overflow.reduce(function (a, o) { return a + o.qty; }, 0);
-    $('statBrands').textContent = BRANDS.length;
-    $('statModels').textContent = MODELS.length;
+    $('statBrands').textContent = GROUPS.length;
+    $('statModels').textContent = ITEMS.length;
     $('statUnits').textContent = units;
-    $('statFill').textContent = cap ? Math.round(placed / cap * 100) + '%' : '—';
+    $('statFill').textContent = area ? Math.round(used / area * 100) + '%' : '—';
     $('statOverflow').textContent = ovr;
   }
 
   function renderAll() {
     var placement = computePlacement();
     renderStats(placement);
-    renderBrandList(placement);
+    renderGroupList();
     renderMap();
     renderDetail();
   }
@@ -730,36 +674,36 @@
     this.classList.toggle('active', editMode);
     this.textContent = editMode ? '✔ Xong' : '✎ Sửa sơ đồ';
     $('mapHint').textContent = editMode
-      ? 'Chế độ sửa: kéo thả kệ để di chuyển (bám lưới 0.5m) · bấm kệ để xoay/xoá · nút ＋ Thêm kệ bên dưới'
-      : 'Bấm vào kệ để xem chi tiết · kéo thả kệ ở chế độ ✎ Sửa sơ đồ';
+      ? 'Chế độ sửa: kéo thả lô (bám lưới 0.5m) · bấm lô để xoay/xoá · nút ＋ Thêm lô trên thanh công cụ'
+      : 'Bấm vào lô hàng để xem chi tiết · kéo thả lô ở chế độ ✎ Sửa sơ đồ';
     if (editMode && !$('btnAddRack')) {
-      var b = document.createElement('button');
-      b.className = 'btn green'; b.id = 'btnAddRack'; b.textContent = '＋ Thêm kệ';
-      b.addEventListener('click', function () {
+      var btn = document.createElement('button');
+      btn.className = 'btn green'; btn.id = 'btnAddRack'; btn.textContent = '＋ Thêm lô';
+      btn.addEventListener('click', function () {
         var n = 1;
-        while (rackOf('k' + n)) n++;
-        state.racks.push({ id: 'k' + n, label: 'K' + n, x: state.config.width / 2 - 3, y: state.config.depth / 2, w: 6, d: 1.2, brandIds: [] });
-        selectedRack = 'k' + n;
+        while (blockOf('b' + n)) n++;
+        state.blocks.push({ id: 'b' + n, label: 'L' + n, x: CFG.width / 2 - 3, y: CFG.depth / 2 - 2, w: 6, d: 4, groupIds: [] });
+        selectedBlock = 'b' + n;
         save(); renderAll();
       });
-      this.parentNode.insertBefore(b, this.nextSibling);
+      this.parentNode.insertBefore(btn, this.nextSibling);
     } else if (!editMode) {
-      var btn = $('btnAddRack');
-      if (btn) btn.remove();
+      var b = $('btnAddRack');
+      if (b) b.remove();
     }
     renderAll();
   });
 
   $('btnReset').addEventListener('click', function () {
-    if (!confirm('Xoá bố trí đã chỉnh và quay về sơ đồ mặc định (30×20m, 13 kệ, đã tối ưu)?')) return;
+    if (!confirm('Xoá bố trí đã chỉnh và quay về sơ đồ gợi ý mặc định (25 lô)?')) return;
     state = defaultState();
-    selectedRack = null; activeBrand = null; highlightRacks = {};
+    selectedBlock = null; activeGroup = null; highlightBlocks = {};
     save();
     renderAll();
   });
 
   $('searchInput').addEventListener('input', function () { renderSearch(this.value); });
-  $('btnCloseDetail').addEventListener('click', function () { selectedRack = null; renderAll(); });
+  $('btnCloseDetail').addEventListener('click', function () { selectedBlock = null; renderAll(); });
   $('btnModalClose').addEventListener('click', function () { $('modal').classList.add('hidden'); });
   $('modal').addEventListener('click', function (e) { if (e.target === this) $('modal').classList.add('hidden'); });
 
