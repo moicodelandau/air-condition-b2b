@@ -21,22 +21,23 @@
     <div class="empty" id="empty">
       <p>Nothing captured yet.</p>
       <p>Tap a button below — Claude will summarize, brainstorm, and file it.</p>
+      <p class="desktop-hint">Shortcuts: <kbd>V</kbd> voice · <kbd>R</kbd> video · <kbd>P</kbd> photo · <kbd>T</kbd> text — or drag &amp; drop / paste an image anywhere.</p>
     </div>
   </main>
 
   <!-- capture bar -->
   <div class="capture-bar">
-    <button id="btnVoice" class="capture-btn" title="Record voice">
-      <span class="icon">🎤</span><span class="label">Voice</span>
+    <button id="btnVoice" class="capture-btn" title="Record voice (V)">
+      <span class="icon">🎤</span><span class="label">Voice <kbd>V</kbd></span>
     </button>
-    <button id="btnVideo" class="capture-btn" title="Record video">
-      <span class="icon">📹</span><span class="label">Video</span>
+    <button id="btnVideo" class="capture-btn" title="Record video (R)">
+      <span class="icon">📹</span><span class="label">Video <kbd>R</kbd></span>
     </button>
-    <button id="btnPhoto" class="capture-btn" title="Take photo">
-      <span class="icon">📷</span><span class="label">Photo</span>
+    <button id="btnPhoto" class="capture-btn" title="Take photo (P)">
+      <span class="icon">📷</span><span class="label">Photo <kbd>P</kbd></span>
     </button>
-    <button id="btnText" class="capture-btn" title="Type a note">
-      <span class="icon">✏️</span><span class="label">Text</span>
+    <button id="btnText" class="capture-btn" title="Type a note (T)">
+      <span class="icon">✏️</span><span class="label">Text <kbd>T</kbd></span>
     </button>
   </div>
   <input type="file" id="photoInput" accept="image/*" capture="environment" hidden />

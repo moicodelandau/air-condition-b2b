@@ -178,9 +178,14 @@ let rec = null; // { stream, transcriber, timerId, mode, frames, canceled }
 
 function openOverlay(mode) {
   overlay.hidden = false;
-  preview.hidden = mode !== "video";
-  pulse.hidden = mode === "video";
-  liveEl.textContent = SR ? "" : "⚠️ Live transcription not supported in this browser — recording anyway; describe it in a text note if needed.";
+  preview.hidden = mode === "voice";
+  pulse.hidden = mode !== "voice";
+  timerEl.hidden = mode === "photo";
+  $("btnStop").textContent = mode === "photo" ? "📸 Capture" : "■ Stop & Process";
+  liveEl.textContent =
+    mode === "photo" || SR
+      ? ""
+      : "⚠️ Live transcription not supported in this browser — recording anyway; describe it in a text note if needed.";
   timerEl.textContent = "0:00";
 }
 
@@ -260,6 +265,13 @@ $("btnStop").onclick = () => {
   if (!rec) return closeOverlay();
   const { transcriber, mode, frames, frameTimer } = rec;
   if (frameTimer) clearInterval(frameTimer);
+  if (mode === "photo") {
+    if (!preview.videoWidth) return setStatus("Camera not ready — try again");
+    const full = frameToJpeg(preview, 1568);
+    const thumb = frameToJpeg(preview, 640);
+    closeOverlay();
+    return submitCapture({ type: "image", images: [dataUrlToImage(full)], thumbnail: thumb });
+  }
   if (mode === "video" && frames && preview.videoWidth && frames.length < 6) {
     frames.push(frameToJpeg(preview)); // final frame
   }
@@ -293,15 +305,61 @@ function dataUrlToImage(dataUrl) {
 }
 
 // ---------- photo ----------
-$("btnPhoto").onclick = () => $("photoInput").click();
+// Phones get the native camera app via the file input; desktops get a live
+// webcam overlay with a capture button (falls back to the file picker).
+$("btnPhoto").onclick = async () => {
+  const coarse = matchMedia("(pointer: coarse)").matches;
+  if (coarse || !navigator.mediaDevices?.getUserMedia) return $("photoInput").click();
+  let stream = null;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1920 } } });
+  } catch {
+    return $("photoInput").click();
+  }
+  openOverlay("photo");
+  preview.srcObject = stream;
+  rec = { stream, mode: "photo" };
+};
+
 $("photoInput").onchange = async (e) => {
   const file = e.target.files[0];
   e.target.value = "";
-  if (!file) return;
+  if (file) submitImageFile(file);
+};
+
+async function submitImageFile(file) {
   const dataUrl = await downscaleImage(file, 1568);
   const thumb = await downscaleImage(file, 640);
   submitCapture({ type: "image", images: [dataUrlToImage(dataUrl)], thumbnail: thumb });
-};
+}
+
+// drag & drop an image anywhere
+let dragDepth = 0;
+document.addEventListener("dragenter", (e) => {
+  e.preventDefault();
+  if (++dragDepth === 1) document.body.classList.add("dragging");
+});
+document.addEventListener("dragleave", () => {
+  if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove("dragging"); }
+});
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dragDepth = 0;
+  document.body.classList.remove("dragging");
+  const file = [...(e.dataTransfer?.files || [])].find((f) => f.type.startsWith("image/"));
+  if (file) submitImageFile(file);
+});
+
+// paste an image (e.g. a screenshot) anywhere
+document.addEventListener("paste", (e) => {
+  if (e.target.matches?.("textarea, input")) return;
+  const item = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"));
+  if (item) {
+    const file = item.getAsFile();
+    if (file) submitImageFile(file);
+  }
+});
 
 function downscaleImage(file, maxDim) {
   return new Promise((resolve, reject) => {
@@ -332,6 +390,30 @@ $("btnTextSave").onclick = () => {
   $("textOverlay").hidden = true;
   if (text) submitCapture({ type: "text", text });
 };
+
+// ---------- keyboard shortcuts (desktop) ----------
+document.addEventListener("keydown", (e) => {
+  if (e.target.matches?.("textarea, input")) {
+    if (e.key === "Escape") $("btnTextCancel").click();
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) $("btnTextSave").click();
+    return;
+  }
+  if (!overlay.hidden) {
+    if (e.key === "Escape") $("btnCancel").click();
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("btnStop").click(); }
+    return;
+  }
+  if (!$("textOverlay").hidden) {
+    if (e.key === "Escape") $("btnTextCancel").click();
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === "v" || k === "1") $("btnVoice").click();
+  else if (k === "r" || k === "2") $("btnVideo").click();
+  else if (k === "p" || k === "3") $("btnPhoto").click();
+  else if (k === "t" || k === "4") { e.preventDefault(); $("btnText").click(); }
+});
 
 // ---------- init ----------
 (async function init() {

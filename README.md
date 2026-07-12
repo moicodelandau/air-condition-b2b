@@ -37,6 +37,15 @@ Without an API key the app still works — captures are saved to an **Inbox** ca
 - `PORT` — server port (default `3000`)
 - `CLAUDE_MODEL` — override the model (default `claude-opus-4-8`)
 
+## Desktop usage
+
+The app is fully usable on a computer — just run it and open http://localhost:3000 in Chrome or Edge:
+
+- **Keyboard shortcuts:** <kbd>V</kbd> voice · <kbd>R</kbd> video · <kbd>P</kbd> photo · <kbd>T</kbd> text · <kbd>Esc</kbd> cancel · <kbd>Enter</kbd>/<kbd>Space</kbd> stop & process · <kbd>Ctrl+Enter</kbd> save a text note
+- **Photo** opens a live **webcam** preview with a capture button (falls back to a file picker if no webcam)
+- **Drag & drop** an image file anywhere on the page, or **paste a screenshot** (Ctrl+V) — it's captured and processed immediately
+- Wide-screen grid layout for the notes feed
+
 ## Phone usage
 
 It's a PWA — open it on your phone and "Add to Home Screen" for an app-like one-tap experience. Camera/microphone access requires **HTTPS** (or `localhost`), so put it behind a TLS proxy or a tunnel (e.g. `cloudflared`, `ngrok`) when using it from a phone.
