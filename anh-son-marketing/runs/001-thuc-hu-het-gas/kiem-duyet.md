@@ -36,3 +36,24 @@ Agent sửa: `kich-ban` (lỗi 1, 4), `san-xuat` (lỗi 1 đồng bộ, 2, 3, 4 
 
 ## Vòng kiểm duyệt
 Vòng 1. Sau khi `kich-ban` và `san-xuat` sửa, chấm lại vòng 2 (tối đa 2 vòng).
+
+## Vòng 2
+
+Chấm lại 5 lỗi vòng 1 trên `kich-ban.md` và `san-xuat.md` bản đã sửa, cộng soát lỗi mới do sửa.
+
+**KẾT LUẬN: ĐẠT** · 0 lỗi mục 1–5 · 0 lỗi mới · không agent cần sửa.
+
+| # | Lỗi vòng 1 | Kết quả | Căn cứ |
+|---|---|---|---|
+| 1 | "Gas không tự hao" quá tuyệt đối | Đã sửa | Lời thoại 9–17s, chữ màn hình, caption Zalo, hook C đều đổi sang "không bị tiêu hao khi máy chạy"; tuyên bố #2 hạ xuống "trung bình"; bảng chữ nhấn trong `san-xuat.md` mục 4 đã đồng bộ. Không còn chỗ nào sót cụm "không tự hao". |
+| 2 | Ảnh bìa AI dễ tưởng ảnh thật, nhãn có điều kiện | Đã sửa | Mặc định là khung hình thật từ cảnh 2. Phương án AI đổi sang "flat vector illustration", bỏ "photo/Realistic" và bối cảnh thật. Ghi rõ luôn gắn nhãn AI, nền tảng không có mục nhãn thì ghi "Ảnh minh hoạ do AI tạo" ở góc bìa hoặc caption. |
+| 3 | Ghi thông tin cá nhân chủ nhà vào file | Đã sửa | Ô `[ĐIỀN]` chỉ ghi hình thức xin phép, ngày, người làm chứng. Tên, SĐT, địa chỉ khách giữ ở sổ cửa hàng, không ghi vào file. |
+| 4 | Hook B "quay thật" mâu thuẫn với việc cho ghép | Đã sửa | Cả hai file cùng mô tả hook là cảnh dựng minh hoạ có chủ ý (lốp xẹp sẵn, bơm vài nhịp, chỉ vào lốp, nhìn camera hỏi), cho phép ghép 2 lần quay, dùng xe của cửa hàng, không giới thiệu như sự cố của khách. Tuyên bố #5 ghi rõ là cảnh dựng. |
+| 5 | Thời lượng 4a sai, cảnh 3 mâu thuẫn bảo ôn | Đã sửa | Cảnh 4a ghi 9 giây tiếng, 4b là 2 giây hình chèn đè lên. Cảnh 3 ghi quay rõ đường đi của ống bọc bảo ôn, có đoạn ống đồng trần thì lấy cận đoạn đó. |
+
+Lỗi mới phát sinh do sửa: không có. Mục 2, 3, 6, 7 vẫn đạt (không giá, không từ cấm, hook và CTA rõ, shot list phủ đủ 6 cảnh và hình chèn 4b).
+
+Còn lại cho người dùng (không phải lỗi nội dung, nhưng chặn việc đăng):
+- Điền tên thợ đóng chính và xác nhận thợ đồng ý xuất hiện; điền tên Zalo OA; xác nhận đã xin phép chủ nhà.
+- Chủ cửa hàng xác nhận cam kết "kiểm tra rò rỉ trước khi nạp" là quy trình thật của Anh Sơn, và không nói miễn phí khi `bang-gia.md` chưa có giá.
+- Người duyệt xem cảnh 5 để chắc là thao tác thật của thợ trước khi đăng.
