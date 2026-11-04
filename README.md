@@ -39,3 +39,7 @@ Là static site nên có thể deploy miễn phí lên **GitHub Pages** (Setting
 ├── css/style.css   # Giao diện
 └── js/main.js      # Menu mobile + xử lý form đặt lịch
 ```
+
+## Resort online
+
+Thư mục [`resort/`](resort/) chứa **An Viên Resort**, resort nhà vườn online nhiều người chơi. Xem [`resort/README.md`](resort/README.md).
