@@ -1,41 +1,40 @@
-# An Viên Resort — resort nhà vườn online
+# Anh Sơn Retreat — retreat 3D online
 
-Bản đồ 2D nhìn từ trên xuống của một khu nhà vườn ~17.000 m² (130 × 130 m). Ai cũng có thể ghé chơi, đi dạo, trò chuyện và làm hoạt động. Phong cách đơn giản, chạm là làm, giống các trang "chùa online".
+Khu nghỉ trên đồi Bảo Lộc dựng lại bằng 3D (Three.js), ai cũng có thể ghé chơi. Bản đồ lấy theo reel của Anh Sơn Retreat: khu đất ~17.000 m² (đa giác ranh đất trong code tính ra 17.136 m²), đường bê tông chạy chéo dọc ranh phía Tây, cụm 3 căn nhà và hồ bơi ở phần cao, đồi chè góc Đông Bắc, đường đất chữ S đổ xuống dốc, sườn giữa trồng cà phê, bơ, sầu riêng và chuối, suối lớn chảy ngang phần thấp có ghềnh đá, thác nhỏ và chòi nghỉ mái xanh. Xung quanh là rừng và ba lớp đồi núi xa.
 
 Bản chạy nhiều người: https://claude.ai/artifact/VwL6JCfhYkCXSC1qSvhoRV (mặc định riêng tư, mở quyền ở menu Share).
 
-## Có gì trong resort
+## Nhân vật
 
-| Khu | Hoạt động |
+| Ai | Làm gì |
 |---|---|
-| Hồ bơi 20×14 m | Bơi (vào hồ là tự bơi), nằm ghế tắm nắng |
-| Hồ sen + chòi trà | Thả hoa đăng kèm lời ước (trôi 48 giờ, ai cũng thấy), uống trà |
-| Vườn cộng đồng | Trồng 9 loại cây, tưới cây của bất kỳ ai; cây lớn qua 4 giai đoạn |
-| Bãi cỏ BBQ | Nằm võng, ăn BBQ (lò đốt 18:00–21:30) |
-| Nhà chính, 3 bungalow, vườn trái cây, đài phun nước, vườn hoa | Uống nước dừa, nghỉ trưa, hái trái, thả đồng xu |
-| Cổng | Sổ lưu bút |
+| **Chị Mơ**, quản lý | Đón khách ở cổng, kiểm tra hồ bơi, dẫn khách tham quan suối, nhóm lửa trại |
+| **Chú Ba**, làm vườn | Hái chè buổi sáng, tỉa cà phê và sầu riêng buổi chiều, tưới vườn khách lúc chiều tối |
+| **Anh Tèo**, làm vườn | Cho thú cưng ăn, xới vườn khách, cắt cỏ, nướng bắp ở lửa trại |
+| **3 khách vãng lai** | Lúc nào cũng có đúng 3 người, đổi người mỗi 2 tiếng, mỗi người một kiểu (dân văn phòng trốn deadline, youtuber, bác tập dưỡng sinh…) |
+| **Thú cưng** | Chó Mực, Vàng · mèo Mướp, Miu · thỏ Bông, Tuyết |
 
-- **Thời gian thật** theo giờ Việt Nam: sáng, hoàng hôn, đêm lên đèn, đom đóm.
-- **Thời tiết theo ngày**: sinh từ ngày tháng nên mọi người thấy giống nhau; mùa mưa (tháng 5–11) hay có mưa rào/dông buổi chiều. Bấm đồng hồ để xem dự báo 24 giờ.
-- **3 nhân viên** (Chú Tư, Anh Bảy, Cô Năm) đi làm theo lịch giờ thật, tối về nhà nhân viên nghỉ. Bấm vào để chào hỏi.
-- **6 thú cưng**: chó Mực, Vàng · mèo Mướp, Miu · thỏ Bông, Tuyết. Có giờ ngủ riêng; vuốt ve, cho ăn.
-- **Tối đa 200 khách** online cùng lúc, thấy nhau di chuyển, bong bóng chat, hiệu ứng tim/nước.
+Ai cũng có lời thoại vui. Nhân viên và khách vãng lai di chuyển theo giờ thật, nên mọi người xem cùng lúc sẽ thấy họ ở cùng một chỗ.
+
+## Hoạt động
+
+Bơi ở hồ nước lạnh · cà phê ngắm đồi trên hiên · hái chè · trồng 10 loại cây (có mai anh đào, dã quỳ, bơ, sầu riêng, cà phê) và tưới cây của người khác · thả hoa đăng trôi theo suối 48 giờ · ngồi chòi bên suối · lửa trại 18:00–21:30 · vuốt ve, cho thú cưng ăn · sổ lưu bút · chat.
+
+**Thời gian và thời tiết** chạy theo giờ Việt Nam, kiểu khí hậu Bảo Lộc: sáng thường có sương mù, mùa mưa (tháng 5–11) hay mưa chiều, nhiệt độ 15–28°C. Thời tiết sinh từ ngày tháng nên ai xem cũng thấy giống nhau.
+
+## Điều khiển
+
+Chạm mặt đất để đi · kéo để xoay camera · cuộn chuột hoặc chụm hai ngón để zoom · WASD hoặc phím mũi tên · chạm bản đồ nhỏ ở góc để dịch chuyển · nút **Toàn cảnh** để nhìn từ trên cao.
 
 ## Hai cách chạy
 
-1. **Trên claude.ai (nhiều người)**: dùng capability `room` (ai đang online, vị trí, chat) và `db` (cây trồng, hoa đăng, lưu bút dùng chung). Người được mời quyền *Contributor* trở lên mới trồng cây/viết được; quyền *Viewer* chỉ đi dạo và xem.
-2. **Mở file `index.html` trực tiếp hoặc GitHub Pages (một mình)**: mọi thứ vẫn chạy, nhưng chỉ thấy chính mình, dữ liệu lưu trong trình duyệt.
+1. **Trên claude.ai (nhiều người, tối đa 200)**: dùng `room` cho ai đang online, vị trí và chat, dùng `db` cho cây trồng, hoa đăng và lưu bút dùng chung. Người có quyền *Contributor* trở lên mới trồng cây và viết được; quyền *Viewer* chỉ đi dạo và xem.
+2. **Mở `index.html` trực tiếp hoặc qua GitHub Pages (một mình)**: chỉ thấy chính mình, dữ liệu lưu trên trình duyệt. Cần mạng để tải Three.js từ cdnjs.
 
-Muốn công khai cho người lạ vào không cần tài khoản: thay `Store` và phần `initRoom()` trong `index.html` bằng một backend realtime (Firebase, Supabase Realtime hoặc server WebSocket nhỏ).
+Muốn mở công khai cho người không có tài khoản: thay `Store` và `initRoom()` bằng backend realtime (Firebase, Supabase Realtime hoặc server WebSocket).
 
-## Tuỳ chỉnh nhanh
+## Tuỳ chỉnh
 
-Ở đầu `<script>` trong `index.html`:
-
-- `RESORT_NAME`, `CAPACITY`, `W`/`H` (kích thước đất, mét)
-- `ZONES`, `SOLIDS`, `PATHS`, `POND`: bố cục bản đồ (toạ độ mét, gốc góc trên-trái, phía Bắc ở trên)
-- `STAFF`: tên, lịch làm việc theo giờ, câu thoại
-- `PETS`: tên, khu vực chạy chơi, giờ ngủ
-- `KINDS`: loại cây trồng được
+Đầu `<script>` trong `index.html`: `LAND` (ranh đất), `ROAD`, `DRIVE`, `SROAD`, `STREAM` (đường và suối), `POOL`, `TEA`, `GARDEN`, `HUT`, `FALL` (vị trí các khu), `STAFF` (lịch làm việc, câu thoại), `PERSONAS` (khách vãng lai), `PETS`, `KINDS` (loại cây). Toạ độ tính bằng mét, x hướng Đông, z hướng Nam (xuống dốc).
 
 Phần giữa `<!--ARTIFACT-START-->` và `<!--ARTIFACT-END-->` là nội dung được xuất bản lên claude.ai.

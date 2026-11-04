@@ -42,4 +42,4 @@ Là static site nên có thể deploy miễn phí lên **GitHub Pages** (Setting
 
 ## Resort online
 
-Thư mục [`resort/`](resort/) chứa **An Viên Resort**, resort nhà vườn online nhiều người chơi. Xem [`resort/README.md`](resort/README.md).
+Thư mục [`resort/`](resort/) chứa **Anh Sơn Retreat**, retreat 3D online nhiều người chơi trên đồi Bảo Lộc. Xem [`resort/README.md`](resort/README.md).
