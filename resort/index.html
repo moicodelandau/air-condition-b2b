@@ -42,6 +42,8 @@ textarea{resize:vertical}
 #mark span{font-size:12px;color:var(--ink-soft)}
 #mark em{font-style:normal}
 #sky{padding:6px 12px;font-size:12.5px;display:flex;gap:8px;align-items:center;color:var(--ink)}
+#vis{padding:6px 12px;font-size:12.5px;display:flex;gap:6px;align-items:center;color:var(--ink);font-variant-numeric:tabular-nums}
+#vis b{font-weight:600}
 #sky .t{font-weight:600;font-variant-numeric:tabular-nums}
 #sky .sep{width:3px;height:3px;border-radius:50%;background:var(--ink-soft);opacity:.5}
 #tr{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}
@@ -132,7 +134,8 @@ textarea{resize:vertical}
 <canvas id="ov"></canvas>
 
 <div id="tl">
-  <div id="mark" class="glass"><b>Anh Sơn Retreat</b><span>Bảo Lộc · 17.000 m²<em id="visits"></em></span></div>
+  <div id="mark" class="glass"><b>Anh Sơn Retreat</b><span>Bảo Lộc · 17.000 m²</span></div>
+  <div id="vis" class="glass" hidden title="Tổng lượt ghé retreat"></div>
   <button id="sky" class="glass" title="Thời tiết trong ngày"><span class="t" id="clk">--:--</span><span class="sep"></span><span id="wx">—</span></button>
 </div>
 <div id="tr"><button id="online" class="glass off" title="Ai đang ở đây"><i></i><span id="online-txt">Đang kết nối</span></button></div>
@@ -198,7 +201,11 @@ const BLOCKS=[
   {x0:-14.4,x1:-3.6,z0:-78.5,z1:-72.5},  // nhà blue: 2 căn
   {x0:-12.5,x1:-3.5,z0:-64.5,z1:-57.5},  // nhà chính – mái xám
   {x0:-6,x1:-.5,z0:-70.5,z1:-62},          // nhà mái vàng: cánh nối với nhà xám thành chữ L
-  {x0:-25,x1:-17,z0:-64.5,z1:-57.5},     // nhà lưới (thỏ ở trong)
+  {x0:-25.2,x1:-16.8,z0:-64.7,z1:-64.3}, // nhà lưới: tường Bắc
+  {x0:-25.2,x1:-24.8,z0:-64.5,z1:-57.3}, // tường Tây
+  {x0:-17.2,x1:-16.8,z0:-64.5,z1:-57.3}, // tường Đông
+  {x0:-25.2,x1:-22.3,z0:-57.7,z1:-57.3}, // tường Nam, bên trái cửa
+  {x0:-19.7,x1:-16.8,z0:-57.7,z1:-57.3}, // tường Nam, bên phải cửa (cửa rộng 2,6 m ở giữa)
   {x0:.4,x1:2.8,z0:-81.3,z1:-78.7},        // bồn nước (bên trái nhà blue)
   {x0:BOARD.x-1.5,x1:BOARD.x+1.5,z0:BOARD.z-1.5,z1:BOARD.z+1.5}, // bảng lưu bút
   {x0:-12.9,x1:-9.3,z0:-54.2,z1:-53.4},  // mặt tiền tầng trệt (chừa lối cửa chính)
@@ -300,7 +307,7 @@ function routeLoop(pts,t,speed=1.1,pause=20){
   return{x:pts[0][0],z:pts[0][1],moving:false,dir:0};
 }
 const STAFF=[
-  {id:"mo",name:"Chị Mơ",role:"Quản lý",shirt:"#f4f1ea",acc:"#2f78c4",hat:"none",hair:"#2b1d14",scarf:0x2f78c4,sleep:"đang ngủ ở nhà chính",
+  {id:"mo",name:"Cô Nhung",role:"Quản lý",shirt:"#f4f1ea",acc:"#2f78c4",hat:"none",hair:"#2b1d14",scarf:0x2f78c4,sleep:"đang ngủ ở nhà chính",
    plan:[
      {from:6,to:9,verb:"đón khách ở cổng vào, chơi với ba chú chó",pts:[[GATE_IN[0]+2.5,GATE_IN[1]+2],[GATE_IN[0]+4,GATE_IN[1]-2],[GATE_IN[0]+1,GATE_IN[1]+4]]},
      {from:9,to:11.5,verb:"đi kiểm tra hồ bơi",pts:[[8,-56.5],[24.5,-56.5],[24.5,-67],[8.5,-67]]},
@@ -309,8 +316,8 @@ const STAFF=[
      {from:17,to:21.5,verb:"nhóm lửa trại ngoài sân",pts:[[-17.5,-45.5],[-12.5,-45.5],[-12.5,-49]]},
      {from:21.5,to:23,verb:"đi tuần tắt đèn",pts:[[-37,-64.5],[-14,-54],[21,-56.5],[12,-70.5],[-14,-71.5]]},
    ],
-   lines:["Chào mừng tới Anh Sơn Retreat! Chỗ nào sóng điện thoại yếu nhất, chỗ đó view đẹp nhất.","Từ nhà xuống suối dốc 45 mét. Đi xuống thì thơ, đi lên thì thở.","Ở đây không có giờ cao điểm, chỉ có giờ sương mù cao điểm.","Đừng hỏi chị mấy giờ. Ở đây tính giờ bằng số ly cà phê.","Hồ bơi nước lạnh nha. Nhảy xuống là tỉnh hết mọi ảo tưởng.","Có hai đường lên nhà chính: đường 1 dốc thẳng, đường 2 uốn chữ U cho đỡ thở. Chị khuyên đường 2, trừ khi em đang tập thể dục.","Phòng giám đốc ở tầng dưới, đi lối bậc thang cạnh chuồng chim. Giám đốc đi vắng, nhưng cái ghế xoay thì luôn ở đó, em đừng ngồi.","11 giờ đêm là cả retreat đi ngủ. Con Mướp ngủ trước 10 tiếng rồi."]},
-  {id:"ba",name:"Chú Ba",role:"Làm vườn · đồi chè",shirt:"#4f7a45",acc:"#3a2f22",hat:"non",hair:"#999999",sleep:"đang ngủ ở căn mái vàng sau nhà chính",
+   lines:["Chào mừng tới Anh Sơn Retreat! Chỗ nào sóng điện thoại yếu nhất, chỗ đó view đẹp nhất.","Từ nhà xuống suối dốc 45 mét. Đi xuống thì thơ, đi lên thì thở.","Ở đây không có giờ cao điểm, chỉ có giờ sương mù cao điểm.","Đừng hỏi cô mấy giờ. Ở đây tính giờ bằng số ly cà phê.","Hồ bơi nước lạnh nha. Nhảy xuống là tỉnh hết mọi ảo tưởng.","Có hai đường lên nhà chính: đường 1 dốc thẳng, đường 2 uốn chữ U cho đỡ thở. Cô khuyên đường 2, trừ khi cháu đang tập thể dục.","Phòng giám đốc ở tầng dưới, đi lối bậc thang cạnh chuồng chim. Giám đốc đi vắng, nhưng cái ghế xoay thì luôn ở đó, cháu đừng ngồi.","11 giờ đêm là cả retreat đi ngủ. Con Mướp ngủ trước 10 tiếng rồi."]},
+  {id:"ba",name:"Chú Hải",role:"Phó botanist · đồi chè",shirt:"#4f7a45",acc:"#3a2f22",hat:"non",hair:"#999999",sleep:"đang ngủ ở căn mái vàng sau nhà chính",
    plan:[
      {from:6,to:11,verb:"hái chè trên đồi",pts:[[24,-81],[70,-81],[58,-72],[24,-69]]},
      {from:11,to:13,verb:"ngủ trưa trước nhà kính",pts:[[11,-70.5],[13,-70.5]]},
@@ -318,8 +325,8 @@ const STAFF=[
      {from:17.5,to:19.5,verb:"tưới vườn khách trồng",pts:[[-42,-38.5],[-21,-38.5],[-21,-23.5],[-42,-23.5]]},
      {from:19.5,to:23,verb:"pha trà trước nhà kính",pts:[[10,-70.5],[14,-70.5]]},
    ],
-   lines:["Chè chú trồng hai chục năm, người ta uống hai chục giây. Đời là vậy đó con.","Đừng đứng dưới gốc sầu riêng lâu quá, trái rụng là lên báo đó.","Cây bơ này trái bự cỡ trái banh, mà con sóc ăn trước chú.","Trồng cây đi con. Cây không seen không rep, nhưng lớn đều.","Trời Bảo Lộc như tính con gái: sáng sương, trưa nắng, chiều mưa, tối lại dịu.","Nhà kính mái trắng trồng trái cây, mỗi trái chú đều đặt tên. Căn mái vàng nhỏ sau nhà chính mới là chỗ chú với thằng Tèo ngủ."]},
-  {id:"teo",name:"Anh Tèo",role:"Làm vườn · thú cưng",shirt:"#c9673f",acc:"#2c3e50",hat:"cap",hair:"#1d1410",sleep:"đang ngủ ở căn mái vàng sau nhà chính",
+   lines:["Chè chú trồng hai chục năm, người ta uống hai chục giây. Đời là vậy đó con.","Đừng đứng dưới gốc sầu riêng lâu quá, trái rụng là lên báo đó.","Cây bơ này trái bự cỡ trái banh, mà con sóc ăn trước chú.","Trồng cây đi con. Cây không seen không rep, nhưng lớn đều.","Trời Bảo Lộc như tính con gái: sáng sương, trưa nắng, chiều mưa, tối lại dịu.","Nhà kính mái trắng trồng trái cây, mỗi trái chú đều đặt tên. Căn mái vàng nhỏ sau nhà chính mới là chỗ tụi chú nghỉ."]},
+  {id:"teo",name:"Cô Ngọc",role:"Trưởng botanist · thú cưng",shirt:"#c9673f",acc:"#2c3e50",hat:"cap",hair:"#1d1410",sleep:"đang ngủ ở căn mái vàng sau nhà chính",
    plan:[
      {from:6,to:8,verb:"cho chó mèo thỏ ăn sáng",pts:[[-21,-56.8],[-16,-56],[-26,-56.5]]},
      {from:8,to:11,verb:"xới đất vườn khách",pts:[[-39,-36],[-23,-36],[-23,-25]]},
@@ -329,7 +336,7 @@ const STAFF=[
      {from:18,to:21.5,verb:"nướng bắp ở lửa trại",pts:[[-13.4,-46],[-12.8,-47]]},
      {from:21.5,to:23,verb:"đi khoá cổng, soi đèn qua cầu",pts:[[-41,-62],[GATE_IN[0]+3,GATE_IN[1]-4],[GATE_IN[0]+1,GATE_IN[1]+3],[GATE_IN[0]+3,GATE_IN[1]-4]]},
    ],
-   lines:["Anh tưới cây mà con Mực cứ tưởng anh rủ chơi đuổi bắt.","Leo từ suối lên nhà một lần là khỏi cần đi gym một tuần.","Đi lối này nè, lối kia của mấy con thỏ, tụi nó thu phí cà rốt.","Thấy con mèo nằm trên mái nhà không? Nó là giám sát công trình.","Nhà ngay góc dưới là nhà hàng xóm nha, đừng vô. Chó nhà họ sủa còn to hơn anh hát.","Bắp nướng của anh có công thức bí mật: than hồng và đói bụng."]},
+   lines:["Cô tưới cây mà con Mực cứ tưởng cô rủ chơi đuổi bắt.","Leo từ suối lên nhà một lần là khỏi cần đi gym một tuần.","Đi lối này nè, lối kia của mấy con thỏ, tụi nó thu phí cà rốt.","Thấy con mèo nằm trên mái nhà không? Nó là giám sát công trình.","Nhà ngay góc dưới là nhà hàng xóm nha, đừng vô. Chó nhà họ sủa còn to hơn cô hát.","Bắp nướng của cô có công thức bí mật: than hồng và đói bụng."]},
 ];
 const PERSONAS=[
   {role:"Dân văn phòng trốn deadline",lines:["Mình lên đây để quên email. Mà điện thoại vẫn rung trong tim.","Sếp hỏi đang ở đâu, mình nói đang họp trên mây. Đúng mà, sương mù nè.","Ở đây ba ngày, lần đầu mình thấy bình minh mà không phải vì thức chạy báo cáo."]},
@@ -359,7 +366,7 @@ function npcState(s){
   const eve=TOD>=21;return Object.assign(routeLoop(eve?s.eve:s.pts,Date.now()/1000+hash(s.id)%613,.9,36),{verb:eve?"ngồi ngắm sao":"đang dạo quanh"});
 }
 const PETS=[
-  {id:"muc",name:"Mực",kind:"chó",color:"#1d1d1d",area:{cx:GATE_IN[0]+2,cz:GATE_IN[1]+1,rx:5,rz:3.5},spd:1,sleep:[[23,6]],react:["Mực lăn ra cho bạn gãi bụng, rồi đứng dậy đòi phí.","Mực đưa bạn một cành cây. Bạn ném đi, Mực không thèm nhặt.","Mực sủa một tiếng. Anh Tèo dịch: ‘Cho xin miếng bánh’."]},
+  {id:"muc",name:"Mực",kind:"chó",color:"#1d1d1d",area:{cx:GATE_IN[0]+2,cz:GATE_IN[1]+1,rx:5,rz:3.5},spd:1,sleep:[[23,6]],react:["Mực lăn ra cho bạn gãi bụng, rồi đứng dậy đòi phí.","Mực đưa bạn một cành cây. Bạn ném đi, Mực không thèm nhặt.","Mực sủa một tiếng. Cô Ngọc dịch: ‘Cho xin miếng bánh’."]},
   {id:"vang",name:"Vàng",kind:"chó",color:"#c99a4a",area:{cx:GATE_IN[0]-1,cz:GATE_IN[1]-1,rx:3,rz:2.5},spd:.7,sleep:[[23,6]],react:["Vàng canh cổng mười năm, chưa bắt được trộm, chỉ bắt được tình cảm.","Vàng vẫy đuôi mạnh tới mức cả người lắc theo.","Vàng ngửi giày bạn, đánh giá: đi nhiều, đáng tin."]},
   {id:"dom",name:"Đốm",kind:"chó",color:"#e8e2d6",area:{cx:GATE_IN[0]+3.5,cz:GATE_IN[1]-3,rx:3.5,rz:2},spd:.85,sleep:[[23,6]],react:["Đốm sủa ba tiếng rồi quay lại nhìn Mực, như xin xác nhận bạn là người tốt.","Đốm ngồi xuống trước mặt bạn, đưa chân. Bạn bắt tay. Giao dịch hoàn tất.","Đốm có đốm đen ở tai. Đốm nói đó là dấu hiệu nhận diện, không phải vết bẩn."]},
   {id:"muop",name:"Mướp",kind:"mèo",color:"#d98a3a",area:{cx:-8,cz:-55.6,rx:3.8,rz:.8},spd:.5,sleep:[[12,14.5],[23,6]],react:["Mướp nhìn bạn như nhìn nhân viên mới.","Mướp cho bạn vuốt đúng ba cái rồi bỏ đi. Hết giờ hành chính.","Mướp nằm phơi bụng. Đây là cái bẫy."]},
@@ -735,6 +742,9 @@ const RIPPLES=[];
  const spots=[];for(let i=0;i<7;i++)spots.push([FORD[0]+(r()-.5)*6,FORD[1]+(r()-.5)*2.4]);
  STREAM_PTS.forEach((q,i)=>{if(i%7===3&&q[0]>-80&&q[0]<50)spots.push([q[0]+(r()-.5)*1.5,q[1]+(r()-.5)*1.5])});
  for(const[x,z]of spots){const m=new T.Mesh(ringG,new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,depthWrite:false}));m.position.set(x,waterY(x,z)+.04,z);scene.add(m);RIPPLES.push({m,ph:r()})}}
+// cửa nhà lưới (phía Nam) để vào vuốt ve thỏ
+for(const dx of[-1.3,1.3])scene.add(mesh(new T.BoxGeometry(.12,2.4,.12),lam(0x333333),NETH.x+dx,PY+1.2,NETH.z+3.5,false));
+scene.add(mesh(new T.BoxGeometry(2.7,.12,.12),lam(0x333333),NETH.x,PY+2.4,NETH.z+3.5,false));
 // vườn hồng nhỏ
 {const r=rng(77),cxr=(ROSE.x0+ROSE.x1)/2,gx0=cxr-1.2,gx1=cxr+1.2,segs=[],white=lam(0xf6f4ee);
  const addLine=(x0,z0,x1,z1)=>{const n=Math.max(1,Math.round(Math.hypot(x1-x0,z1-z0)/1.1));for(let i=0;i<n;i++)segs.push([x0+(x1-x0)*i/n,z0+(z1-z0)*i/n,x0+(x1-x0)*(i+1)/n,z0+(z1-z0)*(i+1)/n])};
@@ -821,7 +831,7 @@ function tentFree(x,z){if(!CAMPS.some(c=>inRect(x,z,{x0:c.x0+1.5,x1:c.x1-1.5,z0:
   if(CAMP_TENTS.some(([a,b])=>Math.hypot(x-a,z-b)<3.2))return false;for(const[id,t]of tents)if(id!=="me"&&Math.hypot(x-t.x,z-t.z)<3)return false;return!blocked(x,z)&&!blocked(x,z+1.8)}
 function pitchTent(){const camp=CAMPS.find(c=>inRect(me.x,me.z,{x0:c.x0-8,x1:c.x1+8,z0:c.z0-8,z1:c.z1+8}))||YARD;let x=Math.round(me.x*10)/10,z=Math.round(me.z*10)/10;
   if(!tentFree(x,z)){let ok=false;for(let i=0;i<200&&!ok;i++){x=Math.round((camp.x0+2+Math.random()*(camp.x1-camp.x0-4))*10)/10;z=Math.round((camp.z0+1.5+Math.random()*(camp.z1-camp.z0-3.5))*10)/10;ok=tentFree(x,z)}if(!ok){toast("Bãi đã kín lều. Chờ ai đó thu lều nhé.");return}}
-  walkTo(x+1.4,z+1.6,()=>{me.tent=[x,z];syncTent("me",me.tent,me.c);doFx("tent",x,z);toast(pick(["Lều dựng xong. Cọc thứ tư hơi xiêu, nhưng là xiêu có nghệ thuật.","Lều đã dựng. Mướp đã kịp chui vào kiểm tra.","Xong! Chị Mơ nói đêm nay có sao, nếu mây cho phép."]),4000)})}
+  walkTo(x+1.4,z+1.6,()=>{me.tent=[x,z];syncTent("me",me.tent,me.c);doFx("tent",x,z);toast(pick(["Lều dựng xong. Cọc thứ tư hơi xiêu, nhưng là xiêu có nghệ thuật.","Lều đã dựng. Mướp đã kịp chui vào kiểm tra.","Xong! Cô Nhung nói đêm nay có sao, nếu mây cho phép."]),4000)})}
 for(const[x,z]of LAMPS){const y=walkable(x,z)?groundY(x,z):H(x,z);scene.add(mesh(new T.CylinderGeometry(.06,.08,2.6,5),lam(0x333333),x,y+1.3,z,false));scene.add(mesh(new T.SphereGeometry(.17,8,6),bulbMat,x,y+2.65,z,false));
   const sp=new T.Sprite(new T.SpriteMaterial({map:glowTex,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0}));sp.position.set(x,y+2.65,z);sp.scale.set(5,5,1);scene.add(sp);glows.push(sp)}
 const porch=[new T.PointLight(0xffc27a,0,18,2),new T.PointLight(0xffc27a,0,16,2)];porch[0].position.set(-8,PY+2.4,-55.8);porch[1].position.set(-14,UY+2.4,-71.8);porch.forEach(l=>scene.add(l));
@@ -867,9 +877,9 @@ function makeFlyer(col){const g=new T.Group(),m=lam(col);const w1=new T.Mesh(BG.
 const FLOCKS=[0,1,2,3].map(i=>({ph:i*1.7,r:38+i*12,cx:[-10,6,-26,16][i],cz:[-12,18,32,-40][i],h:14+i*5,sp:.05+i*.012,
   birds:Array.from({length:5+i},(_,k)=>({o:makeFlyer(i%2?"#3b3b3b":"#5a4632"),dx:(k%3-1)*1.7+((k*7)%5-2)*.4,dz:-Math.floor(k/2)*1.4,dy:((k*13)%5)*.3,fp:k*.9}))}));
 const BIRD_LINES={"Chào mào":["Chào mào hót ‘chào mào!’. Có thể là chào bạn, cũng có thể đang chửi con Mướp.","Chào mào dựng mào đỏ lên như vừa đi làm tóc ở Bảo Lộc về.","Nó đậu trên cành bơ, nhìn xuống bạn như quản lý nhìn nhân viên đi trễ."],
-  "Chim sẻ":["Chim sẻ nhảy ba bước, nhìn bạn, nhảy ba bước nữa. Nó đang đánh giá bạn có mang bánh mì không.","Chim sẻ mổ một hạt cỏ rồi nhả ra. Khó tính như khách review một sao.","Cả nhóm chim sẻ đang họp, chủ đề: ai ăn hết hạt kê của Anh Tèo."],
-  "Chích choè":["Chích choè hót một tràng dài như đọc rap. Chú Ba nói hay hơn karaoke cả xóm.","Chích choè vẫy đuôi liên tục, kiểu đang tập aerobic buổi sáng.","Nó hót đúng 6 giờ sáng mỗi ngày. Báo thức của cả retreat là nó."],
-  "Cú mèo":["Cú… cú… Dịch: ‘Ngủ đi, 11 giờ rồi’.","Cú mèo xoay đầu nhìn bạn 180 độ. Bạn thua.","Cú mèo trực đêm thay Chị Mơ. Lương trả bằng chuột."]};
+  "Chim sẻ":["Chim sẻ nhảy ba bước, nhìn bạn, nhảy ba bước nữa. Nó đang đánh giá bạn có mang bánh mì không.","Chim sẻ mổ một hạt cỏ rồi nhả ra. Khó tính như khách review một sao.","Cả nhóm chim sẻ đang họp, chủ đề: ai ăn hết hạt kê của Cô Ngọc."],
+  "Chích choè":["Chích choè hót một tràng dài như đọc rap. Chú Hải nói hay hơn karaoke cả xóm.","Chích choè vẫy đuôi liên tục, kiểu đang tập aerobic buổi sáng.","Nó hót đúng 6 giờ sáng mỗi ngày. Báo thức của cả retreat là nó."],
+  "Cú mèo":["Cú… cú… Dịch: ‘Ngủ đi, 11 giờ rồi’.","Cú mèo xoay đầu nhìn bạn 180 độ. Bạn thua.","Cú mèo trực đêm thay Cô Nhung. Lương trả bằng chuột."]};
 const GB_G={body:new T.SphereGeometry(.13,8,6),head:new T.SphereGeometry(.085,8,6),tail:new T.BoxGeometry(.08,.02,.18),beak:new T.ConeGeometry(.025,.08,4),crest:new T.ConeGeometry(.035,.12,4)};GB_G.beak.rotateX(Math.PI/2);
 const GBIRDS=[["Chào mào",-8,-53.2,3],["Chim sẻ",-31,-30,6],["Chim sẻ",-27,-27,6],["Chào mào",14.5,-56.4,4],["Chích choè",-45,59,4],["Chim sẻ",-21,-49.5,3],["Chích choè",40,-76,6],["Chào mào",0,-70.4,3],["Chim sẻ",4,6,5]].map(([name,x,z,r],i)=>{
   const g=new T.Group(),col=name==="Chào mào"?0x6b5a4a:name==="Chích choè"?0x262626:0x8a6a4a;const b=new T.Mesh(GB_G.body,lam(col));b.scale.set(1,.85,1.35);b.position.y=.16;const hd=new T.Mesh(GB_G.head,lam(col));hd.position.set(0,.28,.12);
@@ -1027,7 +1037,10 @@ function stepTowards(tx,tz,dt){const dx=tx-me.x,dz=tz-me.z,d=Math.hypot(dx,dz);c
   if(d<1e-3)return true;me.r=Math.atan2(dx,dz);if(d<=sp){if(!blocked(tx,tz)){me.x=tx;me.z=tz}return true}
   const nx=me.x+dx/d*sp,nz=me.z+dz/d*sp;if(!blocked(nx,nz)){me.x=nx;me.z=nz}else if(!blocked(nx,me.z))me.x=nx;else if(!blocked(me.x,nz))me.z=nz;else return true;return false}
 let moving=false;
-function stepMe(dt){if(!me.joined)return;moving=false;
+function unstick(){if(!blocked(me.x,me.z))return;for(let r=.6;r<30;r+=.6)for(let k=0;k<16;k++){const a=k/16*6.283,x=me.x+Math.cos(a)*r,z=me.z+Math.sin(a)*r;if(!blocked(x,z)){me.x=x;me.z=z;me.tx=null;me.after=null;return}}}
+const AVI={x0:-25,x1:-17,z0:-64.5,z1:-57.5};
+function walkPet(p,f){const tx=p._x+.9,tz=p._z+.5;if(inRect(p._x,p._z,AVI)&&!inRect(me.x,me.z,AVI)){walkTo(NETH.x,NETH.z+4.6,()=>walkTo(NETH.x,NETH.z+2.4,()=>walkTo(clamp(tx,-24.3,-17.7),clamp(tz,-63.9,-58.3),f)))}else walkTo(tx,tz,f)}
+function stepMe(dt){if(!me.joined)return;unstick();moving=false;
   if(keyMove(dt))moving=true;
   else if(me.tx!=null){moving=true;if(stepTowards(me.tx,me.tz,dt)){me.tx=null;moving=false;const f=me.after;me.after=null;if(f)f()}}
   const sw=inPool(me.x,me.z);if(sw)me.a="swim";else if(me.a==="swim")me.a="";if(moving&&me.a&&me.a!=="swim")me.a="";
@@ -1039,10 +1052,10 @@ const campActs=(fx,fz)=>me.tent?[["Chui vào lều nằm",()=>walkTo(me.tent[0]+
 const SPOTS=[
   {hit:(x,z)=>x>POOL.x0-2&&x<POOL.x1+3&&z>POOL.z0-2&&z<POOL.z1+2,at:[16,-56.4],k:"Hồ bơi",t:"Hồ bơi nước lạnh",d:()=>`Hồ rộng gấp rưỡi hồ cũ, chạy dọc nhà chính. Góc này là chỗ đường mòn dây leo từ cuối suối đi lên chạm vào hồ. Ngoài trời ${Math.round(WX.temp)}°C.`,acts:[["Nhảy xuống bơi",()=>walkTo(11+Math.random()*10.5,-64+Math.random()*4.5,()=>{doFx("splash",me.x,me.z);sayMe(pick(["Lạnh! Lạnh! Ai nói nước ấm vậy trời!","Tỉnh ngủ luôn, khỏi cần cà phê.","Bơi một vòng mà thấy như vừa đi spa đá."]))})]]},
   {hit:(x,z)=>inRect(x,z,TERR),at:[-7,-55.2],k:"Hiên nhà chính",t:"Cà phê ngắm đồi",d:()=>"Hiên nằm trên tầng trệt, mái bạt trắng, sofa xanh. Nhìn xuống là sân cắm trại, thung lũng xa tít và chân trời nơi mặt trời lặn mỗi chiều.",acts:[["Uống cà phê",()=>walkTo(-9,-55.6,()=>{me.a="coffee";doFx("coffee",me.x,me.z)})],["Ngắm hoàng hôn",()=>walkTo(-9,-55.6,lookSunset)],["Ngắm toàn cảnh",()=>setView(true)]]},
-  {hit:(x,z)=>x>3&&x<21&&z>-79&&z<-70,at:[12,-70.5],k:"Nhà kính",t:"Nhà kính trồng trái cây",d:()=>"Nhà kính mái trắng, vách kính, bên trong trồng cam, quýt, dâu, chanh dây. Chú Ba chăm từng trái, nhìn thôi chứ đừng hái.",acts:[["Vào trong dạo",()=>walkTo(12,-75)],["Hái thử trái",()=>{doFx("leaf",me.x,me.z);toast(pick(["Bạn hái được một trái cam. Chú Ba nhìn bạn như nhìn người lấy trộm con của ông.","Quýt trong nhà kính ngọt hơn quýt ngoài chợ. Chú Ba nói vậy, và chú nói rất nghiêm túc.","Trái dâu chưa chín mà bạn đã hái. Bạn nghe tiếng thở dài từ phía sau."]),5000)}]]},
+  {hit:(x,z)=>x>3&&x<21&&z>-79&&z<-70,at:[12,-70.5],k:"Nhà kính",t:"Nhà kính trồng trái cây",d:()=>"Nhà kính mái trắng, vách kính, bên trong trồng cam, quýt, dâu, chanh dây. Chú Hải chăm từng trái, nhìn thôi chứ đừng hái.",acts:[["Vào trong dạo",()=>walkTo(12,-75)],["Hái thử trái",()=>{doFx("leaf",me.x,me.z);toast(pick(["Bạn hái được một trái cam. Chú Hải nhìn bạn như nhìn người lấy trộm con của ông.","Quýt trong nhà kính ngọt hơn quýt ngoài chợ. Chú Hải nói vậy, và chú nói rất nghiêm túc.","Trái dâu chưa chín mà bạn đã hái. Bạn nghe tiếng thở dài từ phía sau."]),5000)}]]},
   {hit:(x,z)=>inRect(x,z,{x0:ROSE.x0-1,x1:ROSE.x1+1,z0:ROSE.z0-1,z1:ROSE.z1+3}),at:[(ROSE.x0+ROSE.x1)/2,ROSE.z1+1.5],k:"Khu vườn nhỏ",t:"Vườn hồng",d:()=>"Vườn hồng nhỏ có hàng rào trắng, ngay bên trái nhà mái xanh. Hoa nở quanh năm, trừ lúc cần chụp ảnh.",acts:[["Vào ngắm hoa",()=>walkTo((ROSE.x0+ROSE.x1)/2,(ROSE.z0+ROSE.z1)/2+.5,()=>{doFx("flower",me.x,me.z);toast(pick(["Hồng nhung nở đúng lúc bạn ghé. Hồng bạch quay mặt đi, chắc đang giận.","Có con ong bay quanh. Bạn đứng yên, con ong đứng yên, hai bên tôn trọng nhau.","Bạn ngửi hoa hồng. Thơm tới mức quên luôn chuyện cần chụp ảnh."]),4500)})]]},
-  {hit:(x,z)=>inRect(x,z,{x0:PARK.x0-1,x1:PARK.x1+1,z0:PARK.z0-1,z1:PARK.z1+1}),at:[-29.5,-65.6],k:"Bãi đậu xe",t:"Bãi đậu xe, đỗ được 3 xe",d:()=>"Cuối đường 1, ngay sau cổng gỗ. Bãi sỏi phẳng đỗ được ít nhất 3 xe hơi. Từ đây đi bộ vào nhà chính.",acts:[["Bấm còi",()=>{doFx("note",me.x,me.z);toast(pick(["Bíp! Ba chú chó dưới cổng sủa lại đúng nhịp.","Bạn bấm còi. Chú Ba ngoài đồi chè giơ nón vẫy lại.","Bíp bíp! Không ai ra đón. Ở đây ai cũng bận chuyện hay hơn."]))}]]},
-  {hit:(x,z)=>inRect(x,z,TEA)&&inPoly(x,z),at:[30,-68],k:"Đồi chè",t:"Hái chè cùng Chú Ba",d:()=>"Dải chè chạy dọc ranh trên cùng, sau cụm nhà. Hái một tôm hai lá là chuẩn.",acts:[["Hái chè",()=>walkTo(26+Math.random()*30,-80+Math.random()*8,()=>{me.a="tea";doFx("leaf",me.x,me.z);toast(pick(["Bạn hái được một nắm chè. Chú Ba chấm 6 điểm.","Bạn hái nhầm lá già. Chú Ba giả vờ không thấy.","Một tôm hai lá chuẩn chỉnh! Chú Ba gật gù."]))})]]},
+  {hit:(x,z)=>inRect(x,z,{x0:PARK.x0-1,x1:PARK.x1+1,z0:PARK.z0-1,z1:PARK.z1+1}),at:[-29.5,-65.6],k:"Bãi đậu xe",t:"Bãi đậu xe, đỗ được 3 xe",d:()=>"Cuối đường 1, ngay sau cổng gỗ. Bãi sỏi phẳng đỗ được ít nhất 3 xe hơi. Từ đây đi bộ vào nhà chính.",acts:[["Bấm còi",()=>{doFx("note",me.x,me.z);toast(pick(["Bíp! Ba chú chó dưới cổng sủa lại đúng nhịp.","Bạn bấm còi. Chú Hải ngoài đồi chè giơ nón vẫy lại.","Bíp bíp! Không ai ra đón. Ở đây ai cũng bận chuyện hay hơn."]))}]]},
+  {hit:(x,z)=>inRect(x,z,TEA)&&inPoly(x,z),at:[30,-68],k:"Đồi chè",t:"Hái chè cùng Chú Hải",d:()=>"Dải chè chạy dọc ranh trên cùng, sau cụm nhà. Hái một tôm hai lá là chuẩn.",acts:[["Hái chè",()=>walkTo(26+Math.random()*30,-80+Math.random()*8,()=>{me.a="tea";doFx("leaf",me.x,me.z);toast(pick(["Bạn hái được một nắm chè. Chú Hải chấm 6 điểm.","Bạn hái nhầm lá già. Chú Hải giả vờ không thấy.","Một tôm hai lá chuẩn chỉnh! Chú Hải gật gù."]))})]]},
   {hit:(x,z)=>inRect(x,z,{x0:GARDEN.x0-1,x1:GARDEN.x1+1,z0:GARDEN.z0-1,z1:GARDEN.z1+1}),at:[-32,-41.5],k:"Vườn của khách",t:"Trồng một cây",d:()=>`Ai ghé cũng trồng được. Vườn đang có ${Store.data.plants.length} cây. Cây lớn theo thời gian và mỗi lần được tưới.`,acts:[["Chọn cây để trồng",()=>openPlantPicker()]]},
   {hit:(x,z)=>Math.hypot(x-HUT.x,z-HUT.z)<5,at:[HUT.x+3,HUT.z-3],k:"Bên suối",t:"Chòi nghỉ bên suối",d:()=>"Chòi gỗ mái xanh. Nghe suối chảy rồi ngủ gật là hoàn toàn hợp lệ.",acts:[["Ngồi nghỉ",()=>walkTo(HUT.x+.5,HUT.z,()=>{me.a="rest";pushPresence()})],["Viết lưu bút",()=>openBook()]]},
   {hit:(x,z)=>Math.hypot(x-FALL.x,z-FALL.z)<13,at:[FALL.x+8,FALL.z-4],k:"Thác nước",t:"Thác rộng 4 m",d:()=>"Nước đổ từ bậc đá cao hơn 2 mét xuống vũng sủi bọt, rộng 4 mét, hai bên là đá tảng. Đứng gần là nghe tiếng thác lấn hết tiếng chim.",acts:[["Thả hoa đăng",()=>openLantern()],["Chụp ảnh",()=>{doFx("camera",me.x,me.z);toast("Tách! Thác đẹp tới mức điện thoại tự bật chế độ sống ảo.")}],["Xuống bãi trại",()=>walkAlong(FALLPATH_PTS.filter((p,i)=>i%4===0).reverse().concat([[-36,55]]))]]},
@@ -1050,19 +1063,19 @@ const SPOTS=[
   {hit:(x,z)=>Math.hypot(x-TRAIL[0][0],z-74)<11,at:[42,70],k:"Cuối suối",t:"Cuối suối rộng 6 m",d:()=>"Cuối suối rộng 6 mét, mở ra thung lũng. Đứng đây nhìn thấy cả hướng mặt trời lặn, chiều về cả bầu trời đỏ cam.",acts:[["Ngắm hoàng hôn",()=>walkTo(42,70,lookSunset)],["Thả hoa đăng",()=>openLantern()],["Đi đường mòn lên hồ bơi",()=>walkTo(21.3,-55)]]},
   {hit:(x,z)=>fordNear(x,z)||(streamDist(x,z)<4&&Math.hypot(x-FORD[0],z-FORD[1])<9),at:[FORD[0],FORD[1]-4.4],k:"Chỗ nông",t:"Chỗ nông cách cầu 6 m",d:()=>"Chỗ suối nông, sỏi lấp xấp nước, đi bộ qua được sang bờ nam. Suối ở các chỗ khác sâu hơn nhiều, đừng thử.",acts:[["Lội qua suối",()=>walkAlong([[FORD[0],FORD[1]-4.4],[FORD[0],FORD[1]],[FORD[0],FORD[1]+4.4]])],["Thả hoa đăng",()=>openLantern()]]},
   {hit:(x,z)=>streamDist(x,z)<5&&inPoly(x,z),at:null,k:"Suối lớn",t:"Con suối chảy ngang đất",d:()=>"Nước trong chảy xiết, rộng 4 mét ở đầu cầu và 6 mét ở cuối. Chỗ nông duy nhất đi bộ qua được nằm cách cầu 6 mét. Thả hoa đăng, nó trôi trên suối 48 giờ.",acts:[["Thả hoa đăng",()=>openLantern()],["Tới chỗ nông",()=>walkTo(FORD[0],FORD[1]-4.4)]]},
-  {hit:(x,z)=>Math.hypot(x-FIRE.x,z-FIRE.z)<4,at:[FIRE.x+2,FIRE.z+1.5],k:"Bãi cỏ",t:"Lửa trại",d:()=>TOD>=18&&TOD<21.5?"Lửa đang cháy, Anh Tèo nướng bắp.":"Lửa trại đốt từ 18:00 đến 21:30.",acts:[["Ngồi quanh lửa",()=>walkTo(FIRE.x+1.8,FIRE.z+1.5,()=>{me.a="fire";doFx("corn",me.x,me.z);if(!(TOD>=18&&TOD<21.5))toast("Chưa tới giờ đốt lửa. Ngồi ngắm củi trước cũng được.")})]]},
+  {hit:(x,z)=>Math.hypot(x-FIRE.x,z-FIRE.z)<4,at:[FIRE.x+2,FIRE.z+1.5],k:"Bãi cỏ",t:"Lửa trại",d:()=>TOD>=18&&TOD<21.5?"Lửa đang cháy, Cô Ngọc nướng bắp.":"Lửa trại đốt từ 18:00 đến 21:30.",acts:[["Ngồi quanh lửa",()=>walkTo(FIRE.x+1.8,FIRE.z+1.5,()=>{me.a="fire";doFx("corn",me.x,me.z);if(!(TOD>=18&&TOD<21.5))toast("Chưa tới giờ đốt lửa. Ngồi ngắm củi trước cũng được.")})]]},
   {hit:(x,z)=>Math.hypot(x+8,z+52.6)<2.6,at:[-8,-52.2],k:"Nhà main",t:"Cửa chính",d:()=>"Cửa chính nhà main mở thẳng ra bãi cắm trại trước, có đường sỏi đi thẳng từ giữa bãi tới tận bậc thềm.",acts:[["Gõ cửa",()=>{walkTo(-8,-52.2,()=>{doFx("note",me.x,me.z);toast(pick(["Cốc cốc. Bên trong có tiếng ghế xoay kêu: ‘Giám đốc đi vắng, mời để lại lời nhắn’.","Bạn gõ cửa. Con Mướp ở đâu nhảy ra ngồi chắn ngang, như thể nó là lễ tân.","Cửa mở hé. Mùi cà phê pha phin bay ra. Cửa lại đóng. Bạn vẫn đứng đó."]),4500)})}]]},
   {hit:(x,z)=>Math.hypot(x+14.8,z+56)<3.2,at:[-14.8,-59.5],k:"Tầng dưới",t:"Phòng giám đốc (Director Room)",d:()=>"Căn phòng ở tầng dưới nhà main. Đi từ sân nhà, qua lối bậc thang đá cạnh chuồng chim, xuống tới cửa phụ. Giám đốc ít khi ở, ghế xoay thì luôn ở.",acts:[["Đi bậc thang xuống",()=>walkAlong([[-14.8,-59],[-14.8,-53.4],[-14.8,-51]])],["Gõ cửa",()=>walkTo(-14.8,-55.4,()=>{doFx("note",me.x,me.z);toast(pick(["Phòng giám đốc im lìm. Chỉ nghe tiếng quạt và tiếng chim trong chuồng.","Bạn gõ ba tiếng. Bên trong có tiếng ghế xoay quay nửa vòng rồi dừng.","Cửa khép hờ. Trên bàn có tấm biển: ‘Họp trên sườn đồi, về sau’."]),4500)})]]},
   {hit:(x,z)=>inRect(x,z,YARD),at:null,k:"Sân trước",t:"Sân cắm trại",d:()=>`Bãi cỏ phẳng ngay trước nhà chính, thấp hơn hiên một tầng, nhìn thẳng xuống thung lũng. Đang có ${CAMP_TENTS.filter(c=>inRect(c[0],c[1],YARD)).length+[...tents.values()].filter(t=>inRect(t.x,t.z,YARD)).length} lều. Tối 18:00 có lửa trại.`,acts:()=>campActs(FIRE.x+1.8,FIRE.z+1.5)},
   {hit:(x,z)=>inRect(x,z,{x0:CAMP2.x0-2,x1:CAMP2.x1+2,z0:CAMP2.z0-2,z1:CAMP2.z1+2}),at:null,k:"Bãi trại thác",t:"Bãi cắm trại gần thác",d:()=>`Từ đường 2 đi xuống thác là tới bãi trại này: cỏ phẳng, có vòng lửa, bàn dã ngoại, nghe tiếng thác ngủ rất êm. Đang có ${CAMP_TENTS.filter(c=>inRect(c[0],c[1],CAMP2)).length+[...tents.values()].filter(t=>inRect(t.x,t.z,CAMP2)).length} lều.`,acts:()=>campActs(CAMP2_FIRE[0]+1.6,CAMP2_FIRE[1]+1)},
   {hit:(x,z)=>((x-KOI.x)/(KOI.rx+4))**2+((z-KOI.z)/(KOI.rz+4))**2<1,at:[KOI.x,KOI.z+KOI.rz+2.6],k:"Giữa vườn",t:"Hồ cá koi",d:()=>"Hồ cá nằm giữa vườn hoa, trong lòng chữ U của đường 2. Có 7 con cá koi, con nào cũng nghĩ mình là sếp.",acts:[["Cho cá ăn",()=>walkTo(KOI.x,KOI.z+KOI.rz+1.8,()=>{koiFeed={x:KOI.x,z:KOI.z+KOI.rz*.6,t:performance.now()/1000};doFx("food",KOI.x,KOI.z+KOI.rz);toast(pick(["Bảy con cá lao lên như đi chợ chiều giảm giá.","Con cá cam lấn hết, con cá trắng đứng ngoài chờ lượt. Có lịch sự mà không có cơm.","Cá ăn xong nhìn bạn như muốn nói: thêm một phần nữa được không?"]),4500)})],["Ngồi ngắm cá",()=>walkTo(KOI.x-KOI.rx-1.2,KOI.z+.5,()=>{me.a="rest";pushPresence()})]]},
   {hit:(x,z)=>{const q=segDist(x,z,TRAIL[0][0],TRAIL[0][1],TRAIL[1][0],TRAIL[1][1]);return q.d<2.2&&z<-30&&z>-56},at:null,k:"Đường mòn",t:"Đường mòn dây leo",d:()=>"Đường mòn đi thẳng từ cuối suối lên hồ bơi. Khoảng 10 m cuối phủ dây leo, hoa giấy rủ xuống như mái hiên.",acts:[["Đi lên hồ bơi",()=>walkTo(21.3,-55)],["Xuống cuối suối",()=>walkAlong(TRAIL_PTS.filter((p,i)=>i%10===0).filter(p=>p[1]>me.z).concat([[43,74]]))]]},
-  {hit:(x,z)=>Math.hypot(x-NETH.x,z-NETH.z)<5.5,at:[NETH.x,-56.6],k:"Nhà lưới",t:"Nhà của Bông và Tuyết",d:()=>"Nhà lưới đen cạnh nhà chính. Bấm vào từng bạn thỏ để vuốt ve hoặc cho ăn.",acts:[]},
+  {hit:(x,z)=>Math.hypot(x-NETH.x,z-NETH.z)<5.5,at:[NETH.x,-56.6],k:"Nhà lưới",t:"Nhà của Bông và Tuyết",d:()=>"Nhà lưới đen cạnh nhà chính, cửa ở mặt phía Nam. Bước vào trong hoặc bấm vào từng bạn thỏ để vuốt ve, cho ăn.",acts:[]},
   {hit:(x,z)=>Math.hypot(x-BOARD.x,z-BOARD.z)<4,at:[BOARD.x+1.5,BOARD.z-2.8],k:"Đầu đường 1",t:"Bảng lưu bút",d:()=>{const v=Store.visits,b=Store.book();return(v?(v.local?`Bạn đã ghé ${fmtN(v.total)} lần. `:`Đã có ${fmtN(v.total)} lượt ghé từ ${fmtN(v.people)} người. `):"")+(b.length?`Sổ có ${b.length} lời nhắn, mới nhất của ${String(b[0].by||"Khách").slice(0,24)}.`:"Chưa ai ký, bạn ký đầu tiên nhé.")},acts:[["Ký lưu bút",()=>{if(!me.joined){openJoin();return}openBook()}],["Xem cả sổ",()=>openBook()]]},
   {hit:(x,z)=>Math.hypot(x+40.3,z+66)<5,at:[-37,-64.5],k:"Đầu đường 1",t:"Cổng gỗ cạnh bãi đậu xe",d:()=>"Đường 1 dốc thẳng kết thúc ở cổng gỗ này. Bãi đậu xe bên trái, bảng lưu bút bên phải.",acts:[["Mở sổ lưu bút",()=>openBook()]]},
   {hit:(x,z)=>Math.hypot(x-NEIGHBOR.x,z-NEIGHBOR.z)<10,at:null,k:"Ngoài ranh đất",t:"Nhà hàng xóm",d:()=>"Nhà hai tầng ở góc dưới là của hàng xóm, không thuộc retreat. Chó nhà họ sủa to hơn chó mình, đừng ghé.",acts:[]},
 ];
-const SPOT_LIST=[["Cổng · trước cầu",[GATE_IN[0]+.5,GATE_IN[1]+5],"Ba chú chó đón khách",GATE_YAW],["Chỗ nông · sỏi",[FORD[0]+1,FORD[1]-5],"Cách cầu 6 m, lội qua được",Math.PI],["Bãi đậu xe",[-29.5,-65.6],"Đỗ được 3 xe",.25],["Bảng lưu bút",[-31.5,-60.5],"Ký tên, xem lượt ghé",.7],["Cửa chính nhà main",[-8,-48.5],"Từ bãi trại đi thẳng vào",.1],["Phòng giám đốc",[-14.8,-59.5],"Bậc thang cạnh chuồng chim",-.3],["Hiên nhà chính",[-7,-55],"Cà phê, thấy thung lũng",-2.4],["Hồ bơi",[16,-56.4],"Hồ rộng gấp rưỡi",.5],["Nhà kính",[12,-70.5],"Trồng trái cây",.25],["Vườn hồng",[-27.5,-73.5],"Hàng rào trắng",.3],["Nhà blue",[-9,-69.5],"2 căn, 2 cửa chính",.1],["Đồi chè",[30,-68],"Hái chè",.5],["Vườn của khách",[-32,-41.5],"Trồng cây",.3],["Sân cắm trại",[3,-42.5],"Đối diện nhà 2 tầng",.15],["Lửa trại",[-13,-45],"Tối 18:00",.2],["Đường 2 chữ U",[26,8],"Uốn lượn, có kè đá",2.9],["Hồ cá koi",[5,17.2],"Giữa vườn hoa",.2],["Đường mòn dây leo",[21.5,-49],"10 m dây leo lên hồ bơi",.2],["Vườn cà phê",[-4,0],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,58],"Nghỉ chân",2.4],["Bãi trại thác",[-37,54],"Cắm trại gần thác",2.4],["Thác nước",[-18,67.5],"Rộng 4 m",1.45],["Cuối suối · hoàng hôn",[42,70],"Thung lũng, hướng mặt trời lặn",-1.9]];
+const SPOT_LIST=[["Cổng · trước cầu",[GATE_IN[0]+.5,GATE_IN[1]+5],"Ba chú chó đón khách",GATE_YAW],["Chỗ nông · sỏi",[FORD[0]+1,FORD[1]-5],"Cách cầu 6 m, lội qua được",Math.PI],["Bãi đậu xe",[-29.5,-65.6],"Đỗ được 3 xe",.25],["Bảng lưu bút",[-31.5,-60.5],"Ký tên, xem lượt ghé",.7],["Cửa chính nhà main",[-8,-48.5],"Từ bãi trại đi thẳng vào",.1],["Phòng giám đốc",[-14.8,-59.5],"Bậc thang cạnh chuồng chim",-.3],["Hiên nhà chính",[-7,-55],"Cà phê, thấy thung lũng",-1.9],["Hồ bơi",[16,-56.4],"Hồ rộng gấp rưỡi",.5],["Nhà kính",[12,-70.5],"Trồng trái cây",.25],["Vườn hồng",[-27.5,-73.5],"Hàng rào trắng",.3],["Nhà blue",[-9,-69.5],"2 căn, 2 cửa chính",.1],["Đồi chè",[30,-68],"Hái chè",.5],["Vườn của khách",[-32,-41.5],"Trồng cây",.3],["Sân cắm trại",[3,-42.5],"Đối diện nhà 2 tầng",.15],["Lửa trại",[-13,-45],"Tối 18:00",.2],["Đường 2 chữ U",[26,8],"Uốn lượn, có kè đá",2.9],["Hồ cá koi",[5,17.2],"Giữa vườn hoa",.2],["Đường mòn dây leo",[21.5,-49],"10 m dây leo lên hồ bơi",.2],["Vườn cà phê",[-4,0],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,58],"Nghỉ chân",2.4],["Bãi trại thác",[-37,54],"Cắm trại gần thác",2.4],["Thác nước",[-18,67.5],"Rộng 4 m",1.45],["Cuối suối · hoàng hôn",[42,70],"Thung lũng, hướng mặt trời lặn",-1.9]];
 
 /* ================= UI ================= */
 function card(k,title,body,acts){const c=$("card");c.replaceChildren(el("button",{class:"x","aria-label":"Đóng",onclick:closeCard},"×"));if(k)c.append(el("div",{class:"k"},k));c.append(el("h2",null,title));
@@ -1072,7 +1085,7 @@ function lookSunset(){if(camS.mode==="drone")setView(false);camS.yaw=-1.9;camS.p
   toast(TOD>=16&&TOD<18.4?"Mặt trời đang xuống dần cuối thung lũng.":TOD<16?"Hoàng hôn tới khoảng 17:30–18:00, mặt trời lặn ở cuối thung lũng.":"Mặt trời đã lặn. Mai quay lại khoảng 17:30 nhé.",4500)}
 function showSpot(s){card(s.k,s.t,s.d(),typeof s.acts==="function"?s.acts():s.acts)}
 function sayMe(t){me.s=t;me.st=Date.now();say("me",t);pushPresence();logChat(me.n,t)}
-function petActs(p,asleep){if(asleep)return[];const near=f=>()=>walkTo(p._x+.9,p._z+.5,f),following=petFollow&&petFollow.id===p.id&&petFollow.until>Date.now();
+function petActs(p,asleep){if(asleep)return[];const near=f=>()=>walkPet(p,f),following=petFollow&&petFollow.id===p.id&&petFollow.until>Date.now();
   const takenBy=!following&&petLeader(p);
   const follow=following?[["Cho "+p.name+" về chỗ",()=>{petFollow=null;pushPresence();toast(`${p.name} quay về chỗ cũ, ngoái lại nhìn bạn hai lần.`)}]]
     :takenBy?[]:[[p.kind==="chó"?"Rủ đi dạo":"Rủ đi theo",near(()=>{if(p.kind==="mèo"&&Math.random()<.4){say(p.id,"Meo.");toast(`${p.name} nhìn bạn rồi đi hướng khác. Mèo không nhận lời mời, mèo gửi lời mời.`);return}
@@ -1091,9 +1104,9 @@ function showEntity(b){
     card(s.plan?"Nhân viên":"Khách vãng lai",s.name,body,[["Nói chuyện tiếp",()=>showEntity(b),true],["Lại gần",()=>{if(st)walkTo(st.x+1.2,st.z+.8)}]]);return}
   if(b.t==="pet"){const p=b.o,z=petAsleep(p);
     card(p.kind[0].toUpperCase()+p.kind.slice(1),p.name,z?`${p.name} đang ngủ. Nhẹ tay thôi.`:`${p.name} đang chơi quanh đây.`,[
-      ["Vuốt ve",()=>walkTo(p._x+.9,p._z+.5,()=>{me.a="pet";doFx("heart",p._x,p._z);toast(z?`${p.name} mở một mắt nhìn bạn rồi ngủ tiếp.`:pick(p.react),4000)})],
+      ["Vuốt ve",()=>walkPet(p,()=>{me.a="pet";doFx("heart",p._x,p._z);toast(z?`${p.name} mở một mắt nhìn bạn rồi ngủ tiếp.`:pick(p.react),4000)})],
       ...petActs(p,z),
-      [p.kind==="thỏ"?"Cho ăn cà rốt":p.kind==="mèo"?"Cho ăn cá khô":"Cho ăn bánh",()=>walkTo(p._x+.9,p._z+.5,()=>{doFx("food",p._x,p._z);say(p.id,pick(PET_SOUNDS[p.kind]));toast(z?`${p.name} ngửi thấy mùi đồ ăn, mắt vẫn nhắm mà miệng đã nhai.`:`${p.name} ăn sạch trong 3 giây rồi nhìn bạn chờ phần hai.`)})]]);return}
+      [p.kind==="thỏ"?"Cho ăn cà rốt":p.kind==="mèo"?"Cho ăn cá khô":"Cho ăn bánh",()=>walkPet(p,()=>{doFx("food",p._x,p._z);say(p.id,pick(PET_SOUNDS[p.kind]));toast(z?`${p.name} ngửi thấy mùi đồ ăn, mắt vẫn nhắm mà miệng đã nhai.`:`${p.name} ăn sạch trong 3 giây rồi nhìn bạn chờ phần hai.`)})]]);return}
   if(b.t==="guest"){const p=b.o.p||{};card("Khách đang online",String(p.n||"Khách").slice(0,24),b.o.guest?"Khách được mời từ bên ngoài.":"Đang dạo quanh retreat.",[["Vẫy tay chào",()=>doFx("wave",me.x,me.z)],["Lại gần",()=>walkTo(b.o.x+1,b.o.z+.6)]]);return}
   if(b.t==="lantern"){const l=b.o;const body=el("div",{style:"display:flex;flex-direction:column;gap:6px"},el("q",null,String(l.t||"").slice(0,160)),el("p",null,`${String(l.by||"Ai đó").slice(0,24)} · ${ago(l.at)}`));
     card("Hoa đăng","Lời ước trên suối",body,isOwner?[["Gỡ hoa đăng",()=>Store.remove("lanterns",l.id).catch(writeErr)]]:[]);return}
@@ -1137,7 +1150,7 @@ function openBook(){const v=Store.visits,b=modal("Sổ lưu bút",`Lời nhắn 
       if(isOwner)row.append(el("button",{class:"btn",onclick:()=>Store.unsign(x).catch(writeErr)},"Xoá"));L.append(row)})};
   render();bookRender=render}
 Store.on("book",()=>{if(bookRender&&!$("modal").hidden&&$("bl"))bookRender();paintBoard()});
-Store.on("visits",()=>{const v=Store.visits;$("visits").textContent=v&&!v.local?` · ${fmtN(v.total)} lượt ghé`:"";paintBoard()});
+Store.on("visits",()=>{const v=Store.visits,c=$("vis");if(v){c.hidden=false;c.replaceChildren(v.local?el("span",null,"Bạn đã ghé ",el("b",null,fmtN(v.total))," lần"):el("span",null,el("b",null,fmtN(v.total))," lượt ghé · ",el("b",null,fmtN(v.people))," người"))}else c.hidden=true;paintBoard()});
 
 function openJoin(){const full=roomOK&&remotes.size>=CAPACITY;
   const b=modal(`Chào mừng tới ${NAME}`,full?`Đang đủ ${CAPACITY} khách. Bạn vẫn ngắm cảnh được, có người về là vào được ngay.`:"Retreat 17.000 m² trên đồi Bảo Lộc: 3 căn nhà, hồ bơi, đồi chè, vườn cà phê và một con suối lớn chảy ngang đất. Giờ và thời tiết chạy theo giờ Việt Nam.",false);
@@ -1178,7 +1191,7 @@ $("online").onclick=openPeople;
 $("sky").onclick=()=>{const t0=TABS-TOD,hrs=Array.from({length:24},(_,h)=>wxAt(t0+h+.5)),ts=hrs.map(w=>w.temp),rainH=hrs.filter(w=>w.rain>.05).length;
   const b=modal("Thời tiết Bảo Lộc",`${WD[NOW.wd]}, ${NOW.d}/${NOW.mo} · ${Math.round(Math.min(...ts))}–${Math.round(Math.max(...ts))}°C · ${WX.wet?"mùa mưa":"mùa khô"} · ${rainH?`khoảng ${rainH} giờ có mưa`:"không mưa"}. Thời tiết đổi theo từng giờ, ai ghé cũng thấy giống nhau.`);
   const g=el("div",{class:"hours"});for(let h=0;h<24;h++){const w=hrs[h];g.append(el("div",{class:h===NOW.h?"now":""},el("span",{class:"e"},wxIcon(w,h+.5)),`${h}h`,el("br"),`${Math.round(w.temp)}°`))}b.append(g);
-  b.append(el("p",{class:"note",style:"margin-top:14px"},"Trong ngày: 6:00 cả retreat thức dậy, chim hót · Chú Ba lên đồi chè, Anh Tèo cho thú ăn · 9:00 kiểm tra hồ bơi · 13:30 xuống suối · 18:00 lửa trại · 21:30 đi tuần · 23:00 mọi người đi ngủ."))};
+  b.append(el("p",{class:"note",style:"margin-top:14px"},"Trong ngày: 6:00 cả retreat thức dậy, chim hót · Chú Hải lên đồi chè, Cô Ngọc cho thú ăn · 9:00 kiểm tra hồ bơi · 13:30 xuống suối · 18:00 lửa trại · 21:30 đi tuần · 23:00 mọi người đi ngủ."))};
 function updateHud(){$("clk").textContent=`${String(NOW.h).padStart(2,"0")}:${String(NOW.mi).padStart(2,"0")}`;$("wx").textContent=`${wxIcon(WX,TOD)} ${wxText(WX)} · ${Math.round(WX.temp)}°C`}
 
 /* ================= ENVIRONMENT ================= */

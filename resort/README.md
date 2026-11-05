@@ -5,13 +5,14 @@ Khu nghỉ trên đồi Bảo Lộc dựng lại bằng 3D (Three.js), ai cũng 
 - Khu đất khoảng 17.000 m² trên sườn dốc. Sân nhà chính cao hơn mặt suối 44 m, tầng trên cao hơn 50 m.
 - Dải đồi chè chạy dọc ranh trên cùng, vươn sang góc Đông Bắc. Cụm nhà ngay dưới:
   - **Nhà chính 2 tầng** (mái xám) có hiên bạt trắng và sofa xanh.
-  - **Nhà mái vàng**: nhỏ hơn, nằm phía sau và nối với nhà 2 tầng. Chú Ba và Anh Tèo ngủ ở đây.
-  - **Nhà mái xanh** phía sau, bên trái là **vườn hồng nhỏ** có hàng rào trắng, bên phải là **bồn nước cao**.
+  - **Nhà mái vàng**: nhỏ hơn, nằm phía sau và nối với nhà 2 tầng. Chú Hải và cô Ngọc ngủ ở đây.
+  - **Nhà blue** gồm 2 căn liền kề (mỗi căn 1 cửa chính, 1 cửa sổ). Vườn hồng nhỏ có hàng rào trắng ở một bên, bồn nước cao ở bên kia. Các nhà nằm trên cùng một nền phẳng.
   - **Nhà kính mái trắng**, vách kính trong suốt, bên trong trồng trái cây (cam, quýt, dâu).
   - Nhà lưới (thỏ ở trong). Hồ bơi to gấp rưỡi (13,5 × 7,4 m) chạy dọc nhà chính.
-- **Đầu suối là cầu, cũng là cổng vào.** Khách vào đây, ba chú chó (Mực, Vàng, Đốm) ngồi đón. Từ cổng có hai đường lên:
+- **Đầu suối là cầu; cổng vào nằm trước cầu.** Khách vào đây, ba chú chó (Mực, Vàng, Đốm) ngồi đón. Từ cổng có hai đường lên:
   - **Đường 1** (bê tông, dốc ~30%) đi thẳng lên cổng gỗ và **bãi đậu xe** (đỗ được 3 xe).
   - **Đường 2** uốn lượn chữ U, dốc ít hơn (~15%), có kè đá hai bên, bồn hoa và đèn. Trong lòng chữ U là **hồ cá koi** giữa vườn hoa; đường dẫn vào cổng **sân trước**.
+- **Suối** rộng 4 m ở cầu, 6 m ở cuối, nước chảy có hoạt ảnh. Chỗ nông cách cầu 6 m, có sỏi, đi bộ qua được; các chỗ khác sâu, không lội.
 - Nhà hàng xóm ở góc dưới không thuộc retreat.
 - **Thác nước** rộng 4 m, bậc đá cao hơn 2 m, đá tảng hai bên. Từ đường 2 có lối đi xuống **bãi trại gần thác**.
 - **Đường mòn** đi thẳng từ cuối suối lên hồ bơi, 10 m cuối phủ dây leo.
@@ -24,9 +25,9 @@ Bản chạy nhiều người: https://claude.ai/artifact/VwL6JCfhYkCXSC1qSvhoRV
 
 | Ai | Làm gì |
 |---|---|
-| **Chị Mơ**, quản lý | Đón khách ở cổng, kiểm tra hồ bơi, dẫn khách tham quan suối, nhóm lửa trại |
-| **Chú Ba**, làm vườn | Hái chè buổi sáng, tỉa cà phê và sầu riêng buổi chiều, tưới vườn khách lúc chiều tối |
-| **Anh Tèo**, làm vườn | Cho thú cưng ăn, xới vườn khách, cắt cỏ, nướng bắp ở lửa trại |
+| **Cô Nhung**, quản lý | Đón khách ở cổng, kiểm tra hồ bơi, dẫn khách tham quan suối, nhóm lửa trại |
+| **Chú Hải**, phó botanist | Hái chè buổi sáng, tỉa cà phê và sầu riêng buổi chiều, tưới vườn khách lúc chiều tối |
+| **Cô Ngọc**, trưởng botanist | Cho thú cưng ăn, xới vườn khách, cắt cỏ, nướng bắp ở lửa trại |
 | **3 khách vãng lai** | Lúc nào cũng có đúng 3 người, đổi người mỗi 2 tiếng, mỗi người một kiểu (dân văn phòng trốn deadline, youtuber, bác tập dưỡng sinh…) |
 | **Thú cưng** | Ba chó Mực, Vàng, Đốm (hay ngồi ở cổng vào) · mèo Mướp, Miu · thỏ Bông, Tuyết. Bấm vào để vuốt ve, cho ăn; ném bóng cho chó chạy nhặt, đưa cuộn len cho mèo, bế thỏ; rủ chó/mèo đi theo mình 3 phút (người khác cũng thấy). Đứng gần là chúng kêu chào. Danh sách *Ai đang ở đây* bấm vào tên thú cưng để tới ngay. |
 | **Chim** | Đàn chim bay vòng trên đồi ban ngày; chào mào, chim sẻ, chích choè nhảy dưới đất (lại gần là bay, rắc hạt là sà xuống); sáng sớm chim hót; cú mèo trực đêm trên tháp nước |
