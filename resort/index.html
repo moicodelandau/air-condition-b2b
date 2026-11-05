@@ -178,13 +178,15 @@ const LOWPATH=[[-76,58],[-46,48],[-14,42],[14,44],[40,50]];
 const STREAM=[[-150,60],[-100,63],[-84,66],[-62,68],[-40,72],[-15,71],[10,74],[34,73],[52,75],[75,79],[150,86]];
 const SLOPE=.33;
 const UP_PAD={x0:-30,x1:24,z0:-82,z1:-69,y:null,f:5};    // tầng trên: nhà mái xanh, nhà làm vườn
-const LOW_PAD={x0:-32,x1:22,z0:-68,z1:-50,y:null,f:6};   // tầng dưới: nhà chính, hồ bơi, lửa trại
+const LOW_PAD={x0:-32,x1:22,z0:-68,z1:-56.5,y:null,f:2.2};   // tầng giữa: nhà chính, hồ bơi
+const YARD={x0:-24,x1:20,z0:-53.5,z1:-41,y:null,f:3};        // sân trước: thấp hơn hiên một tầng, cắm trại + lửa trại
+const TERR={x0:-12.6,x1:-3.4,z0:-57.6,z1:-54.1};             // hiên nằm trên tầng trệt
 const GARDEN={x0:-44,x1:-20,z0:-40,z1:-22};
 const GARDEN_PAD={x0:GARDEN.x0,x1:GARDEN.x1,z0:GARDEN.z0,z1:GARDEN.z1,y:null,f:6};
 const TEA={x0:21,x1:92,z0:-83,z1:-62};
 const POOL={x0:9,x1:20,z0:-64,z1:-58};
-const HUT={x:-50,z:63}, FALL={x:-28,z:71.5}, FIRE={x:-25,z:-53}, NEIGHBOR={x:-98,z:48}, NETH={x:-21,z:-61};
-const PADS=[UP_PAD,LOW_PAD,GARDEN_PAD,{x0:HUT.x-4,x1:HUT.x+4,z0:HUT.z-4,z1:HUT.z+4,y:null,f:4},{x0:NEIGHBOR.x-8,x1:NEIGHBOR.x+8,z0:NEIGHBOR.z-6,z1:NEIGHBOR.z+6,y:null,f:5}];
+const HUT={x:-50,z:63}, FALL={x:-28,z:71.5}, FIRE={x:-15,z:-47}, NEIGHBOR={x:-98,z:48}, NETH={x:-21,z:-61};
+const PADS=[UP_PAD,LOW_PAD,YARD,GARDEN_PAD,{x0:HUT.x-4,x1:HUT.x+4,z0:HUT.z-4,z1:HUT.z+4,y:null,f:4},{x0:NEIGHBOR.x-8,x1:NEIGHBOR.x+8,z0:NEIGHBOR.z-6,z1:NEIGHBOR.z+6,y:null,f:5}];
 const BLOCKS=[
   {x0:-19.5,x1:-8.5,z0:-78.5,z1:-72.5},  // nhà mái xanh
   {x0:4.5,x1:19.5,z0:-78,z1:-72},        // nhà làm vườn (nhà kính trắng)
@@ -193,6 +195,9 @@ const BLOCKS=[
   {x0:-25,x1:-17,z0:-64.5,z1:-57.5},     // nhà lưới (thỏ ở trong)
   {x0:-4,x1:0,z0:-82,z1:-78},            // tháp nước
   {x0:-28.8,x1:-27.2,z0:-71.8,z1:-70.2}, // chuồng chó
+  {x0:-12.9,x1:-3.1,z0:-54.2,z1:-53.4},  // mặt tiền tầng trệt nhà chính
+  {x0:-13.3,x1:-12.6,z0:-57,z1:-53.4},   // lan can hiên phía Tây
+  {x0:-3.4,x1:-2.9,z0:-56.2,z1:-53.4},   // lan can hiên phía Đông
   {x0:NEIGHBOR.x-6,x1:NEIGHBOR.x+6,z0:NEIGHBOR.z-4,z1:NEIGHBOR.z+4}, // nhà hàng xóm
 ];
 const $=id=>document.getElementById(id);
@@ -225,15 +230,16 @@ function baseH(x,z){
 }
 function padW(p,x,z){const dx=Math.max(p.x0-x,0,x-p.x1),dz=Math.max(p.z0-z,0,z-p.z1);const d=Math.hypot(dx,dz);return d>=p.f?0:1-smooth(d/p.f)}
 for(const p of PADS)if(p.y==null)p.y=baseH((p.x0+p.x1)/2,(p.z0+p.z1)/2);
+YARD.y=LOW_PAD.y-3.4;
 function H(x,z){let y=baseH(x,z);for(const p of PADS){const w=padW(p,x,z);if(w>0)y=lerp(y,p.y,w)}return y}
-const houseW=(x,z)=>Math.max(padW(UP_PAD,x,z),padW(LOW_PAD,x,z));
+const houseW=(x,z)=>Math.max(padW(UP_PAD,x,z),padW(LOW_PAD,x,z),padW(YARD,x,z));
 function roadY(x,z){const ds=streamDist(x,z);return H(x,z)+3.0*Math.exp(-ds*ds/28)}  // mặt đường/cầu vắt qua lòng suối
 const onRoad=(x,z)=>ROADS.some(R=>polyDist(x,z,R).d<2.3);
 const inPool=(x,z)=>x>POOL.x0+.4&&x<POOL.x1-.4&&z>POOL.z0+.4&&z<POOL.z1-.4;
 const inRect=(x,z,r)=>x>=r.x0&&x<=r.x1&&z>=r.z0&&z<=r.z1;
 const walkable=(x,z)=>inPoly(x,z)||onRoad(x,z);
 function blocked(x,z){if(!walkable(x,z))return true;for(const b of BLOCKS)if(x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1)return true;return false}
-function groundY(x,z){if(inPool(x,z))return LOW_PAD.y-1.05;if(!inPoly(x,z)&&onRoad(x,z))return roadY(x,z)+.15;const ds=streamDist(x,z);if(ds<2.4)return H(x,z)+.05;return H(x,z)}
+function groundY(x,z){if(inPool(x,z))return LOW_PAD.y-1.05;if(inRect(x,z,TERR))return LOW_PAD.y+.3;if(!inPoly(x,z)&&onRoad(x,z))return roadY(x,z)+.15;const ds=streamDist(x,z);if(ds<2.4)return H(x,z)+.05;return H(x,z)}
 
 /* ================= TIME & WEATHER (Bảo Lộc, thay đổi theo giờ) ================= */
 const WD=["Chủ nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
@@ -277,7 +283,7 @@ const STAFF=[
      {from:9,to:11.5,verb:"đi kiểm tra hồ bơi",pts:[[7.5,-56.5],[21,-56.5],[21,-65.5],[8.5,-65.5]]},
      {from:11.5,to:13.5,verb:"lo bữa trưa ngoài hiên",pts:[[-11,-55.5],[-5,-55.5]]},
      {from:13.5,to:17,verb:"dẫn khách xuống suối",pts:[[-44,57],[-32,64],[-16,64],[-4,62]]},
-     {from:17,to:21.5,verb:"nhóm lửa trại",pts:[[-27,-51],[-21,-50.5],[-14,-53.5]]},
+     {from:17,to:21.5,verb:"nhóm lửa trại ngoài sân",pts:[[-17.5,-45.5],[-12.5,-45.5],[-12.5,-49]]},
      {from:21.5,to:23,verb:"đi tuần tắt đèn",pts:[[-37,-64.5],[-14,-54],[21,-56.5],[12,-70.5],[-14,-71.5]]},
    ],
    lines:["Chào mừng tới Anh Sơn Retreat! Chỗ nào sóng điện thoại yếu nhất, chỗ đó view đẹp nhất.","Từ nhà xuống suối dốc 45 mét. Đi xuống thì thơ, đi lên thì thở.","Ở đây không có giờ cao điểm, chỉ có giờ sương mù cao điểm.","Đừng hỏi chị mấy giờ. Ở đây tính giờ bằng số ly cà phê.","Hồ bơi nước lạnh nha. Nhảy xuống là tỉnh hết mọi ảo tưởng.","Có hai đường lên nhà chính: đường Tây qua cầu, đường Đông qua hồ bơi. Đường nào cũng dốc như nhau, đừng mặc cả.","11 giờ đêm là cả retreat đi ngủ. Con Mướp ngủ trước 10 tiếng rồi."]},
@@ -297,7 +303,7 @@ const STAFF=[
      {from:11,to:13,verb:"ăn cơm ngoài hiên",pts:[[-6,-55.2],[-3,-55.2]]},
      {from:13,to:16.5,verb:"cắt cỏ dọc đường chữ S",pts:[[-6,-44],[14,-18],[33,12]]},
      {from:16.5,to:18,verb:"cho thú cưng ăn chiều",pts:[[-21,-56.8],[-16,-56],[-26,-56.5]]},
-     {from:18,to:21.5,verb:"nướng bắp ở lửa trại",pts:[[-23.5,-51],[-22,-51.5]]},
+     {from:18,to:21.5,verb:"nướng bắp ở lửa trại",pts:[[-13.4,-46],[-12.8,-47]]},
      {from:21.5,to:23,verb:"đi khoá cổng, soi đèn qua cầu",pts:[[-37,-64.5],[-79,48],[-83,58],[-79,48]]},
    ],
    lines:["Anh tưới cây mà con Mực cứ tưởng anh rủ chơi đuổi bắt.","Leo từ suối lên nhà một lần là khỏi cần đi gym một tuần.","Đi lối này nè, lối kia của mấy con thỏ, tụi nó thu phí cà rốt.","Thấy con mèo nằm trên mái nhà không? Nó là giám sát công trình.","Nhà ngay góc dưới là nhà hàng xóm nha, đừng vô. Chó nhà họ sủa còn to hơn anh hát.","Bắp nướng của anh có công thức bí mật: than hồng và đói bụng."]},
@@ -314,8 +320,8 @@ const PERSONAS=[
   {role:"Chú tài xế chở đoàn",lines:["Đường lên đây cong như đường đời, nhưng cảnh đẹp hơn.","Khách ngủ hết rồi, chú ra đây uống cà phê canh sương.","Chú chạy xe 30 năm, con dốc từ suối lên nhà này là con dốc chú không dám chạy."]},
 ];
 const GUEST_NAMES=["Minh","Thư","Khoa","Vy","Bác Hùng","Cô Lan","Quân","Ngân","Duy","Trâm","Phúc","Hằng","Tú","Linh","Bảo","Nhi"];
-const POIS=[[-37,-64],[-7,-55.2],[6,-56.5],[21,-60],[40,-78],[30,-73],[-30,-30],[-4,10],[14,30],[-44,57],[-30,64],[6,64],[-23,-50.5],[33,18],[-28,-44],[20,-20],[-60,52],[12,-70.5]];
-const EVE_POIS=[[-7,-55.2],[-23,-50.5],[-20,-50],[6,-56.5],[-13,-53.5],[12,-70.5]];
+const POIS=[[-37,-64],[-7,-55.2],[6,-56.5],[21,-60],[40,-78],[30,-73],[-30,-30],[-4,10],[14,30],[-44,57],[-30,64],[6,64],[-13,-45.5],[33,18],[2,-46.5],[20,-20],[-60,52],[12,-70.5]];
+const EVE_POIS=[[-7,-55.2],[-13,-45.5],[-17,-45.8],[6,-56.5],[1,-47],[12,-70.5]];
 function guestsNow(){
   const slot=Math.floor(TOD/2);const r=rng(hash(`g-${NOW.y}-${NOW.mo}-${NOW.d}-${slot}`));
   const ps=[...PERSONAS].sort(()=>r()-.5).slice(0,3),ns=[...GUEST_NAMES].sort(()=>r()-.5);
@@ -337,8 +343,17 @@ const PETS=[
   {id:"bong",name:"Bông",kind:"thỏ",color:"#f6f3ee",area:{cx:NETH.x-.8,cz:NETH.z,rx:2.2,rz:1.8},spd:1.4,sleep:[[23,6]],react:["Bông giật giật mũi, xác nhận bạn không mang cà rốt. Thất vọng.","Bông nhảy một vòng khoe cơ đùi.","Bông ăn cỏ với tốc độ của người vừa hết deadline."]},
   {id:"tuyet",name:"Tuyết",kind:"thỏ",color:"#d9d4cc",area:{cx:NETH.x+.8,cz:NETH.z,rx:2.2,rz:1.8},spd:1.2,sleep:[[23,6]],react:["Tuyết đứng hai chân nhìn bạn, nghiêm túc như họp quý.","Tuyết dụi mũi vào tay bạn. Tim bạn tan chảy 30%.","Tuyết chui vô góc chuồng. Hôm nay Tuyết hướng nội."]},
 ];
+let petFollow=null;  // {id,until}: thú cưng đang đi theo bạn
+const PET_SOUNDS={"chó":["Gâu!","Gâu gâu!","*vẫy đuôi*","Ư ử…"],"mèo":["Meo.","Meoo?","*liếm chân*","Prrr…"],"thỏ":["*giật mũi*","*nhảy tưng*","…"]};
+function petLeader(p){const now=Date.now();if(petAsleep(p))return null;
+  if(me.joined&&petFollow&&petFollow.id===p.id&&petFollow.until>now)return{x:me.x,z:me.z,r:me.r};
+  for(const r of remotes.values()){const q=r.p||{};if(q.pf===p.id&&+q.pfu>now)return{x:r.x,z:r.z,r:+q.r||0}}return null}
 const petAsleep=p=>p.sleep.some(([a,b])=>a<b?(TOD>=a&&TOD<b):(TOD>=a||TOD<b));
-function petPos(p){const ph=hash(p.id)%1000/159;const t=(petAsleep(p)?Math.floor(Date.now()/600000)*600:Date.now()/1000)*p.spd*.02,a=p.area;
+function petPos(p){
+  if(p.fetch){const f=p.fetch,u=(Date.now()-f.t0)/1000;if(u<1.4){const k=u/1.4;return{x:lerp(f.fx,f.tx,k),z:lerp(f.fz,f.tz,k),dir:Math.atan2(f.tx-f.fx,f.tz-f.fz),run:1}}
+    if(u<3&&me.joined){const k=(u-1.4)/1.6;return{x:lerp(f.tx,me.x+.8,k),z:lerp(f.tz,me.z+.8,k),dir:Math.atan2(me.x-f.tx,me.z-f.tz),run:1}}p.fetch=null;if(f.done)f.done()}
+  const L=petLeader(p);if(L){const side=(hash(p.id)%2?1:-1)*.7;const x=L.x-Math.sin(L.r)*1.5+Math.cos(L.r)*side,z=L.z-Math.cos(L.r)*1.5-Math.sin(L.r)*side;return{x,z,dir:L.r,follow:1}}
+  const ph=hash(p.id)%1000/159;const t=(petAsleep(p)?Math.floor(Date.now()/600000)*600:Date.now()/1000)*p.spd*.02,a=p.area;
   let x=a.cx+a.rx*(.7*Math.sin(t*1.3+ph)+.3*Math.sin(t*3.1+ph*2)),z=a.cz+a.rz*(.7*Math.cos(t*1.1+ph*1.7)+.3*Math.sin(t*2.3+ph));
   if(!inPoly(x,z)){x=a.cx;z=a.cz}const dx=Math.cos(t*1.3+ph),dz=-Math.sin(t*1.1+ph*1.7);return{x,z,dir:Math.atan2(dx*a.rx,dz*a.rz)}}
 
@@ -510,8 +525,17 @@ for(const a of[-4.5,4.5])for(const b of[-1.7,1.7])scene.add(mesh(new T.CylinderG
 scene.add(mesh(new T.BoxGeometry(9.8,.12,4),lam(0xf7f7f2),-8,PY+2.75,-55.8));
 scene.add(mesh(new T.BoxGeometry(9.4,.8,.08),lam(0xf4f2ec),-8,PY+.7,-54.05,false));
 scene.add(mesh(new T.BoxGeometry(3.6,.6,1),lam(0x2f6fd1),-10,PY+.6,-56.8),mesh(new T.BoxGeometry(3.6,.9,.3),lam(0x2f6fd1),-10,PY+.95,-57.3));
-// bậc cỏ từ hiên xuống vườn
-for(let i=0;i<7;i++){const z=-53.4+i*.65;scene.add(mesh(new T.BoxGeometry(1.6,.3,.65),lam(0x4f8a3c),-1.5,H(-1.5,z)+.12,z,false))}
+// tầng trệt nhà chính nằm dưới hiên, mở ra sân trước
+{const yb=YARD.y,hL=PY-yb,cz=-55.8;scene.add(mesh(new T.BoxGeometry(9.4,hL,3.6),lam(0xf4f2ec),-8,yb+hL/2,cz));
+ scene.add(mesh(new T.BoxGeometry(9.6,.22,3.8),lam(0x2f78c4),-8,PY-.05,cz,false),mesh(new T.BoxGeometry(9.7,.3,3.9),lam(0xd9d4c7),-8,yb+.15,cz,false));
+ for(const x of[-11.2,-4.8])scene.add(mesh(new T.BoxGeometry(1.6,1.1,.08),winMat,x,yb+1.7,-53.97,false));
+ scene.add(mesh(new T.BoxGeometry(1.1,2.1,.08),lam(0x2f78c4),-8,yb+1.05,-53.97,false));
+ {const aw=mesh(new T.BoxGeometry(2.4,.1,1.1),lam(0xb4553a),-8,yb+2.45,-53.5,false);aw.rotation.x=.28;scene.add(aw)}
+ for(const s of[-1,1])scene.add(mesh(new T.BoxGeometry(.08,1.1,1.1),winMat,-8+s*4.73,yb+1.7,cz,false));
+ // bờ kè đá dọc mép sân
+ const st=lam(0x9c968a);for(let x=-24;x<20;x+=2.2){if(x>-13.6&&x<-2.6)continue;if(Math.abs(x+1.5)<1.4)continue;const z=-54.9,y=H(x,z);scene.add(mesh(new T.BoxGeometry(2.1,1.1,.5),st,x,y+.2,z,false))}}
+// bậc cỏ từ tầng giữa xuống sân trước
+for(let i=0;i<6;i++){const z=-56.6+i*.6;scene.add(mesh(new T.BoxGeometry(1.6,.3,.6),lam(0x4f8a3c),-1.5,H(-1.5,z)+.12,z,false))}
 // máy nước nóng mặt trời trên mái ngói
 {const m=mesh(new T.BoxGeometry(1.6,.08,1.1),lam(0x2d5f8a),5.5,PY+4.3,-61.5,false);m.rotation.x=-.5;scene.add(m);scene.add(mesh(new T.CylinderGeometry(.18,.18,1.7,8),lam(0xdddddd),5.5,PY+4.75,-62.2,false)).children}
 // hồ bơi
@@ -560,10 +584,26 @@ const fire=new T.PointLight(0xff8a3c,0,14,2);const flame=new T.Mesh(new T.ConeGe
 // chuồng chó
 {const x=-28,z=-71,y=H(x,z);scene.add(mesh(new T.BoxGeometry(1.2,.9,1.2),lam(0xa0522d),x,y+.45,z));const rf=gableRoof(1.2,1.2,.6,0x6b3a22);rf.position.set(x,y+.9,z);scene.add(rf)}
 // đèn
-const LAMPS=[[-38,-64.5],[-30,-61],[-22,-56.6],[-14,-53.2],[-6,-47],[1,-35],[8,-25],[16,-14.5],[27,-1],[8,-56.3],[21,-56.3],[-44,60],[-32,-41.5],[-20,-49.5],[-33,-52],[12,-70.3],[-14,-71.6],[-80,46],[-79,58],[47,64],[43,48]];
+const LAMPS=[[-38,-64.5],[-30,-61],[-22,-56.6],[-14,-53.2],[-20,-44],[16,-42],[16,-52],[-6,-47],[1,-35],[8,-25],[16,-14.5],[27,-1],[8,-56.3],[21,-56.3],[-44,60],[-32,-41.5],[-20,-49.5],[-33,-52],[12,-70.3],[-14,-71.6],[-80,46],[-79,58],[47,64],[43,48]];
 const bulbMat=new T.MeshBasicMaterial({color:0xfff2d0});
 const glowTex=(()=>{const c=document.createElement("canvas");c.width=c.height=64;const g=c.getContext("2d"),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,214,140,1)");gr.addColorStop(.35,"rgba(255,190,110,.45)");gr.addColorStop(1,"rgba(255,190,110,0)");g.fillStyle=gr;g.fillRect(0,0,64,64);return new T.CanvasTexture(c)})();
 const glows=[];
+const tentGeo=(()=>{const s=new T.Shape();s.moveTo(-1,0);s.lineTo(1,0);s.lineTo(0,1.25);s.lineTo(-1,0);const g=new T.ExtrudeGeometry(s,{depth:2.1,bevelEnabled:false});g.translate(0,0,-1.05);return g})();
+function makeTent(col,x,z,ry){const g=new T.Group();g.position.set(x,groundY(x,z),z);g.rotation.y=ry||0;
+  g.add(mesh(tentGeo,lam(col,{flatShading:true}),0,0,0));g.add(mesh(new T.BoxGeometry(.9,.85,.04),lam(0x2b2b2b),0,.42,1.06,false));
+  g.add(mesh(new T.BoxGeometry(.18,.22,.18),winMat,0,.25,.75,false));scene.add(g);return g}
+const CAMP_TENTS=[[-4,-46.5,0x2f78c4,.35],[5,-49,0xe08a3c,-.4],[11,-44.5,0x5a8f4a,.9]];
+for(const[x,z,c,ry]of CAMP_TENTS){makeTent(c,x,z,ry);BLOCKS.push({x0:x-1.2,x1:x+1.2,z0:z-1.2,z1:z+1.2})}
+const tents=new Map();
+function syncTent(id,pos,col){let t=tents.get(id);const ok=Array.isArray(pos)&&isFinite(+pos[0])&&isFinite(+pos[1])&&inRect(+pos[0],+pos[1],YARD);
+  if(!ok){if(t){scene.remove(t.g);tents.delete(id)}return}
+  const k=pos[0]+","+pos[1]+","+col;if(t&&t.k===k)return;if(t)scene.remove(t.g);
+  tents.set(id,{k,x:+pos[0],z:+pos[1],g:makeTent(col,+pos[0],+pos[1],(hash(id)%628)/100)})}
+function tentFree(x,z){if(!inRect(x,z,{x0:YARD.x0+1.5,x1:YARD.x1-1.5,z0:YARD.z0+1,z1:YARD.z1-1.5}))return false;if(Math.hypot(x-FIRE.x,z-FIRE.z)<4)return false;
+  if(CAMP_TENTS.some(([a,b])=>Math.hypot(x-a,z-b)<3.2))return false;for(const[id,t]of tents)if(id!=="me"&&Math.hypot(x-t.x,z-t.z)<3)return false;return!blocked(x,z)&&!blocked(x,z+1.8)}
+function pitchTent(){let x=Math.round(me.x*10)/10,z=Math.round(me.z*10)/10;
+  if(!tentFree(x,z)){let ok=false;for(let i=0;i<200&&!ok;i++){x=Math.round((YARD.x0+2+Math.random()*(YARD.x1-YARD.x0-4))*10)/10;z=Math.round((YARD.z0+1.5+Math.random()*(YARD.z1-YARD.z0-3.5))*10)/10;ok=tentFree(x,z)}if(!ok){toast("Sân đã kín lều. Chờ ai đó thu lều nhé.");return}}
+  walkTo(x+1.4,z+1.6,()=>{me.tent=[x,z];syncTent("me",me.tent,me.c);doFx("tent",x,z);toast(pick(["Lều dựng xong. Cọc thứ tư hơi xiêu, nhưng là xiêu có nghệ thuật.","Lều đã dựng. Mướp đã kịp chui vào kiểm tra.","Xong! Chị Mơ nói đêm nay có sao, nếu mây cho phép."]),4000)})}
 for(const[x,z]of LAMPS){const y=walkable(x,z)?groundY(x,z):H(x,z);scene.add(mesh(new T.CylinderGeometry(.06,.08,2.6,5),lam(0x333333),x,y+1.3,z,false));scene.add(mesh(new T.SphereGeometry(.17,8,6),bulbMat,x,y+2.65,z,false));
   const sp=new T.Sprite(new T.SpriteMaterial({map:glowTex,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0}));sp.position.set(x,y+2.65,z);sp.scale.set(5,5,1);scene.add(sp);glows.push(sp)}
 const porch=[new T.PointLight(0xffc27a,0,18,2),new T.PointLight(0xffc27a,0,16,2)];porch[0].position.set(-8,PY+2.4,-55.8);porch[1].position.set(-14,UY+2.4,-71.8);porch.forEach(l=>scene.add(l));
@@ -668,9 +708,9 @@ const saved=ls.get("asr-me",null);
 const me={joined:false,n:saved&&saved.n||"",c:saved&&saved.c||pick(SHIRTS),hat:saved&&saved.hat||"beanie",x:-7,z:-55,r:0,tx:null,tz:null,a:"",s:"",st:0,fx:null,after:null,obj:null};
 let room=null,user=null,isOwner=false,roomOK=false;
 const remotes=new Map();
-function pushPresence(){if(!room||!me.joined)return;room.presence({j:1,n:me.n.slice(0,24),c:me.c,h:me.hat,x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.r*100)/100,a:me.a||null,s:me.s||null,st:me.st||null,fx:me.fx||null}).catch(()=>{})}
+function pushPresence(){if(!room||!me.joined)return;room.presence({j:1,n:me.n.slice(0,24),c:me.c,h:me.hat,x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.r*100)/100,a:me.a||null,s:me.s||null,st:me.st||null,fx:me.fx||null,tn:me.tent||null,pf:petFollow&&petFollow.until>Date.now()?petFollow.id:null,pfu:petFollow?petFollow.until:null}).catch(()=>{})}
 let lastPush=0;function maybePush(){const t=performance.now();if(t-lastPush>100){lastPush=t;pushPresence()}}
-function dropRemote(id){const r=remotes.get(id);if(r){scene.remove(r.obj);remotes.delete(id)}}
+function dropRemote(id){const r=remotes.get(id);if(r){scene.remove(r.obj);remotes.delete(id)}syncTent("r"+id,null)}
 async function initRoom(){
   try{if(window.claude&&claude.use)room=await claude.use("room")}catch(e){}
   try{if(window.claude&&claude.use)user=await claude.use("user")}catch(e){}
@@ -683,7 +723,7 @@ async function initRoom(){
       if(!pr.j){dropRemote(p.peer);continue}
       let r=remotes.get(p.peer);const c=/^#[0-9a-f]{6}$/i.test(pr.c)?pr.c:"#888888",hat=["none","beanie","non","cap"].includes(pr.h)?pr.h:"none";
       if(!r||r.c!==c||r.hat!==hat){const obj=makePerson({shirt:c,hat});scene.add(obj);const nr={obj,c,hat,x:r?r.x:(+pr.x||0),z:r?r.z:(+pr.z||-44),lastSt:r?r.lastSt:pr.st,lastFx:r?r.lastFx:pr.fx&&pr.fx.t,sayAt:r?r.sayAt:0};if(r)scene.remove(r.obj);r=nr;remotes.set(p.peer,r)}
-      r.p=pr;r.guest=p.guest;
+      r.p=pr;r.guest=p.guest;syncTent("r"+p.peer,pr.tn,c);
       if(pr.st&&pr.st!==r.lastSt&&pr.s){r.lastSt=pr.st;r.sayAt=Date.now();logChat(String(pr.n||"Khách"),String(pr.s))}
       if(pr.fx&&pr.fx.t!==r.lastFx){r.lastFx=pr.fx.t;spawnFx(pr.fx.k,+pr.fx.x,+pr.fx.z)}}
     updateOnline()});
@@ -693,7 +733,7 @@ const onlineCount=()=>remotes.size+(me.joined?1:0);
 function updateOnline(){if(!roomOK)return;$("online").classList.remove("off");$("online-txt").textContent=`${onlineCount()}/${CAPACITY} đang ở đây`}
 
 /* ================= FX & BUBBLES ================= */
-const fx=[];const FXE={note:"🎵",seed:"🌾",heart:"❤️",food:"🥕",water:"💧",splash:"💦",plant:"🌱",lantern:"🏮",coffee:"☕",corn:"🌽",wave:"👋",leaf:"🍃",camera:"📸"};
+const fx=[];const FXE={ball:"🎾",yarn:"🧶",tent:"⛺",paw:"🐾",note:"🎵",seed:"🌾",heart:"❤️",food:"🥕",water:"💧",splash:"💦",plant:"🌱",lantern:"🏮",coffee:"☕",corn:"🌽",wave:"👋",leaf:"🍃",camera:"📸"};
 function spawnFx(k,x,z){if(!isFinite(x)||!isFinite(z))return;for(let i=0;i<(k==="heart"?4:3);i++)fx.push({e:FXE[k]||"✨",x:x+(Math.random()-.5),z:z+(Math.random()-.5),y:groundY(x,z)+1.6,vy:.8+Math.random()*.5,t:0,life:1.8})}
 function doFx(k,x,z){spawnFx(k,x,z);me.fx={k,x:Math.round(x*10)/10,z:Math.round(z*10)/10,t:Date.now()};pushPresence()}
 const bubbles=new Map();
@@ -742,7 +782,7 @@ function tap(px,py){
   let best=null,bd=34;const cand=(x,y,z,o)=>{const s=project(x,y,z);if(!s)return;const d=Math.hypot(s.x-px,s.y-py);if(d<bd){bd=d;best=o}};
   for(const s of STAFF){const st=s._st;if(st&&!st.away)cand(st.x,groundY(st.x,st.z)+1.2,st.z,{t:"npc",o:s})}
   for(const g of GUESTS){const st=g._st;if(st)cand(st.x,groundY(st.x,st.z)+1.2,st.z,{t:"npc",o:g})}
-  for(const p of PETS)if(p._x!=null)cand(p._x,H(p._x,p._z)+.4,p._z,{t:"pet",o:p});
+  for(const p of PETS)if(p._x!=null)cand(p._x,p.obj.position.y+.4,p._z,{t:"pet",o:p});
   for(const b of GBIRDS)if(b.o.visible)cand(b._x,b._y+.25,b._z,{t:"bird",o:b});
   if(owl.o.visible)cand(owl.o.position.x,owl.o.position.y,owl.o.position.z,{t:"bird",o:owl});
   for(const r of remotes.values())cand(r.x,groundY(r.x,r.z)+1.2,r.z,{t:"guest",o:r});
@@ -776,7 +816,7 @@ function stepMe(dt){if(!me.joined)return;moving=false;
 /* ================= SPOTS ================= */
 const SPOTS=[
   {hit:(x,z)=>x>POOL.x0-2&&x<POOL.x1+3&&z>POOL.z0-2&&z<POOL.z1+2,at:[14.5,-56.4],k:"Hồ bơi",t:"Hồ bơi nước lạnh",d:()=>`Hồ chạy dọc nhà chính, lối đá bên cạnh dẫn ra đường phía Đông. Ngoài trời ${Math.round(WX.temp)}°C.`,acts:[["Nhảy xuống bơi",()=>walkTo(11+Math.random()*7,-62+Math.random()*2.5,()=>{doFx("splash",me.x,me.z);sayMe(pick(["Lạnh! Lạnh! Ai nói nước ấm vậy trời!","Tỉnh ngủ luôn, khỏi cần cà phê.","Bơi một vòng mà thấy như vừa đi spa đá."]))})]]},
-  {hit:(x,z)=>x>-13&&x<-3&&z>-58&&z<-53,at:[-7,-55.2],k:"Hiên nhà chính",t:"Cà phê ngắm đồi",d:()=>"Hiên gạch đỏ, mái bạt trắng, sofa xanh. Nhìn xuống là cả sườn đồi và con suối thấp hơn 45 mét.",acts:[["Uống cà phê",()=>walkTo(-9,-55.6,()=>{me.a="coffee";doFx("coffee",me.x,me.z)})],["Ngắm toàn cảnh",()=>setView(true)]]},
+  {hit:(x,z)=>inRect(x,z,TERR),at:[-7,-55.2],k:"Hiên nhà chính",t:"Cà phê ngắm đồi",d:()=>"Nhà chính 2 tầng: hiên gạch đỏ nằm trên tầng trệt, mái bạt trắng, sofa xanh. Nhìn xuống là sân cắm trại, cả sườn đồi và con suối thấp hơn 45 mét.",acts:[["Uống cà phê",()=>walkTo(-9,-55.6,()=>{me.a="coffee";doFx("coffee",me.x,me.z)})],["Ngắm toàn cảnh",()=>setView(true)]]},
   {hit:(x,z)=>x>3&&x<21&&z>-79&&z<-70,at:[12,-70.5],k:"Nhà làm vườn",t:"Nhà của Chú Ba và Anh Tèo",d:()=>"Nhà kính trắng: ươm cây con, cất cuốc xẻng, và là chỗ hai người làm vườn ngủ trưa.",acts:[["Xem vườn ươm",()=>toast(pick(["Trong nhà kính có 300 bầu cây con, mỗi bầu dán tên. Có bầu ghi ‘đừng tưới, cây này giả chết’.","Chú Ba đếm cây con mỗi sáng. Thiếu một cây là nghi con thỏ.","Bạn thấy một cái võng giữa các luống ươm. Đây là ‘phòng họp’ của Anh Tèo."]),5000)]]},
   {hit:(x,z)=>inRect(x,z,TEA)&&inPoly(x,z),at:[30,-68],k:"Đồi chè",t:"Hái chè cùng Chú Ba",d:()=>"Dải chè chạy dọc ranh trên cùng, sau cụm nhà. Hái một tôm hai lá là chuẩn.",acts:[["Hái chè",()=>walkTo(26+Math.random()*30,-80+Math.random()*8,()=>{me.a="tea";doFx("leaf",me.x,me.z);toast(pick(["Bạn hái được một nắm chè. Chú Ba chấm 6 điểm.","Bạn hái nhầm lá già. Chú Ba giả vờ không thấy.","Một tôm hai lá chuẩn chỉnh! Chú Ba gật gù."]))})]]},
   {hit:(x,z)=>inRect(x,z,{x0:GARDEN.x0-1,x1:GARDEN.x1+1,z0:GARDEN.z0-1,z1:GARDEN.z1+1}),at:[-32,-41.5],k:"Vườn của khách",t:"Trồng một cây",d:()=>`Ai ghé cũng trồng được. Vườn đang có ${Store.data.plants.length} cây. Cây lớn theo thời gian và mỗi lần được tưới.`,acts:[["Chọn cây để trồng",()=>openPlantPicker()]]},
@@ -785,18 +825,30 @@ const SPOTS=[
   {hit:(x,z)=>BRIDGES.some(b=>Math.hypot(x-b.x,z-b.z)<6),at:null,k:"Cầu qua suối",t:"Hai đường lên nhà chính",d:()=>"Đường bê tông phía Tây qua cầu cạnh nhà hàng xóm, đường phía Đông chạy dọc ranh lên tới hồ bơi. Cả hai đều dẫn lên nhà chính, dốc 45 mét.",acts:[["Đi đường Tây lên nhà",()=>{teleport(BRIDGES[0].x+1,BRIDGES[0].z-6,2.6);walkTo(-37,-64.5)}],["Đi đường Đông lên nhà",()=>{teleport(BRIDGES[1].x-.5,BRIDGES[1].z-6,2.8);walkTo(24,-56)}]]},
   {hit:(x,z)=>streamDist(x,z)<5&&inPoly(x,z),at:null,k:"Suối lớn",t:"Con suối chảy ngang đất",d:()=>"Nước trong, đá to. Thả một chiếc hoa đăng kèm lời ước, nó trôi trên suối 48 giờ.",acts:[["Thả hoa đăng",()=>openLantern()],["Lội suối",()=>{const p=pick(streamInLand);walkTo(p[0],p[1],()=>doFx("splash",me.x,me.z))}]]},
   {hit:(x,z)=>Math.hypot(x-FIRE.x,z-FIRE.z)<4,at:[FIRE.x+2,FIRE.z+1.5],k:"Bãi cỏ",t:"Lửa trại",d:()=>TOD>=18&&TOD<21.5?"Lửa đang cháy, Anh Tèo nướng bắp.":"Lửa trại đốt từ 18:00 đến 21:30.",acts:[["Ngồi quanh lửa",()=>walkTo(FIRE.x+1.8,FIRE.z+1.5,()=>{me.a="fire";doFx("corn",me.x,me.z);if(!(TOD>=18&&TOD<21.5))toast("Chưa tới giờ đốt lửa. Ngồi ngắm củi trước cũng được.")})]]},
+  {hit:(x,z)=>inRect(x,z,YARD),at:null,k:"Sân trước",t:"Sân cắm trại",d:()=>`Bãi cỏ phẳng ngay trước nhà chính, thấp hơn hiên một tầng, nhìn thẳng xuống thung lũng. Đang có ${CAMP_TENTS.length+tents.size} lều. Tối 18:00 có lửa trại.`,
+   acts:()=>me.tent?[["Chui vào lều nằm",()=>walkTo(me.tent[0]+.1,me.tent[1]+1.4,()=>{me.a="rest";pushPresence();toast(TOD>=19||TOD<5?"Bạn nằm nghe dế kêu, đếm sao qua cửa lều.":"Trưa nằm lều, gió thổi qua, ngủ quên lúc nào không hay.")})],["Thu lều",()=>{me.tent=null;syncTent("me",null);pushPresence();toast("Đã thu lều. Mướp tỏ ra không hài lòng.")}]]
+     :[["Dựng lều ở đây",()=>{if(!me.joined){openJoin();return}pitchTent()}],["Ngồi quanh lửa trại",()=>walkTo(FIRE.x+1.8,FIRE.z+1.5,()=>{me.a="fire";doFx("corn",me.x,me.z)})]]},
   {hit:(x,z)=>Math.hypot(x-NETH.x,z-NETH.z)<5.5,at:[NETH.x,-56.6],k:"Nhà lưới",t:"Nhà của Bông và Tuyết",d:()=>"Nhà lưới đen cạnh nhà chính. Bấm vào từng bạn thỏ để vuốt ve hoặc cho ăn.",acts:[]},
   {hit:(x,z)=>Math.hypot(x+40.3,z+66)<5,at:[-37,-64.5],k:"Cổng phía Tây",t:"Cổng Anh Sơn Retreat",d:()=>"Cổng gỗ trên đường bê tông phía Tây. Sổ lưu bút để ở đây.",acts:[["Mở sổ lưu bút",()=>openBook()]]},
   {hit:(x,z)=>Math.hypot(x-NEIGHBOR.x,z-NEIGHBOR.z)<10,at:null,k:"Ngoài ranh đất",t:"Nhà hàng xóm",d:()=>"Nhà hai tầng ở góc dưới là của hàng xóm, không thuộc retreat. Chó nhà họ sủa to hơn chó mình, đừng ghé.",acts:[]},
 ];
-const SPOT_LIST=[["Cổng phía Tây",[-37,-64.5],"Ký lưu bút",-1.2],["Hiên nhà chính",[-7,-55],"Cà phê ngắm đồi",.35],["Hồ bơi",[14.5,-56.4],"Bơi nước lạnh",.5],["Nhà làm vườn",[12,-70.5],"Vườn ươm",.25],["Đồi chè",[30,-68],"Hái chè",.5],["Vườn của khách",[-32,-41.5],"Trồng cây",.3],["Lửa trại",[-23,-51],"Tối 18:00",.2],["Đường chữ S",[14,-18],"Đi dạo dốc",2.6],["Vườn cà phê",[-4,10],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,58],"Nghỉ chân",2.4],["Thác nhỏ",[-29,66],"Thả hoa đăng",2.8],["Cầu phía Tây",[-83,56],"Cạnh nhà hàng xóm",2.85],["Cổng phía Đông",[25,-56],"Đường bê tông Đông",-.9]];
+const SPOT_LIST=[["Cổng phía Tây",[-37,-64.5],"Ký lưu bút",-1.2],["Hiên nhà chính",[-7,-55],"Cà phê ngắm đồi",.35],["Hồ bơi",[14.5,-56.4],"Bơi nước lạnh",.5],["Nhà làm vườn",[12,-70.5],"Vườn ươm",.25],["Đồi chè",[30,-68],"Hái chè",.5],["Vườn của khách",[-32,-41.5],"Trồng cây",.3],["Sân cắm trại",[3,-42.5],"Dựng lều, nhìn nhà 2 tầng",.15],["Lửa trại",[-13,-45],"Tối 18:00",.2],["Đường chữ S",[14,-18],"Đi dạo dốc",2.6],["Vườn cà phê",[-4,10],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,58],"Nghỉ chân",2.4],["Thác nhỏ",[-29,66],"Thả hoa đăng",2.8],["Cầu phía Tây",[-83,56],"Cạnh nhà hàng xóm",2.85],["Cổng phía Đông",[25,-56],"Đường bê tông Đông",-.9]];
 
 /* ================= UI ================= */
 function card(k,title,body,acts){const c=$("card");c.replaceChildren(el("button",{class:"x","aria-label":"Đóng",onclick:closeCard},"×"));if(k)c.append(el("div",{class:"k"},k));c.append(el("h2",null,title));
   if(body)c.append(body.nodeType?body:el("p",null,body));if(acts&&acts.length){const a=el("div",{class:"acts"});acts.forEach(([t,f,keep],i)=>a.append(el("button",{class:"btn"+(i===0?" pri":""),onclick:()=>{f();if(!keep)closeCard()}},t)));c.append(a)}c.hidden=false}
 function closeCard(){$("card").hidden=true}
-function showSpot(s){card(s.k,s.t,s.d(),s.acts)}
+function showSpot(s){card(s.k,s.t,s.d(),typeof s.acts==="function"?s.acts():s.acts)}
 function sayMe(t){me.s=t;me.st=Date.now();say("me",t);pushPresence();logChat(me.n,t)}
+function petActs(p,asleep){if(asleep)return[];const near=f=>()=>walkTo(p._x+.9,p._z+.5,f),following=petFollow&&petFollow.id===p.id&&petFollow.until>Date.now();
+  const takenBy=!following&&petLeader(p);
+  const follow=following?[["Cho "+p.name+" về chỗ",()=>{petFollow=null;pushPresence();toast(`${p.name} quay về chỗ cũ, ngoái lại nhìn bạn hai lần.`)}]]
+    :takenBy?[]:[[p.kind==="chó"?"Rủ đi dạo":"Rủ đi theo",near(()=>{if(p.kind==="mèo"&&Math.random()<.4){say(p.id,"Meo.");toast(`${p.name} nhìn bạn rồi đi hướng khác. Mèo không nhận lời mời, mèo gửi lời mời.`);return}
+      petFollow={id:p.id,until:Date.now()+180000};pushPresence();doFx("paw",p._x,p._z);say(p.id,pick(PET_SOUNDS[p.kind]));toast(`${p.name} sẽ đi theo bạn 3 phút. Đi đâu cũng được, miễn có đồ ăn.`,4000)})]];
+  const ahead=(d)=>{let tx=me.x+Math.sin(me.r)*d,tz=me.z+Math.cos(me.r)*d;if(!walkable(tx,tz)||blocked(tx,tz)){tx=me.x+1;tz=me.z+1}return[tx,tz]};
+  if(p.kind==="chó")return[["Ném bóng",near(()=>{const[tx,tz]=ahead(9);doFx("ball",tx,tz);p.fetch={t0:Date.now(),fx:p._x,fz:p._z,tx,tz,done:()=>{say(p.id,"Gâu!");toast(pick([`${p.name} mang bóng về, đặt cách bạn đúng hai mét. Muốn thì tự ra lấy.`,`${p.name} nhặt được bóng, và cả một chiếc dép không rõ của ai.`,`${p.name} mang bóng về, ướt nhẹp, đầy tự hào.`]),4000)}}})],...follow];
+  if(p.kind==="mèo")return[["Đưa cuộn len",near(()=>{const[tx,tz]=ahead(3);doFx("yarn",tx,tz);p.fetch={t0:Date.now(),fx:p._x,fz:p._z,tx,tz,done:()=>toast(pick([`${p.name} vờn cuộn len 40 giây rồi giả vờ chưa từng quan tâm.`,`${p.name} cuộn mình trong đống len. Cuộn len giờ thuộc về ${p.name}.`]),4000)}})],...follow];
+  return[["Bế lên",near(()=>{me.a="pet";doFx("heart",p._x,p._z);toast(pick([`${p.name} nằm im trong tay bạn, tim đập nhanh hơn bạn tưởng.`,`${p.name} giãy một cái rồi chịu ngồi yên. Mềm như gối.`,`${p.name} gặm nhẹ cúc áo bạn để đánh dấu chủ quyền.`]),4000)})]]}
 function npcLine(s){s._i=((s._i==null?Math.floor(Math.random()*s.lines.length):s._i)+1)%s.lines.length;return s.lines[s._i]}
 function showEntity(b){
   if(b.t==="bird"){const o=b.o,ls_=BIRD_LINES[o.name];card(o.name==="Cú mèo"?"Trực đêm":"Chim trong vườn",o.name,el("q",null,pick(ls_)),[
@@ -808,7 +860,8 @@ function showEntity(b){
   if(b.t==="pet"){const p=b.o,z=petAsleep(p);
     card(p.kind[0].toUpperCase()+p.kind.slice(1),p.name,z?`${p.name} đang ngủ. Nhẹ tay thôi.`:`${p.name} đang chơi quanh đây.`,[
       ["Vuốt ve",()=>walkTo(p._x+.9,p._z+.5,()=>{me.a="pet";doFx("heart",p._x,p._z);toast(z?`${p.name} mở một mắt nhìn bạn rồi ngủ tiếp.`:pick(p.react),4000)})],
-      [p.kind==="thỏ"?"Cho ăn cà rốt":p.kind==="mèo"?"Cho ăn cá khô":"Cho ăn bánh",()=>walkTo(p._x+.9,p._z+.5,()=>{doFx("food",p._x,p._z);toast(`${p.name} ăn sạch trong 3 giây rồi nhìn bạn chờ phần hai.`)})]]);return}
+      ...petActs(p,z),
+      [p.kind==="thỏ"?"Cho ăn cà rốt":p.kind==="mèo"?"Cho ăn cá khô":"Cho ăn bánh",()=>walkTo(p._x+.9,p._z+.5,()=>{doFx("food",p._x,p._z);say(p.id,pick(PET_SOUNDS[p.kind]));toast(z?`${p.name} ngửi thấy mùi đồ ăn, mắt vẫn nhắm mà miệng đã nhai.`:`${p.name} ăn sạch trong 3 giây rồi nhìn bạn chờ phần hai.`)})]]);return}
   if(b.t==="guest"){const p=b.o.p||{};card("Khách đang online",String(p.n||"Khách").slice(0,24),b.o.guest?"Khách được mời từ bên ngoài.":"Đang dạo quanh retreat.",[["Vẫy tay chào",()=>doFx("wave",me.x,me.z)],["Lại gần",()=>walkTo(b.o.x+1,b.o.z+.6)]]);return}
   if(b.t==="lantern"){const l=b.o;const body=el("div",{style:"display:flex;flex-direction:column;gap:6px"},el("q",null,String(l.t||"").slice(0,160)),el("p",null,`${String(l.by||"Ai đó").slice(0,24)} · ${ago(l.at)}`));
     card("Hoa đăng","Lời ước trên suối",body,isOwner?[["Gỡ hoa đăng",()=>Store.remove("lanterns",l.id).catch(writeErr)]]:[]);return}
@@ -882,10 +935,10 @@ $("b-book").onclick=openBook;
 $("b-go").onclick=()=>{const b=modal("Đi tới","Chọn nơi muốn tới, bạn sẽ có mặt ngay.");const g=el("div",{class:"grid"});
   SPOT_LIST.forEach(([n,p,s,yw])=>g.append(el("button",{class:"pick",onclick:()=>{closeModal();closeCard();setView(false);teleport(p[0],p[1],yw);const sp=SPOTS.find(q=>q.hit(p[0],p[1]));if(sp)showSpot(sp)}},n,el("small",null,s))));b.append(g)};
 function openPeople(){const b=modal("Ai đang ở đây",roomOK?`${onlineCount()}/${CAPACITY} khách online, cùng nhân viên và khách vãng lai.`:"Bản chạy riêng: bạn, nhân viên và khách vãng lai.");
-  const L=el("div",{class:"list"});const row=(c,t,s)=>L.append(el("div",{class:"row"},el("span",{class:"dot",style:`background:${c}`}),el("div",{class:"tx"},t,el("small",null,s))));
+  const L=el("div",{class:"list"});const row=(c,t,s,go)=>L.append(el("div",go?{class:"row",style:"cursor:pointer",onclick:go}:{class:"row"},el("span",{class:"dot",style:`background:${c}`}),el("div",{class:"tx"},t,el("small",null,s))));
   STAFF.forEach(s=>row("#c08a2e",`${s.name} · ${s.role}`,npcState(s).verb));
   GUESTS.forEach(g=>row("#a3aca7",`${g.name} · khách vãng lai`,g.role));
-  PETS.forEach(p=>row("#e3d8c4",`${p.name} · ${p.kind}`,petAsleep(p)?"đang ngủ":"đang chơi"));
+  PETS.forEach(p=>row("#e3d8c4",`${p.name} · ${p.kind}`,(petAsleep(p)?"đang ngủ":petLeader(p)?"đang đi theo một khách":"đang chơi")+" · bấm để tới",()=>{closeModal();setView(false);teleport(p._x+2,p._z+2,Math.atan2(2,2));showEntity({t:"pet",o:p})}));
   if(me.joined)row(me.c,`${me.n} (bạn)`,"đang ở đây");for(const r of remotes.values()){const p=r.p||{};row(/^#[0-9a-f]{6}$/i.test(p.c)?p.c:"#888888",String(p.n||"Khách").slice(0,24),"online")}
   b.append(L)}
 $("online").onclick=openPeople;
@@ -941,6 +994,7 @@ function drawMini(){const m=$("mini"),c=m.getContext("2d"),W=m.width,s=W/(MM.x1-
   ROADS.forEach(R=>line(R,"#cfcac0",3.2*s));
   c.fillStyle="#86ad5c";c.beginPath();LAND.forEach((p,i)=>i?c.lineTo(X(p[0]),Z(p[1])):c.moveTo(X(p[0]),Z(p[1])));c.closePath();c.fill();c.strokeStyle="rgba(255,255,255,.75)";c.lineWidth=1;c.stroke();
   c.fillStyle="#5f9445";c.fillRect(X(TEA.x0),Z(TEA.z0),(TEA.x1-TEA.x0)*s,(TEA.z1-TEA.z0)*s);
+  c.fillStyle="#a6c97a";c.fillRect(X(YARD.x0),Z(YARD.z0),(YARD.x1-YARD.x0)*s,(YARD.z1-YARD.z0)*s);
   c.fillStyle="#8a6a45";c.fillRect(X(GARDEN.x0),Z(GARDEN.z0),(GARDEN.x1-GARDEN.x0)*s,(GARDEN.z1-GARDEN.z0)*s);
   for(const P of[DRIVE_PTS,SROAD_PTS,LOW_PTS])line(P,"#c9a77a",2.4*s);line(DRIVE_E_PTS,"#cfcac0",2.4*s);
   line(STREAM_PTS,"#8cc4d4",4.5*s);
@@ -961,7 +1015,7 @@ $("mini").addEventListener("click",e=>{const r=e.currentTarget.getBoundingClient
   if(!walkable(x,z)){toast("Ngoài ranh đất");return}let tx=x,tz=z;if(blocked(tx,tz)){for(let k=1;k<20;k++){if(!blocked(tx+k,tz)){tx+=k;break}if(!blocked(tx,tz+k)){tz+=k;break}}}setView(false);teleport(tx,tz)});
 
 /* ================= LOOP ================= */
-let last=performance.now(),acc=0,chatterT=10,envT=0;
+let last=performance.now(),acc=0,chatterT=10,envT=0,petT=6;
 function frame(t){
   const dt=Math.min(.05,Math.max(0,(t-last)/1000));last=t;acc+=dt;envT-=dt;
   if(acc>1){acc=0;tick();updateHud();const sl=Math.floor(TOD/2);if(sl!==guestSlot){guestSlot=sl;GUESTS.forEach(g=>{const o=npcObjs.get(g.id);if(o){scene.remove(o);npcObjs.delete(g.id)}});GUESTS=guestsNow()}}
@@ -969,9 +1023,11 @@ function frame(t){
   stepMe(dt);
   const time=t/1000;
   for(const s of STAFF.concat(GUESTS)){const st=npcState(s);s._st=st;const o=npcObj(s);o.visible=!st.away;if(st.away)continue;o.position.set(st.x,groundY(st.x,st.z),st.z);o.rotation.y=st.dir;animPerson(o,st.moving,time,false)}
-  for(const p of PETS){const q=petPos(p);p._x=q.x;p._z=q.z;p.obj.position.set(q.x,H(q.x,q.z),q.z);p.obj.rotation.y=q.dir;const sl=petAsleep(p);p.obj.scale.y=sl?.75:1;if(p.obj.userData.tail)p.obj.userData.tail.rotation.y=sl?0:Math.sin(time*(p.kind==="chó"?12:3))*.5;
+  for(const p of PETS){const q=petPos(p);if(p._x==null){p._x=q.x;p._z=q.z}const pk=1-Math.pow(q.run?.0001:.004,dt);p._x=lerp(p._x,q.x,pk);p._z=lerp(p._z,q.z,pk);
+    const py=inPool(p._x,p._z)?LOW_PAD.y+.05:groundY(p._x,p._z);p.obj.position.set(p._x,py,p._z);p.obj.rotation.y=q.dir;const sl=petAsleep(p);p.obj.scale.y=sl?.75:1;if(p.obj.userData.tail)p.obj.userData.tail.rotation.y=sl?0:Math.sin(time*(p.kind==="chó"||q.follow?12:3))*.5;
+    if((q.run||q.follow)&&p.kind!=="thỏ")p.obj.position.y+=Math.abs(Math.sin(time*14))*.06;
     if(p.kind==="thỏ"&&!sl)p.obj.position.y+=Math.abs(Math.sin(time*5+hash(p.id)))*.15}
-  updateBirds(time,dt);
+  updateBirds(time,dt);if(me.tent)syncTent("me",me.tent,me.c);
   for(const r of remotes.values()){const p=r.p||{};const tx=+p.x,tz=+p.z;if(isFinite(tx)&&isFinite(tz)){const k=1-Math.pow(.001,dt);const mv=Math.hypot(tx-r.x,tz-r.z)>.05;r.x=lerp(r.x,tx,k);r.z=lerp(r.z,tz,k);r.obj.position.set(r.x,groundY(r.x,r.z),r.z);if(isFinite(+p.r))r.obj.rotation.y=+p.r;animPerson(r.obj,mv,time,p.a==="swim")}}
   if(me.joined&&me.obj){me.obj.position.set(me.x,groundY(me.x,me.z),me.z);me.obj.rotation.y=me.r;animPerson(me.obj,moving,time,me.a==="swim")}
   for(const L of lanterns){const n=streamInLand.length,u=((time*.004+L.off)%1)*(n-1),i=Math.floor(u),f=u-i,a=streamInLand[i],b=streamInLand[Math.min(n-1,i+1)];const x=lerp(a[0],b[0],f),z=lerp(a[1],b[1],f),y=baseH(x,z)+.75+Math.sin(time*2+L.off*9)*.04;L.m.position.set(x,y,z);L.m.rotation.y=time*.3+L.off*6;L.sp.position.set(x,y+.2,z)}
@@ -979,6 +1035,8 @@ function frame(t){
   if(flame.visible){flame.scale.set(1+Math.sin(time*13)*.12,1+Math.sin(time*9)*.2,1+Math.cos(time*11)*.12);fire.intensity=1.4+Math.sin(time*17)*.25}
   if(rain.visible){const cnt=Math.floor(RAIN_N*clamp(WX.rain*1.4,0,1)),cp=camera.position;for(let i=0;i<RAIN_N;i++){const o=i*6;if(i>=cnt){rainPos[o]=rainPos[o+1]=rainPos[o+2]=rainPos[o+3]=rainPos[o+4]=rainPos[o+5]=0;continue}const d=rainSeed[i];d.y-=d.v*dt;if(d.y<0)d.y=40;const x=cp.x+d.x,z=cp.z+d.z,y=cp.y-14+d.y;rainPos[o]=x;rainPos[o+1]=y;rainPos[o+2]=z;rainPos[o+3]=x+.15;rainPos[o+4]=y+.9;rainPos[o+5]=z}rainGeo.attributes.position.needsUpdate=true}
   clouds.forEach((c,i)=>{c.position.x+=dt*(2+i%3);if(c.position.x>900)c.position.x=-900});
+  petT-=dt;if(petT<=0){petT=9+Math.random()*10;if(me.joined){const n=PETS.filter(p=>!petAsleep(p)&&Math.hypot(p._x-me.x,p._z-me.z)<5);if(n.length){const p=pick(n);say(p.id,pick(PET_SOUNDS[p.kind]))}}}
+  if(petFollow&&petFollow.until<=Date.now()){const p=PETS.find(q=>q.id===petFollow.id);petFollow=null;pushPresence();if(p)toast(`${p.name} hết giờ đi dạo, chạy về chỗ cũ.`)}
   chatterT-=dt;if(chatterT<=0){chatterT=16+Math.random()*18;const near=STAFF.concat(GUESTS).filter(s=>s._st&&!s._st.away&&Math.hypot(s._st.x-camTarget.x,s._st.z-camTarget.z)<45);if(near.length){const s=pick(near);say(s.id,npcLine(s))}}
   updateCamera(dt);
   renderer.render(scene,camera);
@@ -986,7 +1044,7 @@ function frame(t){
   const cp=camera.position;
   for(const s of STAFF.concat(GUESTS)){const st=s._st;if(!st||st.away)continue;drawLabel(st.x,groundY(st.x,st.z)+2.35,st.z,s.name,s.plan?"staff":"",bubbleOf(s.id),Math.hypot(st.x-cp.x,st.z-cp.z))}
   for(const r of remotes.values()){const p=r.p||{};const b=p.s&&Date.now()-r.sayAt<8000?String(p.s).slice(0,120):"";drawLabel(r.x,groundY(r.x,r.z)+2.35,r.z,String(p.n||"Khách").slice(0,24),"",b,Math.hypot(r.x-cp.x,r.z-cp.z))}
-  for(const p of PETS){const d=Math.hypot(p._x-cp.x,p._z-cp.z);if(d<25)drawLabel(p._x,H(p._x,p._z)+1.05,p._z,p.name+(petAsleep(p)?" · zzz":""),"","",d*1.6)}
+  for(const p of PETS){const d=Math.hypot(p._x-cp.x,p._z-cp.z),bb=bubbleOf(p.id);if(d<25||bb)drawLabel(p._x,p.obj.position.y+1.05,p._z,d<25?p.name+(petAsleep(p)?" · zzz":petLeader(p)?" · đi theo":""):"","",bb,d*1.6)}
   for(const b of GBIRDS.concat([owl])){if(!b.o.visible)continue;const pp=b.o.position,d=Math.hypot(pp.x-cp.x,pp.z-cp.z),bb=bubbleOf(b.id);if(d<14||bb)drawLabel(pp.x,pp.y+.75,pp.z,d<14?b.name:"","",bb,d*2)}
   if(me.joined)drawLabel(me.x,groundY(me.x,me.z)+2.35,me.z,me.n,"me",bubbleOf("me"),0);
   if(me.tx!=null){const s=project(me.tx,groundY(me.tx,me.tz)+.05,me.tz);if(s){octx.strokeStyle="rgba(255,255,255,.9)";octx.lineWidth=2;octx.beginPath();octx.ellipse(s.x,s.y,10+3*Math.sin(t/150),5+1.5*Math.sin(t/150),0,0,7);octx.stroke()}}
