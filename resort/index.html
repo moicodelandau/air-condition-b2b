@@ -241,7 +241,7 @@ const GATE_YAW=Math.atan2(-GATE_T[0],-GATE_T[1]);
 const BR_ST=(()=>{const c=ROAD_PTS[0][BR0];let bi=0,bd=1e9;STREAM_PTS.forEach((p,i)=>{const d=(p[0]-c[0])**2+(p[1]-c[1])**2;if(d<bd){bd=d;bi=i}});return bi})();
 const FORD=STREAM_PTS[Math.min(STREAM_PTS.length-1,BR_ST+3)];
 const DEP=3.8, VS2=x=>lerp(14,31,smooth(clamp((x+84)/136,0,1)));
-const fordLift=(x,z)=>.85*Math.exp(-((x-FORD[0])**2+(z-FORD[1])**2)/(2*2.8*2.8));
+const fordLift=(x,z)=>.55*Math.exp(-((x-FORD[0])**2+(z-FORD[1])**2)/(2*2.8*2.8));
 
 /* ================= TERRAIN HEIGHT ================= */
 // bậc đá của thác: đáy suối dâng dần về phía thượng nguồn rồi rớt xuống ở FALL.x
@@ -255,7 +255,7 @@ function baseH(x,z){
   const ds=streamDist(x,z);y-=(DEP-bedStep(x)-fordLift(x,z))*Math.exp(-ds*ds/VS2(x));
   return y;
 }
-const waterY=(x,z)=>baseH(x,z)-fordLift(x,z)+1.0;   // mặt nước: cao hơn đáy 1 m, chỗ nông chỉ sâu ~15 cm
+const waterY=(x,z)=>baseH(x,z)-fordLift(x,z)+1.0;   // mặt nước: cao hơn đáy 1 m, chỗ nông sâu ~45 cm
 function padW(p,x,z){const dx=Math.max(p.x0-x,0,x-p.x1),dz=Math.max(p.z0-z,0,z-p.z1);const d=Math.hypot(dx,dz);return d>=p.f?0:1-smooth(d/p.f)}
 for(const p of PADS)if(p.y==null)p.y=baseH((p.x0+p.x1)/2,(p.z0+p.z1)/2);
 YARD.y=LOW_PAD.y-3.4;UP_PAD.y=LOW_PAD.y;PARK.y=LOW_PAD.y+1.1;ROSE.y=LOW_PAD.y;   // các nhà ngang nhau trên một nền phẳng
@@ -468,11 +468,12 @@ function buildTerrain(size,seg,inner){
   const g=new T.PlaneGeometry(size,size,seg,seg);g.rotateX(-Math.PI/2);
   const p=g.attributes.position,col=new Float32Array(p.count*3);const cGrass=C("#79a650"),cGrass2=C("#8fb85c"),cForest=C("#3f6b38"),cTea=C("#4d8a3c"),cPad=C("#9cbd6b"),cBank=C("#7d7a5a"),cFar=C("#4c7a49"),tmp=new T.Color();
   const r=rng(inner?17:23);
-  for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);let y=H(x,z);if(!inner&&Math.abs(x)<139&&Math.abs(z)<139)y-=.8;p.setY(i,y);
+  for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);let y=H(x,z);if(!inner&&Math.abs(x)<141&&Math.abs(z)<141)y-=.8;p.setY(i,y);
     if(inPoly(x,z)){tmp.copy(cGrass).lerp(cGrass2,.5+.5*Math.sin(x*.13+z*.09));if(inRect(x,z,TEA))tmp.lerp(cTea,.6);if(houseW(x,z)>.6||padW(GARDEN_PAD,x,z)>.6)tmp.lerp(cPad,.4)}
     else tmp.copy(Math.hypot(x,z)>260?cFar:cForest).offsetHSL(0,0,(r()-.5)*.04);
     const ds=streamDist(x,z);if(ds<5)tmp.lerp(cBank,1-ds/5);
     col[i*3]=tmp.r;col[i*3+1]=tmp.g;col[i*3+2]=tmp.b}
+  if(!inner){const ix=g.index.array,keep=[];const inb=k=>Math.abs(p.getX(k))<=141&&Math.abs(p.getZ(k))<=141;for(let k=0;k<ix.length;k+=3)if(!(inb(ix[k])&&inb(ix[k+1])&&inb(ix[k+2])))keep.push(ix[k],ix[k+1],ix[k+2]);g.setIndex(keep)}   // bỏ phần lưới ngoài nằm đè lên lưới trong (nó che mất suối)
   g.setAttribute("color",new T.BufferAttribute(col,3));g.computeVertexNormals();
   const m=new T.Mesh(g,new T.MeshLambertMaterial({vertexColors:true}));m.receiveShadow=true;return m;
 }
