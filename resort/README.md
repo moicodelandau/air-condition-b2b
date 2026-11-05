@@ -31,13 +31,15 @@ Bơi ở hồ nước lạnh · cà phê ngắm đồi trên hiên · hái chè 
 
 **Thời gian và thời tiết** chạy theo giờ Việt Nam. Thời tiết thay đổi liên tục trong ngày theo kiểu Bảo Lộc: sáng hay có sương, trưa nắng, mây kéo đến rồi tan, mùa mưa (tháng 5–11) dễ có mưa rào hoặc dông buổi chiều, đêm se lạnh 15–18°C. Thời tiết được tính từ thời gian thật nên mọi người ghé cùng lúc thấy giống nhau, và liền mạch qua nửa đêm.
 
+**Bảng lưu bút và lượt ghé:** bảng gỗ dựng ngay trong cổng Tây hiện tổng lượt ghé, số người đã ghé và 3 lời nhắn mới nhất. Bấm vào bảng (hoặc nút *Lưu bút*) để ký. Lượt ghé tính mỗi lần mở trang, cách nhau trên 30 phút mới tính lượt mới; số tổng cũng hiện cạnh tên retreat ở góc trên.
+
 ## Điều khiển
 
 Chạm mặt đất để đi · kéo để xoay camera · cuộn chuột hoặc chụm hai ngón để zoom · WASD hoặc phím mũi tên · chạm bản đồ nhỏ ở góc để dịch chuyển · nút **Toàn cảnh** để nhìn từ trên cao.
 
 ## Hai cách chạy
 
-1. **Trên claude.ai (nhiều người, tối đa 200)**: dùng `room` cho ai đang online, vị trí và chat, dùng `db` cho cây trồng, hoa đăng và lưu bút dùng chung. Người có quyền *Contributor* trở lên mới trồng cây và viết được; quyền *Viewer* chỉ đi dạo và xem.
+1. **Trên claude.ai (nhiều người, tối đa 200)**: dùng `room` cho ai đang online, vị trí và chat, dùng `db` cho cây trồng, hoa đăng, lưu bút và lượt ghé. Lưu bút (`signs/{người}`) và lượt ghé (`visitors/{người}`) mỗi người tự ghi tài liệu của mình nên cả người chỉ có quyền xem cũng ký được; chủ retreat xoá được mọi lời nhắn. Người có quyền *Contributor* trở lên mới trồng cây và viết được; quyền *Viewer* chỉ đi dạo và xem.
 2. **Mở `index.html` trực tiếp hoặc qua GitHub Pages (một mình)**: chỉ thấy chính mình, dữ liệu lưu trên trình duyệt. Cần mạng để tải Three.js từ cdnjs.
 
 Muốn mở công khai cho người không có tài khoản: thay `Store` và `initRoom()` bằng backend realtime (Firebase, Supabase Realtime hoặc server WebSocket).

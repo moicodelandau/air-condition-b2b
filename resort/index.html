@@ -40,6 +40,7 @@ textarea{resize:vertical}
 #mark{padding:8px 16px 8px 14px;display:flex;align-items:baseline;gap:8px}
 #mark b{font-family:var(--f-mark);font-style:italic;font-weight:500;font-size:19px;letter-spacing:.1px}
 #mark span{font-size:12px;color:var(--ink-soft)}
+#mark em{font-style:normal}
 #sky{padding:6px 12px;font-size:12.5px;display:flex;gap:8px;align-items:center;color:var(--ink)}
 #sky .t{font-weight:600;font-variant-numeric:tabular-nums}
 #sky .sep{width:3px;height:3px;border-radius:50%;background:var(--ink-soft);opacity:.5}
@@ -131,7 +132,7 @@ textarea{resize:vertical}
 <canvas id="ov"></canvas>
 
 <div id="tl">
-  <div id="mark" class="glass"><b>Anh Sơn Retreat</b><span>Bảo Lộc · 17.000 m²</span></div>
+  <div id="mark" class="glass"><b>Anh Sơn Retreat</b><span>Bảo Lộc · 17.000 m²<em id="visits"></em></span></div>
   <button id="sky" class="glass" title="Thời tiết trong ngày"><span class="t" id="clk">--:--</span><span class="sep"></span><span id="wx">—</span></button>
 </div>
 <div id="tr"><button id="online" class="glass off" title="Ai đang ở đây"><i></i><span id="online-txt">Đang kết nối</span></button></div>
@@ -185,7 +186,7 @@ const GARDEN={x0:-44,x1:-20,z0:-40,z1:-22};
 const GARDEN_PAD={x0:GARDEN.x0,x1:GARDEN.x1,z0:GARDEN.z0,z1:GARDEN.z1,y:null,f:6};
 const TEA={x0:21,x1:92,z0:-83,z1:-62};
 const POOL={x0:9,x1:20,z0:-64,z1:-58};
-const HUT={x:-50,z:63}, FALL={x:-28,z:71.5}, FIRE={x:-15,z:-47}, NEIGHBOR={x:-98,z:48}, NETH={x:-21,z:-61};
+const HUT={x:-50,z:63}, FALL={x:-28,z:71.5}, FIRE={x:-15,z:-47}, NEIGHBOR={x:-98,z:48}, NETH={x:-21,z:-61}, BOARD={x:-33,z:-67.8,ry:Math.PI/4};
 const PADS=[UP_PAD,LOW_PAD,YARD,GARDEN_PAD,{x0:HUT.x-4,x1:HUT.x+4,z0:HUT.z-4,z1:HUT.z+4,y:null,f:4},{x0:NEIGHBOR.x-8,x1:NEIGHBOR.x+8,z0:NEIGHBOR.z-6,z1:NEIGHBOR.z+6,y:null,f:5}];
 const BLOCKS=[
   {x0:-19.5,x1:-8.5,z0:-78.5,z1:-72.5},  // nhà mái xanh
@@ -195,6 +196,7 @@ const BLOCKS=[
   {x0:-25,x1:-17,z0:-64.5,z1:-57.5},     // nhà lưới (thỏ ở trong)
   {x0:-4,x1:0,z0:-82,z1:-78},            // tháp nước
   {x0:-28.8,x1:-27.2,z0:-71.8,z1:-70.2}, // chuồng chó
+  {x0:BOARD.x-1.5,x1:BOARD.x+1.5,z0:BOARD.z-1.5,z1:BOARD.z+1.5}, // bảng lưu bút
   {x0:-12.9,x1:-3.1,z0:-54.2,z1:-53.4},  // mặt tiền tầng trệt nhà chính
   {x0:-13.3,x1:-12.6,z0:-57,z1:-53.4},   // lan can hiên phía Tây
   {x0:-3.4,x1:-2.9,z0:-56.2,z1:-53.4},   // lan can hiên phía Đông
@@ -374,13 +376,33 @@ const Store={mode:"local",db:null,subs:{},data:{plants:[],lanterns:[],guestbook:
     if(db){this.mode="db";this.db=db;
       for(const col of Object.keys(this.data)){const tm=setTimeout(()=>toast("Dữ liệu tải chậm, vẫn đang thử…"),10000);
         db.collection(col).orderBy("at","desc").limit(col==="plants"?500:120).onSnapshot(s=>{clearTimeout(tm);this.data[col]=s.docs.map(d=>Object.assign({id:d.id},d.data()));this.emit(col)},e=>{clearTimeout(tm);console.warn(col,e)})}
-    }else{for(const col of Object.keys(this.data)){this.data[col]=ls.get("asr-"+col,[]);this.emit(col)}}
+      this.initSocial(db);
+    }else{for(const col of Object.keys(this.data)){this.data[col]=ls.get("asr-"+col,[]);this.emit(col)}
+      const v=ls.get("asr-visits",{n:0,last:0});if(Date.now()-v.last>30*60e3)v.n++;v.last=Date.now();ls.set("asr-visits",v);this.visits={total:v.n,people:1,local:true};this.emit("visits");this.emit("book")}
   },
+  uid:null,signs:[],visits:null,
+  async initSocial(db){
+    let u=null;try{u=await claude.use("user");this.uid=u&&await u.id()}catch(e){}
+    db.collection("signs").orderBy("at","desc").limit(300).onSnapshot(s=>{this.signs=s.docs.map(d=>Object.assign({id:d.id},d.data()));this.emit("book")},e=>console.warn("signs",e));
+    db.collection("visitors").limit(5000).onSnapshot(s=>{let total=0;s.docs.forEach(d=>{const n=+d.data().n;total+=isFinite(n)&&n>0?Math.min(n,100000):1});this.visits={total,people:s.docs.length};this.emit("visits")},e=>console.warn("visitors",e));
+    if(!this.uid)return;
+    try{const ref=db.collection("visitors").doc(this.uid),snap=await ref.get(),d=snap.exists?snap.data():null,now=Date.now();
+      if(!d)await ref.set({n:1,first:now,last:now});else if(now-(+d.last||0)>30*60e3)await ref.set({n:(+d.n||0)+1,first:+d.first||now,last:now})}catch(e){console.warn("visit",e)}
+  },
+  book(){const out=[];for(const g of this.data.guestbook)out.push({t:g.t,by:g.by,c:g.c,at:g.at,src:"g",id:g.id});
+    for(const d of this.signs){const es=Array.isArray(d.entries)?d.entries.slice(-5):[];es.forEach((e,i)=>out.push({t:e&&e.t,by:d.by,c:d.c,at:+(e&&e.at)||+d.at||0,src:"s",id:d.id,i}))}
+    return out.filter(x=>x.t).sort((a,b)=>b.at-a.at)},
+  async sign(t){if(this.mode!=="db"||!this.uid)return this.add("guestbook",{t,by:me.n.slice(0,24),c:me.c});
+    const mine=this.signs.find(d=>d.id===this.uid),es=(mine&&Array.isArray(mine.entries)?mine.entries:[]).concat([{t,at:Date.now()}]).slice(-5);
+    return this.db.collection("signs").doc(this.uid).set({by:me.n.slice(0,24),c:me.c,at:Date.now(),entries:es})},
+  async unsign(x){if(x.src==="g")return this.remove("guestbook",x.id);const d=this.signs.find(q=>q.id===x.id);if(!d)return;
+    const es=(d.entries||[]).filter((e,i)=>i!==x.i+Math.max(0,(d.entries||[]).length-5));return this.db.collection("signs").doc(x.id).set({by:String(d.by||""),c:String(d.c||""),at:+d.at||Date.now(),entries:es})},
   on(c,f){(this.subs[c]=this.subs[c]||[]).push(f)},emit(c){(this.subs[c]||[]).forEach(f=>f(this.data[c]))},
   async add(c,doc){doc.at=Date.now();if(this.mode==="db")return this.db.collection(c).add(doc);doc.id="l"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);this.data[c].unshift(doc);ls.set("asr-"+c,this.data[c]);this.emit(c)},
   async update(c,id,patch){if(this.mode==="db")return this.db.collection(c).doc(id).update(patch);const d=this.data[c].find(x=>x.id===id);if(d)Object.assign(d,patch);ls.set("asr-"+c,this.data[c]);this.emit(c)},
   async remove(c,id){if(this.mode==="db")return this.db.collection(c).doc(id).delete();this.data[c]=this.data[c].filter(x=>x.id!==id);ls.set("asr-"+c,this.data[c]);this.emit(c)}
 };
+Store.on("guestbook",()=>Store.emit("book"));
 function writeErr(e){const s=String(e&&(e.code||e.message)||"");if(/permission|denied|grant|forbid/i.test(s))toast("Bạn đang ở chế độ chỉ xem. Nhờ chủ retreat mời quyền Contributor để trồng cây, viết lưu bút.",5000);else toast("Chưa lưu được, thử lại sau nhé.");console.warn(e)}
 
 /* ================= THREE SETUP ================= */
@@ -559,6 +581,27 @@ for(let i=0;i<6;i++){const z=-56.6+i*.6;scene.add(mesh(new T.BoxGeometry(1.6,.3,
  const tex=new T.CanvasTexture(sc);tex.encoding=T.sRGBEncoding;const wood=lam(0x6b4a2f),face=new T.MeshLambertMaterial({map:tex});
  const sign=new T.Mesh(new T.BoxGeometry(5.2,.95,.15),[wood,wood,wood,wood,face,face]);sign.position.y=3.1;g.add(sign);
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{paintSign();tex.needsUpdate=true})}
+// bảng lưu bút ở cổng: lượt ghé + lời nhắn mới nhất
+const fmtN=n=>Math.round(n||0).toLocaleString("vi-VN");
+const boardCv=document.createElement("canvas");boardCv.width=1024;boardCv.height=680;const boardTex=new T.CanvasTexture(boardCv);boardTex.encoding=T.sRGBEncoding;boardTex.anisotropy=4;
+function paintBoard(){const c=boardCv.getContext("2d"),W=1024,Hh=680;c.fillStyle="#efe3c8";c.fillRect(0,0,W,Hh);c.strokeStyle="#6b4a2f";c.lineWidth=18;c.strokeRect(9,9,W-18,Hh-18);
+  c.fillStyle="#2f4a3a";c.textAlign="center";c.textBaseline="alphabetic";c.font='italic 500 84px Lora, Georgia, serif';c.fillText("Lưu bút",W/2,104);
+  const v=Store.visits;c.font='600 46px "Be Vietnam Pro", system-ui, sans-serif';c.fillStyle="#9a6a22";
+  c.fillText(v?(v.local?`Bạn đã ghé ${fmtN(v.total)} lần`:`${fmtN(v.total)} lượt ghé · ${fmtN(v.people)} người`):"Đang đếm lượt ghé…",W/2,168);
+  c.strokeStyle="rgba(107,74,47,.35)";c.lineWidth=2;c.beginPath();c.moveTo(80,200);c.lineTo(W-80,200);c.stroke();
+  const items=Store.book().slice(0,3);c.textAlign="left";
+  if(!items.length){c.fillStyle="#5c6a62";c.font='400 40px "Be Vietnam Pro", system-ui, sans-serif';c.textAlign="center";c.fillText("Chưa ai ký. Bấm vào bảng để ký đầu tiên.",W/2,330)}
+  items.forEach((x,i)=>{const y=272+i*140;let t=String(x.t||"").replace(/\s+/g," ");c.font='400 42px "Be Vietnam Pro", system-ui, sans-serif';c.fillStyle="#1e2a24";
+    const maxW=W-170;if(c.measureText("“"+t+"”").width>maxW){while(t.length>1&&c.measureText("“"+t+"…”").width>maxW)t=t.slice(0,-1);t+="…"}
+    c.fillStyle=/^#[0-9a-f]{6}$/i.test(x.c)?x.c:"#2f6b4f";c.beginPath();c.arc(96,y-14,13,0,7);c.fill();
+    c.fillStyle="#1e2a24";c.fillText("“"+t+"”",124,y);c.font='500 32px "Be Vietnam Pro", system-ui, sans-serif';c.fillStyle="#6b5a45";c.fillText(`— ${String(x.by||"Khách").slice(0,24)} · ${ago(x.at)}`,124,y+48)});
+  boardTex.needsUpdate=true}
+{const g=new T.Group(),y=H(BOARD.x,BOARD.z);g.position.set(BOARD.x,y,BOARD.z);g.rotation.y=BOARD.ry;scene.add(g);const wood=lam(0x6b4a2f);
+ for(const s of[-1.85,1.85])g.add(mesh(new T.BoxGeometry(.2,3.4,.2),wood,s,1.7,0));
+ g.add(mesh(new T.BoxGeometry(3.8,2.55,.1),wood,0,2.1,-.03));
+ const face=new T.Mesh(new T.PlaneGeometry(3.6,2.39),new T.MeshLambertMaterial({map:boardTex}));face.position.set(0,2.1,.03);g.add(face);
+ const rf=gableRoof(3.9,.7,.4,0x3aa39a);rf.position.y=3.4;g.add(rf);
+ paintBoard();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(paintBoard);setInterval(paintBoard,60000)}
 // nhà hàng xóm (không thuộc retreat)
 house({x:NEIGHBOR.x,z:NEIGHBOR.z,w:12,d:8,h:5.8,rh:1.5,roof:0x6f8fb8,trim:0x8a9bb0,wall:0xeef0f2,floors:2,ry:-.3});
 {const x=NEIGHBOR.x+9,z=NEIGHBOR.z-6,y=H(x,z);scene.add(mesh(new T.BoxGeometry(2.4,2,2.4),lam(0xf0f0ee),x,y+1,z));const rf=hipRoof(2.4,2.4,1,0x3aa39a);rf.position.set(x,y+2,z);scene.add(rf)}
@@ -829,10 +872,11 @@ const SPOTS=[
    acts:()=>me.tent?[["Chui vào lều nằm",()=>walkTo(me.tent[0]+.1,me.tent[1]+1.4,()=>{me.a="rest";pushPresence();toast(TOD>=19||TOD<5?"Bạn nằm nghe dế kêu, đếm sao qua cửa lều.":"Trưa nằm lều, gió thổi qua, ngủ quên lúc nào không hay.")})],["Thu lều",()=>{me.tent=null;syncTent("me",null);pushPresence();toast("Đã thu lều. Mướp tỏ ra không hài lòng.")}]]
      :[["Dựng lều ở đây",()=>{if(!me.joined){openJoin();return}pitchTent()}],["Ngồi quanh lửa trại",()=>walkTo(FIRE.x+1.8,FIRE.z+1.5,()=>{me.a="fire";doFx("corn",me.x,me.z)})]]},
   {hit:(x,z)=>Math.hypot(x-NETH.x,z-NETH.z)<5.5,at:[NETH.x,-56.6],k:"Nhà lưới",t:"Nhà của Bông và Tuyết",d:()=>"Nhà lưới đen cạnh nhà chính. Bấm vào từng bạn thỏ để vuốt ve hoặc cho ăn.",acts:[]},
-  {hit:(x,z)=>Math.hypot(x+40.3,z+66)<5,at:[-37,-64.5],k:"Cổng phía Tây",t:"Cổng Anh Sơn Retreat",d:()=>"Cổng gỗ trên đường bê tông phía Tây. Sổ lưu bút để ở đây.",acts:[["Mở sổ lưu bút",()=>openBook()]]},
+  {hit:(x,z)=>Math.hypot(x-BOARD.x,z-BOARD.z)<4,at:[BOARD.x+2.2,BOARD.z+2.4],k:"Cổng phía Tây",t:"Bảng lưu bút",d:()=>{const v=Store.visits,b=Store.book();return(v?(v.local?`Bạn đã ghé ${fmtN(v.total)} lần. `:`Đã có ${fmtN(v.total)} lượt ghé từ ${fmtN(v.people)} người. `):"")+(b.length?`Sổ có ${b.length} lời nhắn, mới nhất của ${String(b[0].by||"Khách").slice(0,24)}.`:"Chưa ai ký, bạn ký đầu tiên nhé.")},acts:[["Ký lưu bút",()=>{if(!me.joined){openJoin();return}openBook()}],["Xem cả sổ",()=>openBook()]]},
+  {hit:(x,z)=>Math.hypot(x+40.3,z+66)<5,at:[-37,-64.5],k:"Cổng phía Tây",t:"Cổng Anh Sơn Retreat",d:()=>"Cổng gỗ trên đường bê tông phía Tây. Bảng lưu bút dựng ngay bên trong cổng.",acts:[["Mở sổ lưu bút",()=>openBook()]]},
   {hit:(x,z)=>Math.hypot(x-NEIGHBOR.x,z-NEIGHBOR.z)<10,at:null,k:"Ngoài ranh đất",t:"Nhà hàng xóm",d:()=>"Nhà hai tầng ở góc dưới là của hàng xóm, không thuộc retreat. Chó nhà họ sủa to hơn chó mình, đừng ghé.",acts:[]},
 ];
-const SPOT_LIST=[["Cổng phía Tây",[-37,-64.5],"Ký lưu bút",-1.2],["Hiên nhà chính",[-7,-55],"Cà phê ngắm đồi",.35],["Hồ bơi",[14.5,-56.4],"Bơi nước lạnh",.5],["Nhà làm vườn",[12,-70.5],"Vườn ươm",.25],["Đồi chè",[30,-68],"Hái chè",.5],["Vườn của khách",[-32,-41.5],"Trồng cây",.3],["Sân cắm trại",[3,-42.5],"Dựng lều, nhìn nhà 2 tầng",.15],["Lửa trại",[-13,-45],"Tối 18:00",.2],["Đường chữ S",[14,-18],"Đi dạo dốc",2.6],["Vườn cà phê",[-4,10],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,58],"Nghỉ chân",2.4],["Thác nhỏ",[-29,66],"Thả hoa đăng",2.8],["Cầu phía Tây",[-83,56],"Cạnh nhà hàng xóm",2.85],["Cổng phía Đông",[25,-56],"Đường bê tông Đông",-.9]];
+const SPOT_LIST=[["Bảng lưu bút",[-30.8,-65.2],"Ký tên, xem lượt ghé",.7],["Cổng phía Tây",[-37,-64.5],"Cổng gỗ",-1.2],["Hiên nhà chính",[-7,-55],"Cà phê ngắm đồi",.35],["Hồ bơi",[14.5,-56.4],"Bơi nước lạnh",.5],["Nhà làm vườn",[12,-70.5],"Vườn ươm",.25],["Đồi chè",[30,-68],"Hái chè",.5],["Vườn của khách",[-32,-41.5],"Trồng cây",.3],["Sân cắm trại",[3,-42.5],"Dựng lều, nhìn nhà 2 tầng",.15],["Lửa trại",[-13,-45],"Tối 18:00",.2],["Đường chữ S",[14,-18],"Đi dạo dốc",2.6],["Vườn cà phê",[-4,10],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,58],"Nghỉ chân",2.4],["Thác nhỏ",[-29,66],"Thả hoa đăng",2.8],["Cầu phía Tây",[-83,56],"Cạnh nhà hàng xóm",2.85],["Cổng phía Đông",[25,-56],"Đường bê tông Đông",-.9]];
 
 /* ================= UI ================= */
 function card(k,title,body,acts){const c=$("card");c.replaceChildren(el("button",{class:"x","aria-label":"Đóng",onclick:closeCard},"×"));if(k)c.append(el("div",{class:"k"},k));c.append(el("h2",null,title));
@@ -895,16 +939,17 @@ function openLantern(){if(!me.joined){openJoin();return}
   b.append(f);const rec=Store.data.lanterns.filter(l=>Date.now()-(l.at||0)<48*3600e3).slice(0,8);
   if(rec.length){b.append(el("p",{class:"lab",style:"margin:18px 0 4px"},"Đang trôi trên suối"));const L=el("div",{class:"list"});rec.forEach(l=>L.append(el("div",{class:"row"},el("span",{class:"dot",style:"background:#ffa94d"}),el("div",{class:"tx"},String(l.t||"").slice(0,160),el("small",null,`${String(l.by||"Ai đó").slice(0,24)} · ${ago(l.at)}`)))));b.append(L)}
   setTimeout(()=>ta.focus(),60)}
-function openBook(){const b=modal("Sổ lưu bút",`Lời nhắn của khách ghé ${NAME}.`);
+function openBook(){const v=Store.visits,b=modal("Sổ lưu bút",`Lời nhắn của khách ghé ${NAME}.`+(v&&!v.local?` Đã có ${fmtN(v.total)} lượt ghé từ ${fmtN(v.people)} người.`:v?` Bạn đã ghé ${fmtN(v.total)} lần.`:""));
   if(me.joined){const ta=el("textarea",{id:"bt",rows:"2",maxlength:"240",placeholder:"Sương đẹp, cà phê ngon, con Mực dễ thương…"});
     const f=el("form",{style:"margin-bottom:10px"},el("div",{class:"fld"},el("label",{for:"bt"},`Ký tên ${me.n}`),ta),el("button",{class:"btn pri",type:"submit"},"Ký sổ"));
-    f.addEventListener("submit",e=>{e.preventDefault();const t=ta.value.trim();if(!t)return;Promise.resolve(Store.add("guestbook",{t:t.slice(0,240),by:me.n.slice(0,24),c:me.c})).then(()=>{ta.value="";toast("Đã ký sổ lưu bút")}).catch(writeErr)});b.append(f)}
+    f.addEventListener("submit",e=>{e.preventDefault();const t=ta.value.trim();if(!t)return;Promise.resolve(Store.sign(t.slice(0,240))).then(()=>{ta.value="";toast("Đã ký sổ lưu bút. Tên bạn đã lên bảng ở cổng.")}).catch(writeErr)});b.append(f)}
   const L=el("div",{class:"list",id:"bl"});b.append(L);
-  const render=()=>{L.replaceChildren();const g=Store.data.guestbook;if(!g.length){L.append(el("p",{class:"note"},"Chưa có ai ký sổ. Bạn là người đầu tiên nhé."));return}
+  const render=()=>{L.replaceChildren();const g=Store.book();if(!g.length){L.append(el("p",{class:"note"},"Chưa có ai ký sổ. Bạn là người đầu tiên nhé."));return}
     g.slice(0,80).forEach(x=>{const row=el("div",{class:"row"},el("span",{class:"dot",style:`background:${/^#[0-9a-f]{6}$/i.test(x.c)?x.c:"#2f6b4f"}`}),el("div",{class:"tx"},String(x.t||"").slice(0,240),el("small",null,`${String(x.by||"Khách").slice(0,24)} · ${ago(x.at)}`)));
-      if(isOwner)row.append(el("button",{class:"btn",onclick:()=>Store.remove("guestbook",x.id).catch(writeErr)},"Xoá"));L.append(row)})};
+      if(isOwner)row.append(el("button",{class:"btn",onclick:()=>Store.unsign(x).catch(writeErr)},"Xoá"));L.append(row)})};
   render();bookRender=render}
-Store.on("guestbook",()=>{if(bookRender&&!$("modal").hidden&&$("bl"))bookRender()});
+Store.on("book",()=>{if(bookRender&&!$("modal").hidden&&$("bl"))bookRender();paintBoard()});
+Store.on("visits",()=>{const v=Store.visits;$("visits").textContent=v&&!v.local?` · ${fmtN(v.total)} lượt ghé`:"";paintBoard()});
 
 function openJoin(){const full=roomOK&&remotes.size>=CAPACITY;
   const b=modal(`Chào mừng tới ${NAME}`,full?`Đang đủ ${CAPACITY} khách. Bạn vẫn ngắm cảnh được, có người về là vào được ngay.`:"Retreat 17.000 m² trên đồi Bảo Lộc: 3 căn nhà, hồ bơi, đồi chè, vườn cà phê và một con suối lớn chảy ngang đất. Giờ và thời tiết chạy theo giờ Việt Nam.",false);
@@ -934,7 +979,7 @@ $("b-view").onclick=()=>setView(camS.mode!=="drone");
 $("b-book").onclick=openBook;
 $("b-go").onclick=()=>{const b=modal("Đi tới","Chọn nơi muốn tới, bạn sẽ có mặt ngay.");const g=el("div",{class:"grid"});
   SPOT_LIST.forEach(([n,p,s,yw])=>g.append(el("button",{class:"pick",onclick:()=>{closeModal();closeCard();setView(false);teleport(p[0],p[1],yw);const sp=SPOTS.find(q=>q.hit(p[0],p[1]));if(sp)showSpot(sp)}},n,el("small",null,s))));b.append(g)};
-function openPeople(){const b=modal("Ai đang ở đây",roomOK?`${onlineCount()}/${CAPACITY} khách online, cùng nhân viên và khách vãng lai.`:"Bản chạy riêng: bạn, nhân viên và khách vãng lai.");
+function openPeople(){const vv=Store.visits,b=modal("Ai đang ở đây",roomOK?`${onlineCount()}/${CAPACITY} khách online, cùng nhân viên và khách vãng lai.${vv&&!vv.local?` Tổng cộng ${fmtN(vv.total)} lượt ghé.`:""}`:"Bản chạy riêng: bạn, nhân viên và khách vãng lai.");
   const L=el("div",{class:"list"});const row=(c,t,s,go)=>L.append(el("div",go?{class:"row",style:"cursor:pointer",onclick:go}:{class:"row"},el("span",{class:"dot",style:`background:${c}`}),el("div",{class:"tx"},t,el("small",null,s))));
   STAFF.forEach(s=>row("#c08a2e",`${s.name} · ${s.role}`,npcState(s).verb));
   GUESTS.forEach(g=>row("#a3aca7",`${g.name} · khách vãng lai`,g.role));
