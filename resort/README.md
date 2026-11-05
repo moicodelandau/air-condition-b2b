@@ -73,3 +73,11 @@ Phần giữa `<!--ARTIFACT-START-->` và `<!--ARTIFACT-END-->` là nội dung �
 - Sân main camping nằm ngay trước chuồng thỏ (sân mở rộng về phía Tây); bãi đậu xe cạnh nhà blue.
 - Hồ bơi dời sát cánh nhà vàng/nhà chính, cách tường nhà vàng 2 m; đường mòn dây leo và lối sỏi nhỏ đã nối lại.
 - Mặt trời lặn ở hướng chéo 10 giờ nhìn từ hiên cà phê (thung lũng); có vầng mặt trời thấy được trên trời.
+
+## Chỉnh bố cục vòng 10
+- Nhà vàng làm rỗng: cửa chính ở tường Tây, đường sỏi từ cổng gỗ chạy thẳng tới cửa. Bấm cửa để mở/đóng (trạng thái cửa chỉ trên máy mình). Bên trong là phòng khách: bàn ghế làm từ thân cây, thảm, chậu cây, võng ("Nằm võng"). Vào trong thì mái ẩn đi để nhìn rõ.
+- Hành lang chữ L rộng 2 m, không cửa sổ, nối đầu Đông hiên cà phê với nhà vàng.
+- Nhà kính (vườn botanist) dời sang bên kia hồ bơi, đối diện nhà vàng.
+- Vườn khách nhỏ lại 3 m mỗi chiều.
+- Từ cổng gỗ sân trước có đường sỏi đi vòng quanh sân, nối tới bảng lưu bút.
+- `.claude/settings.json`: `autoCompactWindow` = 250000 (tự compact khi context vượt 250k token).
