@@ -66,3 +66,10 @@ Phần giữa `<!--ARTIFACT-START-->` và `<!--ARTIFACT-END-->` là nội dung �
 - **Bánh Bao** là gấu panda to (≈2 m), sống cạnh một bụi tre, ngủ 23:00–6:00. Ban ngày đi dạo, thỉnh thoảng (mỗi 35–90 giây) rượt người/thú/NPC/khách khác để chơi. Tốc độ vừa phải, không cắn, chỉ ôm rồi ngồi thở. Bấm vào gấu để "Đưa tre", "Rủ chơi rượt bắt".
 - Thoại hài tự động mỗi ~11–24 giây: nhân viên/khách ↔ nhân viên/khách, người ↔ thú, thú ↔ thú, thú/nhân viên ↔ người chơi thật (gọi tên họ), và nhân viên "bình luận" khi hai người chơi đứng gần nhau. Khi có người mới vào, nhân viên gần nhất chào theo tên.
 - Gấu và thoại hài tính trên máy từng người (không đồng bộ giữa các người xem).
+
+## Chỉnh bố cục vòng 9
+- Nhà blue dời 20 m về phía cổng gỗ (Tây), nằm cạnh bãi đậu xe; xe đỗ song song với tường nhà. Bồn nước ở bên phải nhà blue (phía cổng gỗ), vườn hồng chuyển sang bên kia nhà blue.
+- Đường sỏi đi ngang cổng gỗ rồi chạy thẳng vào nhà vàng; nhà vàng dài thêm 3 m về phía sau (11,5 m).
+- Sân main camping nằm ngay trước chuồng thỏ (sân mở rộng về phía Tây); bãi đậu xe cạnh nhà blue.
+- Hồ bơi dời sát cánh nhà vàng/nhà chính, cách tường nhà vàng 2 m; đường mòn dây leo và lối sỏi nhỏ đã nối lại.
+- Mặt trời lặn ở hướng chéo 10 giờ nhìn từ hiên cà phê (thung lũng); có vầng mặt trời thấy được trên trời.

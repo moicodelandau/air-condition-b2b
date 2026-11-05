@@ -171,42 +171,42 @@ const T=THREE;
 const NAME="Anh Sơn Retreat", CAPACITY=200, TZ=7, SPEED=6;
 const WAKE=6, SLEEP=23;   // mọi người dậy 6:00, đi ngủ 23:00
 // Ranh đất (mét). x: Đông, z: Nam (xuống dốc). Diện tích ≈ 17.000 m². Nhà cao hơn mặt suối ≈ 45 m.
-const LAND=[[-34.5,-84],[84,-84],[95,-76],[26,-58],[50,82],[-75.5,82],[-80,62]];
+const LAND=[[-39,-84],[84,-84],[95,-76],[26,-58],[50,82],[-75.5,82],[-80,62]];
 const ROAD_W=[[-39,-150],[-38,-87.5],[-83.5,62],[-87,92],[-92,180]];   // đường bê tông phía Tây, cầu qua suối cạnh nhà hàng xóm
 const ROADS=[ROAD_W];
-const DRIVE=[[-41.4,-66.4],[-37,-61.5],[-30,-55.8],[-24,-52],[-16,-51.4],[-8,-51.6],[-8,-53.4]];   // đường sỏi: cổng gỗ → sân cắm trại → cửa chính nhà main
+const DRIVE=[[-39.8,-66.8],[-36,-62.5],[-30,-55.8],[-24,-52],[-16,-51.4],[-8,-51.6],[-8,-53.4]];   // đường sỏi: cổng gỗ → sân cắm trại → cửa chính nhà main
 // Đường 2: từ cổng vào uốn lượn chữ U, ít dốc hơn đường 1, vòng qua vườn cá koi rồi vào cổng sân trước
 const ROAD2=[[-81.1,54],[-62,49],[-40,42],[-16,35],[6,29],[22,24],[27,14],[25,2],[16,-8],[4,-16],[-6,-26],[-11,-34],[-11,-41]];
 const FALLPATH=[[-34,41],[-33,50],[-31,60],[-28,68.5]];                  // từ đường 2 xuống bãi trại và thác
-const TRAIL=[[43.5,71.8],[21,-56.5]];                                       // đường mòn thẳng từ cuối suối lên hồ bơi
+const TRAIL=[[43.5,71.8],[16.8,-56.5]];                                       // đường mòn thẳng từ cuối suối lên hồ bơi
 const STREAM=[[-150,60],[-100,63],[-84,66],[-62,68],[-40,72],[-15,71],[10,74],[34,73],[52,75],[75,79],[150,86]];
 const SLOPE=.33;
-const UP_PAD={x0:-30,x1:24,z0:-82,z1:-69,y:null,f:9};    // tầng trên: nhà mái xanh, nhà làm vườn
+const UP_PAD={x0:-39,x1:24,z0:-82,z1:-69,y:null,f:9};    // tầng trên: nhà mái xanh, nhà làm vườn
 const LOW_PAD={x0:-32,x1:26,z0:-68,z1:-56.5,y:null,f:2.2};   // tầng giữa: nhà chính, hồ bơi
-const YARD={x0:-24,x1:20,z0:-53.5,z1:-41,y:null,f:3};        // sân trước: thấp hơn hiên một tầng, cắm trại + lửa trại
+const YARD={x0:-28,x1:20,z0:-53.5,z1:-41,y:null,f:3};        // sân trước: thấp hơn hiên một tầng, cắm trại + lửa trại
 const TERR={x0:-12.6,x1:-3.4,z0:-57.6,z1:-54.1};             // hiên nằm trên tầng trệt
 const GARDEN={x0:-44,x1:-20,z0:-40,z1:-22};
 const GARDEN_PAD={x0:GARDEN.x0,x1:GARDEN.x1,z0:GARDEN.z0,z1:GARDEN.z1,y:null,f:6};
 const TEA={x0:21,x1:92,z0:-83,z1:-62};
-const POOL={x0:9.5,x1:23,z0:-65.4,z1:-58};   // 13,5 × 7,4 m ≈ 1,5 lần hồ cũ
+const POOL={x0:1.5,x1:15,z0:-65.4,z1:-58};   // 13,5 × 7,4 m, sát cánh nhà vàng/nhà chính, cách tường nhà vàng 2 m
 const HUT={x:-50,z:63}, FALL={x:-28,z:71.5}, FIRE={x:-15,z:-47}, NEIGHBOR={x:-98,z:48}, NETH={x:-21,z:-61}, BOARD={x:-33.5,z:-63.4,ry:-.3};
-const PARK={x0:-36,x1:-23,z0:-73.5,z1:-66.8,y:null,f:2.5};      // bãi đậu xe ở cuối đường 1
-const ROSE={x0:-33,x1:-22,z0:-81.5,z1:-75,y:null,f:3};          // vườn hồng nhỏ, bên trái nhà mái xanh
+const PARK={x0:-36,x1:-22,z0:-72.2,z1:-68.6,y:null,f:2.5};      // bãi đậu xe cạnh nhà blue (xe đỗ song song)
+const ROSE={x0:-22.2,x1:-11.2,z0:-81.5,z1:-75,y:null,f:3};      // vườn hồng nhỏ, bên kia nhà mái xanh (xa cổng gỗ)
 const KOI={x:5,z:12.5,rx:5,rz:3.2};                              // hồ cá koi giữa vườn, trong lòng chữ U của đường 2
 const KOIPAD={x0:-5,x1:15,z0:5,z1:20,y:null,f:5};
 const CAMP2={x0:-43,x1:-31,z0:52.5,z1:62,y:null,f:3.5}, CAMP2_FIRE=[-36,60.5];   // bãi trại giữa đường 2 và thác
 const CAMPS=[YARD,CAMP2];
 const PADS=[UP_PAD,LOW_PAD,YARD,PARK,ROSE,KOIPAD,CAMP2,GARDEN_PAD,{x0:HUT.x-4,x1:HUT.x+4,z0:HUT.z-4,z1:HUT.z+4,y:null,f:4},{x0:NEIGHBOR.x-8,x1:NEIGHBOR.x+8,z0:NEIGHBOR.z-6,z1:NEIGHBOR.z+6,y:null,f:5}];
 const BLOCKS=[
-  {x0:-14.4,x1:-3.6,z0:-78.5,z1:-72.5},  // nhà blue: 2 căn
+  {x0:-34.4,x1:-23.6,z0:-78.5,z1:-72.5},  // nhà blue: 2 căn, sát bãi đậu xe
   {x0:-12.5,x1:-3.5,z0:-64.5,z1:-57.5},  // nhà chính – mái xám
-  {x0:-6,x1:-.5,z0:-70.5,z1:-62},          // nhà mái vàng: cánh nối với nhà xám thành chữ L
+  {x0:-6,x1:-.5,z0:-73.5,z1:-62},          // nhà mái vàng (dài 11,5 m): cánh nối với nhà xám thành chữ L
   {x0:-25.2,x1:-16.8,z0:-64.7,z1:-64.3}, // nhà lưới: tường Bắc
   {x0:-25.2,x1:-24.8,z0:-64.5,z1:-57.3}, // tường Tây
   {x0:-17.2,x1:-16.8,z0:-64.5,z1:-57.3}, // tường Đông
   {x0:-25.2,x1:-22.3,z0:-57.7,z1:-57.3}, // tường Nam, bên trái cửa
   {x0:-19.7,x1:-16.8,z0:-57.7,z1:-57.3}, // tường Nam, bên phải cửa (cửa rộng 2,6 m ở giữa)
-  {x0:.4,x1:2.8,z0:-81.3,z1:-78.7},        // bồn nước (bên trái nhà blue)
+  {x0:-38.4,x1:-35.6,z0:-80.3,z1:-77.7},   // bồn nước: bên phải nhà blue, phía cổng gỗ
   {x0:BOARD.x-1.5,x1:BOARD.x+1.5,z0:BOARD.z-1.5,z1:BOARD.z+1.5}, // bảng lưu bút
   {x0:-12.9,x1:-9.3,z0:-54.2,z1:-53.4},  // mặt tiền tầng trệt (chừa lối cửa chính)
   {x0:-6.7,x1:-3.1,z0:-54.2,z1:-53.4},
@@ -310,7 +310,7 @@ const STAFF=[
   {id:"mo",name:"Cô Nhung",role:"Quản lý",shirt:"#f4f1ea",acc:"#2f78c4",hat:"none",hair:"#2b1d14",scarf:0x2f78c4,sleep:"đang ngủ ở nhà chính",
    plan:[
      {from:6,to:9,verb:"đón khách ở cổng vào, chơi với ba chú chó",pts:[[GATE_IN[0]+2.5,GATE_IN[1]+2],[GATE_IN[0]+4,GATE_IN[1]-2],[GATE_IN[0]+1,GATE_IN[1]+4]]},
-     {from:9,to:11.5,verb:"đi kiểm tra hồ bơi",pts:[[8,-56.5],[24.5,-56.5],[24.5,-67],[8.5,-67]]},
+     {from:9,to:11.5,verb:"đi kiểm tra hồ bơi",pts:[[1,-56.5],[17,-56.5],[17,-67],[1.5,-67]]},
      {from:11.5,to:13.5,verb:"lo bữa trưa ngoài hiên",pts:[[-11,-55.5],[-5,-55.5]]},
      {from:13.5,to:17,verb:"dẫn khách xuống suối",pts:[[-44,57],[-32,64],[-16,64],[-4,62]]},
      {from:17,to:21.5,verb:"nhóm lửa trại ngoài sân",pts:[[-17.5,-45.5],[-12.5,-45.5],[-12.5,-49]]},
@@ -465,6 +465,10 @@ const skyGeo=new T.SphereGeometry(2500,32,16);skyGeo.setAttribute("color",new T.
 const sky=new T.Mesh(skyGeo,new T.MeshBasicMaterial({vertexColors:true,side:T.BackSide,fog:false,depthWrite:false}));scene.add(sky);
 const starGeo=new T.BufferGeometry();{const r=rng(3),a=[];for(let i=0;i<900;i++){const th=r()*Math.PI*2,ph=Math.acos(r()*.95);a.push(Math.sin(ph)*Math.cos(th)*2200,Math.cos(ph)*2200,Math.sin(ph)*Math.sin(th)*2200)}starGeo.setAttribute("position",new T.Float32BufferAttribute(a,3))}
 const stars=new T.Points(starGeo,new T.PointsMaterial({color:0xffffff,size:2,sizeAttenuation:false,transparent:true,opacity:0,fog:false,depthWrite:false}));scene.add(stars);
+// mặt trời lặn ở phía Tây: nhìn từ hiên cà phê, đó là hướng chéo 10 giờ (phía thung lũng)
+const SUNSET=[.866,.5];
+const sunDisc=(()=>{const c=document.createElement("canvas");c.width=c.height=128;const g=c.getContext("2d"),gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,"rgba(255,252,236,1)");gr.addColorStop(.16,"rgba(255,236,170,1)");gr.addColorStop(.2,"rgba(255,200,120,.55)");gr.addColorStop(.6,"rgba(255,170,100,.16)");gr.addColorStop(1,"rgba(255,170,100,0)");g.fillStyle=gr;g.fillRect(0,0,128,128);
+  const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,depthWrite:false,fog:false,opacity:0}));sp.scale.set(520,520,1);sp.renderOrder=-1;scene.add(sp);return sp})();
 function paintSky(top,hor){const p=skyGeo.attributes.position,c=skyGeo.attributes.color;for(let i=0;i<p.count;i++){const k=clamp(p.getY(i)/2500,0,1),m=Math.pow(k,.55);c.setXYZ(i,lerp(hor.r,top.r,m),lerp(hor.g,top.g,m),lerp(hor.b,top.b,m))}c.needsUpdate=true}
 
 /* ---- terrain ---- */
@@ -591,12 +595,12 @@ function house(o){const g=new T.Group();const y0=o.y!=null?o.y:H(o.x,o.z);
     const aw=mesh(new T.BoxGeometry(1.5,.08,.7),lam(o.trim||0x2f78c4),-o.w/2+(i+.5)*o.w/n,o.h*fy+.8,o.d/2+.35,false);aw.rotation.x=.3;g.add(aw)}
   g.position.set(o.x,y0,o.z);g.rotation.y=o.ry||0;scene.add(g);return g}
 const PY=LOW_PAD.y, UY=UP_PAD.y;
-// nhà blue: 2 căn liền kề, mỗi căn 1 cửa chính + 1 cửa sổ, dời sang phải 5 m (không còn đối diện chuồng chim)
-for(const[ux,df]of[[-11.75,1.35],[-6.25,-1.35]]){house({x:ux,z:-75.5,w:5.2,d:6,h:3.1,rh:2.2,roof:0x3aa39a,trim:0x2f78c4,hip:true,y:UY,win:0});
+// nhà blue: 2 căn liền kề, mỗi căn 1 cửa chính + 1 cửa sổ; nằm phía cổng gỗ, cạnh bãi đậu xe
+for(const[ux,df]of[[-31.75,1.35],[-26.25,-1.35]]){house({x:ux,z:-75.5,w:5.2,d:6,h:3.1,rh:2.2,roof:0x3aa39a,trim:0x2f78c4,hip:true,y:UY,win:0});
  const zf=-75.5+3.04;scene.add(mesh(new T.BoxGeometry(1.1,2.2,.08),lam(0x2f78c4),ux+df,UY+1.1,zf,false),mesh(new T.BoxGeometry(1.3,1.1,.08),winMat,ux-df*.85,UY+1.75,zf,false),mesh(new T.BoxGeometry(1.5,.1,.5),lam(0x2f78c4),ux+df,UY+2.4,zf+.2,false));
  scene.add(mesh(new T.BoxGeometry(1.1,2.2,.08),lam(0x2f78c4),ux+df,UY+1.1,-75.5-3.04,false),mesh(new T.BoxGeometry(1.3,1.1,.08),winMat,ux-df*.85,UY+1.75,-75.5-3.04,false))}
 house({x:-8,z:-61,w:9,d:7,h:3.2,rh:2.4,roof:0x5b5f63,trim:0x2f78c4,y:PY});                          // nhà chính – mái xám
-house({x:-3.25,z:-66.25,w:8.5,d:5.5,h:3,rh:2,roof:0xdba43a,trim:0x2f78c4,y:PY,ry:Math.PI/2});   // nhà mái vàng: cánh phía sau nối với nhà xám thành chữ L
+house({x:-3.25,z:-67.75,w:11.5,d:5.5,h:3,rh:2,roof:0xdba43a,trim:0x2f78c4,y:PY,ry:Math.PI/2});   // nhà mái vàng: cánh phía sau nối với nhà xám thành chữ L
 // nhà kính trồng trái cây: vách kính trong suốt, mái trắng, bên trong cam, quýt, dâu
 {const cx=12,cz=-75,w=15,d=6,h=2.8,y=UY,g=new T.Group();g.position.set(cx,y,cz);scene.add(g);
  const glass=new T.MeshLambertMaterial({color:0xdff3f1,transparent:true,opacity:.18,depthWrite:false,side:T.DoubleSide}),fr=lam(0xf2f2ee);
@@ -638,7 +642,7 @@ scene.add(mesh(new T.BoxGeometry(3.6,.6,1),lam(0x2f6fd1),-10,PY+.6,-56.8),mesh(n
  {const aw=mesh(new T.BoxGeometry(2.4,.1,1.1),lam(0xb4553a),-8,yb+2.45,-53.5,false);aw.rotation.x=.28;scene.add(aw)}
  for(const s of[-1,1])scene.add(mesh(new T.BoxGeometry(.08,1.1,1.1),winMat,-8+s*4.73,yb+1.7,cz,false));
  // bờ kè đá dọc mép sân
- const st=lam(0x9c968a);for(let x=-24;x<20;x+=2.2){if(x>-13.6&&x<-2.6)continue;if(Math.abs(x+1.5)<1.4)continue;const z=-54.9,y=H(x,z);scene.add(mesh(new T.BoxGeometry(2.1,1.1,.5),st,x,y+.2,z,false))}}
+ const st=lam(0x9c968a);for(let x=-28;x<20;x+=2.2){if(x>-13.6&&x<-2.6)continue;if(Math.abs(x+1.5)<1.4)continue;const z=-54.9,y=H(x,z);scene.add(mesh(new T.BoxGeometry(2.1,1.1,.5),st,x,y+.2,z,false))}}
 // bậc cỏ từ tầng giữa xuống sân trước
 for(let i=0;i<6;i++){const z=-56.6+i*.6;scene.add(mesh(new T.BoxGeometry(1.6,.3,.6),lam(0x4f8a3c),-1.5,H(-1.5,z)+.12,z,false))}
 // máy nước nóng mặt trời trên mái ngói
@@ -654,8 +658,8 @@ for(let i=0;i<6;i++){const z=-56.6+i*.6;scene.add(mesh(new T.BoxGeometry(1.6,.3,
  const net=new T.Mesh(new T.BoxGeometry(w,h,d),new T.MeshLambertMaterial({color:0x1e1e1e,transparent:true,opacity:.3,depthWrite:false}));net.position.set(x,y+h/2,z);scene.add(net);
  const edges=new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(w,h,d)),new T.LineBasicMaterial({color:0x222222}));edges.position.copy(net.position);scene.add(edges);
  scene.add(mesh(new T.BoxGeometry(1.6,.9,1.1),lam(0xc9a066),x+2.6,y+.45,z-2.4))}
-// bồn nước cao, bên phải nhà mái xanh
-{const x=1.6,z=-80,y=UY,lg=new T.CylinderGeometry(.09,.09,11,4),gm=lam(0x9aa3a8);for(const a of[-1,1])for(const b of[-1,1])scene.add(mesh(lg,gm,x+a,y+5.5,z+b));
+// bồn nước cao, bên phải nhà mái xanh (phía cổng gỗ)
+{const x=-37,z=-79,y=UY,lg=new T.CylinderGeometry(.09,.09,11,4),gm=lam(0x9aa3a8);for(const a of[-1,1])for(const b of[-1,1])scene.add(mesh(lg,gm,x+a,y+5.5,z+b));
  for(const hh of[3,6.5,10])for(const[a1,b1,a2,b2]of[[-1,-1,1,-1],[1,-1,1,1],[1,1,-1,1],[-1,1,-1,-1]])scene.add(mesh(new T.BoxGeometry(Math.abs(a2-a1)||.05,.06,Math.abs(b2-b1)||.05),gm,x+(a1+a2)/2,y+hh,z+(b1+b2)/2,false));
  scene.add(mesh(new T.CylinderGeometry(1.7,1.7,2.8,14),lam(0xd8dde0),x,y+12.4,z));const cap=new T.Mesh(new T.ConeGeometry(1.8,.9,14),lam(0x6f8fb8,{flatShading:true}));cap.position.set(x,y+14.25,z);cap.castShadow=true;scene.add(cap);
  scene.add(mesh(new T.BoxGeometry(.08,11,.5),lam(0x7a8186),x+1.2,y+5.6,z-1.1,false))}
@@ -667,7 +671,7 @@ function makeGate(x,z,rot,label,wide){const g=new T.Group();g.position.set(x,gro
  const tex=new T.CanvasTexture(sc);tex.encoding=T.sRGBEncoding;const face=new T.MeshLambertMaterial({map:tex});
  const sign=new T.Mesh(new T.BoxGeometry(hw*2+.6,.95,.15),[wood,wood,wood,wood,face,face]);sign.position.y=3.1;g.add(sign);
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{paintSign();tex.needsUpdate=true});return g}
-makeGate(-41.4,-66.4,-2.4,"Anh Sơn Retreat");                                         // cổng gỗ cạnh bãi đậu xe, đầu đường sỏi
+makeGate(-39.8,-66.8,Math.PI/2,"Anh Sơn Retreat");                                         // cổng gỗ cạnh bãi đậu xe, đầu đường sỏi
 makeGate(GATE_IN[0],GATE_IN[1],Math.atan2(GATE_T[0],GATE_T[1]),"Anh Sơn Retreat",3.4); // cổng vào, ngay sau cầu
 makeGate(-11,-38.5,Math.PI,"Sân trước",2.9);                                           // cuối đường 2
 // bảng lưu bút ở cổng: lượt ghé + lời nhắn mới nhất
@@ -734,7 +738,8 @@ function gravelPath(P,w,seed){const r=rng(seed||5);scene.add(ribbon(P,w,0xd6cdb8
  colorize(instanced(new T.DodecahedronGeometry(1,0),new T.MeshLambertMaterial({color:0xffffff}),pb,t=>setM(t.x,H(t.x,t.z)+.2,t.z,t.s,t.s*.7,t.s,t.a),false),pb,t=>pc[Math.floor(t.c*5)])}
 gravelPath(DRIVE_PTS,2.4,5);                                                                       // từ cổng gỗ xuống sân cắm trại, thẳng tới cửa chính
 gravelPath([[-8,-43],[-8,-47],[-8,-51],[-8,-53.2]],2,6);                                           // từ giữa bãi cắm trại đi thẳng vào cửa chính
-gravelPath(curvePts([[-.4,-66],[3,-67.6],[12,-67.4],[20,-67.4],[25.4,-65],[26.4,-60],[24.8,-56.2],[21.6,-55]],1.4),1.5,7);   // lối sỏi nhỏ: nhà vàng → ngang hồ bơi → đường dây leo
+gravelPath(curvePts([[-.4,-66.5],[3,-67.6],[12,-67.4],[18,-67.4],[20,-64],[19.8,-59.5],[18.2,-56],[16.8,-55]],1.4),1.5,7);
+gravelPath(curvePts([[-39.8,-66.8],[-34,-66.8],[-26,-66.8],[-17,-66.8],[-10,-66.8],[-6.2,-66.8]],1.4),2.4,8);   // đường lên dốc đi ngang cổng gỗ, rồi thẳng vào nhà vàng   // lối sỏi nhỏ: nhà vàng → ngang hồ bơi → đường dây leo
 // bậc thang đá cạnh chuồng chim đi xuống phòng giám đốc
 {const x=-14.8;for(let i=0;i<9;i++){const z=-57.6+i*.5,top=PY-.15-i*.37,bot=YARD.y;scene.add(mesh(new T.BoxGeometry(2.2,top-bot,.52),lam(i%2?0xb9b3a6:0xc4beb1),x,(top+bot)/2,z,false))}
  for(const sx of[-1.2,1.2])scene.add(mesh(new T.BoxGeometry(.08,.9,4.6),lam(0x6b4a2f),x+sx,PY-1.4,-55.6,false))}
@@ -770,11 +775,11 @@ scene.add(mesh(new T.BoxGeometry(2.7,.12,.12),lam(0x333333),NETH.x,PY+2.4,NETH.z
  BLOCKS.push({x0:ROSE.x0-.2,x1:gx0,z0:ROSE.z1-.2,z1:ROSE.z1+.2},{x0:gx1,x1:ROSE.x1+.2,z0:ROSE.z1-.2,z1:ROSE.z1+.2},{x0:ROSE.x0-.2,x1:ROSE.x1+.2,z0:ROSE.z0-.2,z1:ROSE.z0+.2},{x0:ROSE.x0-.2,x1:ROSE.x0+.2,z0:ROSE.z0,z1:ROSE.z1},{x0:ROSE.x1-.2,x1:ROSE.x1+.2,z0:ROSE.z0,z1:ROSE.z1})}
 // bãi đậu xe: sỏi phẳng, vạch kẻ, 3 xe
 {const cx=(PARK.x0+PARK.x1)/2,cz=(PARK.z0+PARK.z1)/2,y=PARK.y;scene.add(mesh(new T.BoxGeometry(PARK.x1-PARK.x0,.12,PARK.z1-PARK.z0),lam(0xbdb39f),cx,y+.03,cz,false));
- for(let i=0;i<4;i++)scene.add(mesh(new T.BoxGeometry(.1,.02,4.6),lam(0xffffff),-33.5+i*3,y+.1,-70.3,false));
+ for(let i=0;i<4;i++)scene.add(mesh(new T.BoxGeometry(.1,.02,3.2),lam(0xffffff),-35.4+i*4.4,y+.1,-70.4,false));
  const makeCar=(col,x,z,ry)=>{const g=new T.Group(),body=lam(col);g.add(mesh(new T.BoxGeometry(1.8,.65,4.1),body,0,.65,0),mesh(new T.BoxGeometry(1.6,.6,2.1),body,0,1.25,-.2),mesh(new T.BoxGeometry(1.62,.42,1.9),lam(0x23384a),0,1.27,-.2,false));
   for(const sx of[-.9,.9])for(const sz of[-1.3,1.3]){const w=mesh(new T.CylinderGeometry(.34,.34,.25,10),lam(0x222222),sx,.34,sz);w.rotation.z=Math.PI/2;g.add(w)}
-  g.position.set(x,y+.08,z);g.rotation.y=ry;scene.add(g);BLOCKS.push({x0:x-1.1,x1:x+1.1,z0:z-2.2,z1:z+2.2})};
- makeCar(0x2f6fd1,-32,-70.2,.03);makeCar(0xe8e8e4,-29,-70.4,-.02);makeCar(0xb3392f,-26,-70.1,.04);
+  g.position.set(x,y+.08,z);g.rotation.y=ry;scene.add(g);BLOCKS.push({x0:x-2.2,x1:x+2.2,z0:z-1.1,z1:z+1.1})};
+ makeCar(0x2f6fd1,-33,-70.4,Math.PI/2+.03);makeCar(0xe8e8e4,-28.6,-70.4,Math.PI/2-.02);makeCar(0xb3392f,-24.2,-70.4,Math.PI/2+.04);
  const pole=mesh(new T.CylinderGeometry(.05,.05,2.4,5),lam(0x555555),PARK.x1-.6,y+1.2,PARK.z1-.4);scene.add(pole);scene.add(mesh(new T.BoxGeometry(.8,.8,.08),lam(0x2f6fd1),PARK.x1-.6,y+2.5,PARK.z1-.4))}
 // hồ cá koi giữa vườn
 {const cx=KOI.x,cz=KOI.z,y=KOIPAD.y,r=rng(55);
@@ -816,7 +821,7 @@ scene.add(mesh(new T.BoxGeometry(2.7,.12,.12),lam(0x333333),NETH.x,PY+2.4,NETH.z
  const vc=["#d6338f","#e86aa8","#ffffff"].map(C);
  colorize(instanced(new T.IcosahedronGeometry(.13,0),new T.MeshLambertMaterial({color:0xffffff}),flw,t=>setM(t.x,H(t.x,t.z)+t.y,t.z,1,1,1),false),flw,t=>vc[Math.floor(t.c*3)])}
 // đèn
-const LAMPS=[[-38,-64.5],[-30,-61],[-22,-56.6],[-14,-53.2],[-20,-44],[16,-42],[16,-52],[-6,-47],[8,-56.3],[-44,60],[-32,-41.5],[-20,-49.5],[-33,-52],[12,-70.3],[-14,-71.6],[-80,46],[-79,58],[5,22],[-30,-76]].concat(ROAD2_PTS.filter((p,i)=>i%18===9).map(p=>[p[0]+2.9,p[1]+.6]));
+const LAMPS=[[-38,-64.5],[-30,-61],[-22,-56.6],[-14,-53.2],[-20,-44],[16,-42],[16,-52],[-6,-47],[8,-56.3],[-44,60],[-32,-41.5],[-20,-49.5],[-33,-52],[12,-70.3],[-14,-71.6],[-80,46],[-79,58],[5,22],[-20,-72.2]].concat(ROAD2_PTS.filter((p,i)=>i%18===9).map(p=>[p[0]+2.9,p[1]+.6]));
 const bulbMat=new T.MeshBasicMaterial({color:0xfff2d0});
 const glowTex=(()=>{const c=document.createElement("canvas");c.width=c.height=64;const g=c.getContext("2d"),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,214,140,1)");gr.addColorStop(.35,"rgba(255,190,110,.45)");gr.addColorStop(1,"rgba(255,190,110,0)");g.fillStyle=gr;g.fillRect(0,0,64,64);return new T.CanvasTexture(c)})();
 const glows=[];
@@ -1000,7 +1005,7 @@ const GBIRDS=[["Chào mào",-8,-53.2,3],["Chim sẻ",-31,-30,6],["Chim sẻ",-27
   if(name==="Chích choè"){const w=new T.Mesh(new T.BoxGeometry(.05,.03,.18),lam(0xffffff));w.position.set(.12,.2,0);g.add(w)}
   g.scale.setScalar(1.3);scene.add(g);return{id:"b"+i,name,x,z,r,o:g,head:hd,flee:-99,_x:x,_z:z,_y:0}});
 const owl=(()=>{const g=new T.Group(),m=lam(0x7a6248);const b=new T.Mesh(new T.SphereGeometry(.22,8,6),m);b.scale.set(1,1.25,1);g.add(b);const h=new T.Mesh(new T.SphereGeometry(.17,8,6),m);h.position.y=.32;g.add(h);
-  for(const s of[-.07,.07]){const e=new T.Mesh(new T.SphereGeometry(.045,6,4),new T.MeshBasicMaterial({color:0xffd23f}));e.position.set(s,.34,.14);g.add(e)}g.position.set(-2,UY+9.05,-80);g.scale.setScalar(1.4);scene.add(g);return{id:"owl",name:"Cú mèo",o:g}})();
+  for(const s of[-.07,.07]){const e=new T.Mesh(new T.SphereGeometry(.045,6,4),new T.MeshBasicMaterial({color:0xffd23f}));e.position.set(s,.34,.14);g.add(e)}g.position.set(-37,UY+9.05,-79);g.scale.setScalar(1.4);scene.add(g);return{id:"owl",name:"Cú mèo",o:g}})();
 let noteT=0;
 function updateBirds(time,dt){
   const day=TOD>5.8&&TOD<18.4&&WX.rain<.5;
@@ -1162,17 +1167,17 @@ function stepMe(dt){if(!me.joined)return;unstick();moving=false;
 const campActs=(fx,fz)=>me.tent?[["Chui vào lều nằm",()=>walkTo(me.tent[0]+.1,me.tent[1]+1.4,()=>{me.a="rest";pushPresence();toast(TOD>=19||TOD<5?"Bạn nằm nghe dế kêu, đếm sao qua cửa lều.":"Trưa nằm lều, gió thổi qua, ngủ quên lúc nào không hay.")})],["Thu lều",()=>{me.tent=null;syncTent("me",null);pushPresence();toast("Đã thu lều. Mướp tỏ ra không hài lòng.")}]]
   :[["Dựng lều ở đây",()=>{if(!me.joined){openJoin();return}pitchTent()}],["Ngồi quanh lửa",()=>walkTo(fx,fz,()=>{me.a="fire";doFx("corn",me.x,me.z)})]];
 const SPOTS=[
-  {hit:(x,z)=>x>POOL.x0-2&&x<POOL.x1+3&&z>POOL.z0-2&&z<POOL.z1+2,at:[16,-56.4],k:"Hồ bơi",t:"Hồ bơi nước lạnh",d:()=>`Hồ rộng gấp rưỡi hồ cũ, chạy dọc nhà chính. Góc này là chỗ đường mòn dây leo từ cuối suối đi lên chạm vào hồ. Ngoài trời ${Math.round(WX.temp)}°C.`,acts:[["Nhảy xuống bơi",()=>walkTo(11+Math.random()*10.5,-64+Math.random()*4.5,()=>{doFx("splash",me.x,me.z);sayMe(pick(["Lạnh! Lạnh! Ai nói nước ấm vậy trời!","Tỉnh ngủ luôn, khỏi cần cà phê.","Bơi một vòng mà thấy như vừa đi spa đá."]))})]]},
+  {hit:(x,z)=>x>POOL.x0-2&&x<POOL.x1+3&&z>POOL.z0-2&&z<POOL.z1+2,at:[16,-56.4],k:"Hồ bơi",t:"Hồ bơi nước lạnh",d:()=>`Hồ rộng gấp rưỡi hồ cũ, chạy dọc nhà chính. Góc này là chỗ đường mòn dây leo từ cuối suối đi lên chạm vào hồ. Ngoài trời ${Math.round(WX.temp)}°C.`,acts:[["Nhảy xuống bơi",()=>walkTo(4+Math.random()*10,-64+Math.random()*4.5,()=>{doFx("splash",me.x,me.z);sayMe(pick(["Lạnh! Lạnh! Ai nói nước ấm vậy trời!","Tỉnh ngủ luôn, khỏi cần cà phê.","Bơi một vòng mà thấy như vừa đi spa đá."]))})]]},
   {hit:(x,z)=>inRect(x,z,TERR),at:[-7,-55.2],k:"Hiên nhà chính",t:"Cà phê ngắm đồi",d:()=>"Hiên nằm trên tầng trệt, mái bạt trắng, sofa xanh. Nhìn xuống là sân cắm trại, thung lũng xa tít và chân trời nơi mặt trời lặn mỗi chiều.",acts:[["Uống cà phê",()=>walkTo(-9,-55.6,()=>{me.a="coffee";doFx("coffee",me.x,me.z)})],["Ngắm hoàng hôn",()=>walkTo(-9,-55.6,lookSunset)],["Ngắm toàn cảnh",()=>setView(true)]]},
   {hit:(x,z)=>x>3&&x<21&&z>-79&&z<-70,at:[12,-70.5],k:"Nhà kính",t:"Nhà kính trồng trái cây",d:()=>"Nhà kính mái trắng, vách kính, bên trong trồng cam, quýt, dâu, chanh dây. Chú Hải chăm từng trái, nhìn thôi chứ đừng hái.",acts:[["Vào trong dạo",()=>walkTo(12,-75)],["Hái thử trái",()=>{doFx("leaf",me.x,me.z);toast(pick(["Bạn hái được một trái cam. Chú Hải nhìn bạn như nhìn người lấy trộm con của ông.","Quýt trong nhà kính ngọt hơn quýt ngoài chợ. Chú Hải nói vậy, và chú nói rất nghiêm túc.","Trái dâu chưa chín mà bạn đã hái. Bạn nghe tiếng thở dài từ phía sau."]),5000)}]]},
-  {hit:(x,z)=>inRect(x,z,{x0:ROSE.x0-1,x1:ROSE.x1+1,z0:ROSE.z0-1,z1:ROSE.z1+3}),at:[(ROSE.x0+ROSE.x1)/2,ROSE.z1+1.5],k:"Khu vườn nhỏ",t:"Vườn hồng",d:()=>"Vườn hồng nhỏ có hàng rào trắng, ngay bên trái nhà mái xanh. Hoa nở quanh năm, trừ lúc cần chụp ảnh.",acts:[["Vào ngắm hoa",()=>walkTo((ROSE.x0+ROSE.x1)/2,(ROSE.z0+ROSE.z1)/2+.5,()=>{doFx("flower",me.x,me.z);toast(pick(["Hồng nhung nở đúng lúc bạn ghé. Hồng bạch quay mặt đi, chắc đang giận.","Có con ong bay quanh. Bạn đứng yên, con ong đứng yên, hai bên tôn trọng nhau.","Bạn ngửi hoa hồng. Thơm tới mức quên luôn chuyện cần chụp ảnh."]),4500)})]]},
+  {hit:(x,z)=>inRect(x,z,{x0:ROSE.x0-1,x1:ROSE.x1+1,z0:ROSE.z0-1,z1:ROSE.z1+3}),at:[(ROSE.x0+ROSE.x1)/2,ROSE.z1+1.5],k:"Khu vườn nhỏ",t:"Vườn hồng",d:()=>"Vườn hồng nhỏ có hàng rào trắng, ngay bên kia nhà mái xanh, xa cổng gỗ. Hoa nở quanh năm, trừ lúc cần chụp ảnh.",acts:[["Vào ngắm hoa",()=>walkTo((ROSE.x0+ROSE.x1)/2,(ROSE.z0+ROSE.z1)/2+.5,()=>{doFx("flower",me.x,me.z);toast(pick(["Hồng nhung nở đúng lúc bạn ghé. Hồng bạch quay mặt đi, chắc đang giận.","Có con ong bay quanh. Bạn đứng yên, con ong đứng yên, hai bên tôn trọng nhau.","Bạn ngửi hoa hồng. Thơm tới mức quên luôn chuyện cần chụp ảnh."]),4500)})]]},
   {hit:(x,z)=>inRect(x,z,{x0:PARK.x0-1,x1:PARK.x1+1,z0:PARK.z0-1,z1:PARK.z1+1}),at:[-29.5,-65.6],k:"Bãi đậu xe",t:"Bãi đậu xe, đỗ được 3 xe",d:()=>"Cuối đường 1, ngay sau cổng gỗ. Bãi sỏi phẳng đỗ được ít nhất 3 xe hơi. Từ đây đi bộ vào nhà chính.",acts:[["Bấm còi",()=>{doFx("note",me.x,me.z);toast(pick(["Bíp! Ba chú chó dưới cổng sủa lại đúng nhịp.","Bạn bấm còi. Chú Hải ngoài đồi chè giơ nón vẫy lại.","Bíp bíp! Không ai ra đón. Ở đây ai cũng bận chuyện hay hơn."]))}]]},
   {hit:(x,z)=>inRect(x,z,TEA)&&inPoly(x,z),at:[30,-68],k:"Đồi chè",t:"Hái chè cùng Chú Hải",d:()=>"Dải chè chạy dọc ranh trên cùng, sau cụm nhà. Hái một tôm hai lá là chuẩn.",acts:[["Hái chè",()=>walkTo(26+Math.random()*30,-80+Math.random()*8,()=>{me.a="tea";doFx("leaf",me.x,me.z);toast(pick(["Bạn hái được một nắm chè. Chú Hải chấm 6 điểm.","Bạn hái nhầm lá già. Chú Hải giả vờ không thấy.","Một tôm hai lá chuẩn chỉnh! Chú Hải gật gù."]))})]]},
   {hit:(x,z)=>inRect(x,z,{x0:GARDEN.x0-1,x1:GARDEN.x1+1,z0:GARDEN.z0-1,z1:GARDEN.z1+1}),at:[-32,-41.5],k:"Vườn của khách",t:"Trồng một cây",d:()=>`Ai ghé cũng trồng được. Vườn đang có ${Store.data.plants.length} cây. Cây lớn theo thời gian và mỗi lần được tưới.`,acts:[["Chọn cây để trồng",()=>openPlantPicker()]]},
   {hit:(x,z)=>Math.hypot(x-HUT.x,z-HUT.z)<5,at:[HUT.x+3,HUT.z-3],k:"Bên suối",t:"Chòi nghỉ bên suối",d:()=>"Chòi gỗ mái xanh. Nghe suối chảy rồi ngủ gật là hoàn toàn hợp lệ.",acts:[["Ngồi nghỉ",()=>walkTo(HUT.x+.5,HUT.z,()=>{me.a="rest";pushPresence()})],["Viết lưu bút",()=>openBook()]]},
   {hit:(x,z)=>Math.hypot(x-FALL.x,z-FALL.z)<13,at:[FALL.x+8,FALL.z-4],k:"Thác nước",t:"Thác rộng 4 m",d:()=>"Nước đổ từ bậc đá cao hơn 2 mét xuống vũng sủi bọt, rộng 4 mét, hai bên là đá tảng. Đứng gần là nghe tiếng thác lấn hết tiếng chim.",acts:[["Thả hoa đăng",()=>openLantern()],["Chụp ảnh",()=>{doFx("camera",me.x,me.z);toast("Tách! Thác đẹp tới mức điện thoại tự bật chế độ sống ảo.")}],["Xuống bãi trại",()=>walkAlong(FALLPATH_PTS.filter((p,i)=>i%4===0).reverse().concat([[-36,55]]))]]},
   {hit:(x,z)=>Math.hypot(x-GATE_IN[0],z-GATE_IN[1])<7||BRIDGES.some(b=>Math.hypot(x-b.x,z-b.z)<6),at:null,k:"Lối vào",t:"Cổng trước cầu",d:()=>"Cổng gỗ nằm trước cầu, ba chú chó hay ngồi đây đón khách. Qua cầu có hai đường lên: đường 1 dốc thẳng lên bãi đậu xe, đường 2 uốn chữ U, ít dốc hơn, đi qua vườn cá koi. Cách cầu 6 m có chỗ nông lội qua suối được.",acts:[["Đi đường 1 (dốc thẳng)",()=>walkAlong(ROAD_PTS[0].filter(p=>p[1]<GATE_IN[1]-1&&p[1]>-62).reverse().filter((p,i)=>i%6===0).concat([[-39,-65]]))],["Đi đường 2 (uốn chữ U)",()=>walkAlong(ROAD2_PTS.filter((p,i)=>i%7===0).concat([ROAD2[ROAD2.length-1]]))]]},
-  {hit:(x,z)=>Math.hypot(x-TRAIL[0][0],z-74)<11,at:[42,70],k:"Cuối suối",t:"Cuối suối rộng 6 m",d:()=>"Cuối suối rộng 6 mét, mở ra thung lũng. Đứng đây nhìn thấy cả hướng mặt trời lặn, chiều về cả bầu trời đỏ cam.",acts:[["Ngắm hoàng hôn",()=>walkTo(42,70,lookSunset)],["Thả hoa đăng",()=>openLantern()],["Đi đường mòn lên hồ bơi",()=>walkTo(21.3,-55)]]},
+  {hit:(x,z)=>Math.hypot(x-TRAIL[0][0],z-74)<11,at:[42,70],k:"Cuối suối",t:"Cuối suối rộng 6 m",d:()=>"Cuối suối rộng 6 mét, mở ra thung lũng. Đứng đây nhìn thấy cả hướng mặt trời lặn, chiều về cả bầu trời đỏ cam.",acts:[["Ngắm hoàng hôn",()=>walkTo(42,70,lookSunset)],["Thả hoa đăng",()=>openLantern()],["Đi đường mòn lên hồ bơi",()=>walkTo(16.8,-55)]]},
   {hit:(x,z)=>fordNear(x,z)||(streamDist(x,z)<4&&Math.hypot(x-FORD[0],z-FORD[1])<9),at:[FORD[0],FORD[1]-4.4],k:"Chỗ nông",t:"Chỗ nông cách cầu 6 m",d:()=>"Chỗ suối nông, sỏi lấp xấp nước, đi bộ qua được sang bờ nam. Suối ở các chỗ khác sâu hơn nhiều, đừng thử.",acts:[["Lội qua suối",()=>walkAlong([[FORD[0],FORD[1]-4.4],[FORD[0],FORD[1]],[FORD[0],FORD[1]+4.4]])],["Thả hoa đăng",()=>openLantern()]]},
   {hit:(x,z)=>streamDist(x,z)<5&&inPoly(x,z),at:null,k:"Suối lớn",t:"Con suối chảy ngang đất",d:()=>"Nước trong chảy xiết, rộng 4 mét ở đầu cầu và 6 mét ở cuối. Chỗ nông duy nhất đi bộ qua được nằm cách cầu 6 mét. Thả hoa đăng, nó trôi trên suối 48 giờ.",acts:[["Thả hoa đăng",()=>openLantern()],["Tới chỗ nông",()=>walkTo(FORD[0],FORD[1]-4.4)]]},
   {hit:(x,z)=>Math.hypot(x-FIRE.x,z-FIRE.z)<4,at:[FIRE.x+2,FIRE.z+1.5],k:"Bãi cỏ",t:"Lửa trại",d:()=>TOD>=18&&TOD<21.5?"Lửa đang cháy, Cô Ngọc nướng bắp.":"Lửa trại đốt từ 18:00 đến 21:30.",acts:[["Ngồi quanh lửa",()=>walkTo(FIRE.x+1.8,FIRE.z+1.5,()=>{me.a="fire";doFx("corn",me.x,me.z);if(!(TOD>=18&&TOD<21.5))toast("Chưa tới giờ đốt lửa. Ngồi ngắm củi trước cũng được.")})]]},
@@ -1181,19 +1186,19 @@ const SPOTS=[
   {hit:(x,z)=>inRect(x,z,YARD),at:null,k:"Sân trước",t:"Sân cắm trại",d:()=>`Bãi cỏ phẳng ngay trước nhà chính, thấp hơn hiên một tầng, nhìn thẳng xuống thung lũng. Đang có ${CAMP_TENTS.filter(c=>inRect(c[0],c[1],YARD)).length+[...tents.values()].filter(t=>inRect(t.x,t.z,YARD)).length} lều. Tối 18:00 có lửa trại.`,acts:()=>campActs(FIRE.x+1.8,FIRE.z+1.5)},
   {hit:(x,z)=>inRect(x,z,{x0:CAMP2.x0-2,x1:CAMP2.x1+2,z0:CAMP2.z0-2,z1:CAMP2.z1+2}),at:null,k:"Bãi trại thác",t:"Bãi cắm trại gần thác",d:()=>`Từ đường 2 đi xuống thác là tới bãi trại này: cỏ phẳng, có vòng lửa, bàn dã ngoại, nghe tiếng thác ngủ rất êm. Đang có ${CAMP_TENTS.filter(c=>inRect(c[0],c[1],CAMP2)).length+[...tents.values()].filter(t=>inRect(t.x,t.z,CAMP2)).length} lều.`,acts:()=>campActs(CAMP2_FIRE[0]+1.6,CAMP2_FIRE[1]+1)},
   {hit:(x,z)=>((x-KOI.x)/(KOI.rx+4))**2+((z-KOI.z)/(KOI.rz+4))**2<1,at:[KOI.x,KOI.z+KOI.rz+2.6],k:"Giữa vườn",t:"Hồ cá koi",d:()=>"Hồ cá nằm giữa vườn hoa, trong lòng chữ U của đường 2. Có 7 con cá koi, con nào cũng nghĩ mình là sếp.",acts:[["Cho cá ăn",()=>walkTo(KOI.x,KOI.z+KOI.rz+1.8,()=>{koiFeed={x:KOI.x,z:KOI.z+KOI.rz*.6,t:performance.now()/1000};doFx("food",KOI.x,KOI.z+KOI.rz);toast(pick(["Bảy con cá lao lên như đi chợ chiều giảm giá.","Con cá cam lấn hết, con cá trắng đứng ngoài chờ lượt. Có lịch sự mà không có cơm.","Cá ăn xong nhìn bạn như muốn nói: thêm một phần nữa được không?"]),4500)})],["Ngồi ngắm cá",()=>walkTo(KOI.x-KOI.rx-1.2,KOI.z+.5,()=>{me.a="rest";pushPresence()})]]},
-  {hit:(x,z)=>{const q=segDist(x,z,TRAIL[0][0],TRAIL[0][1],TRAIL[1][0],TRAIL[1][1]);return q.d<2.2&&z<-30&&z>-56},at:null,k:"Đường mòn",t:"Đường mòn dây leo",d:()=>"Đường mòn đi thẳng từ cuối suối lên hồ bơi. Khoảng 10 m cuối phủ dây leo, hoa giấy rủ xuống như mái hiên.",acts:[["Đi lên hồ bơi",()=>walkTo(21.3,-55)],["Xuống cuối suối",()=>walkAlong(TRAIL_PTS.filter((p,i)=>i%10===0).filter(p=>p[1]>me.z).concat([[43,74]]))]]},
+  {hit:(x,z)=>{const q=segDist(x,z,TRAIL[0][0],TRAIL[0][1],TRAIL[1][0],TRAIL[1][1]);return q.d<2.2&&z<-30&&z>-56},at:null,k:"Đường mòn",t:"Đường mòn dây leo",d:()=>"Đường mòn đi thẳng từ cuối suối lên hồ bơi. Khoảng 10 m cuối phủ dây leo, hoa giấy rủ xuống như mái hiên.",acts:[["Đi lên hồ bơi",()=>walkTo(16.8,-55)],["Xuống cuối suối",()=>walkAlong(TRAIL_PTS.filter((p,i)=>i%10===0).filter(p=>p[1]>me.z).concat([[43,74]]))]]},
   {hit:(x,z)=>Math.hypot(x-NETH.x,z-NETH.z)<5.5,at:[NETH.x,-56.6],k:"Nhà lưới",t:"Nhà của Bông và Tuyết",d:()=>"Nhà lưới đen cạnh nhà chính, cửa ở mặt phía Nam. Bước vào trong hoặc bấm vào từng bạn thỏ để vuốt ve, cho ăn.",acts:[]},
   {hit:(x,z)=>Math.hypot(x-BOARD.x,z-BOARD.z)<4,at:[BOARD.x+1.5,BOARD.z-2.8],k:"Đầu đường 1",t:"Bảng lưu bút",d:()=>{const v=Store.visits,b=Store.book();return(v?(v.local?`Bạn đã ghé ${fmtN(v.total)} lần. `:`Đã có ${fmtN(v.total)} lượt ghé từ ${fmtN(v.people)} người. `):"")+(b.length?`Sổ có ${b.length} lời nhắn, mới nhất của ${String(b[0].by||"Khách").slice(0,24)}.`:"Chưa ai ký, bạn ký đầu tiên nhé.")},acts:[["Ký lưu bút",()=>{if(!me.joined){openJoin();return}openBook()}],["Xem cả sổ",()=>openBook()]]},
   {hit:(x,z)=>Math.hypot(x+40.3,z+66)<5,at:[-37,-64.5],k:"Đầu đường 1",t:"Cổng gỗ cạnh bãi đậu xe",d:()=>"Đường 1 dốc thẳng kết thúc ở cổng gỗ này. Bãi đậu xe bên trái, bảng lưu bút bên phải.",acts:[["Mở sổ lưu bút",()=>openBook()]]},
   {hit:(x,z)=>Math.hypot(x-NEIGHBOR.x,z-NEIGHBOR.z)<10,at:null,k:"Ngoài ranh đất",t:"Nhà hàng xóm",d:()=>"Nhà hai tầng ở góc dưới là của hàng xóm, không thuộc retreat. Chó nhà họ sủa to hơn chó mình, đừng ghé.",acts:[]},
 ];
-const SPOT_LIST=[["Cổng · trước cầu",[GATE_IN[0]+.5,GATE_IN[1]+5],"Ba chú chó đón khách",GATE_YAW],["Chỗ nông · sỏi",[FORD[0]+1,FORD[1]-5],"Cách cầu 6 m, lội qua được",Math.PI],["Bãi đậu xe",[-29.5,-65.6],"Đỗ được 3 xe",.25],["Bảng lưu bút",[-31.5,-60.5],"Ký tên, xem lượt ghé",.7],["Cửa chính nhà main",[-8,-48.5],"Từ bãi trại đi thẳng vào",.1],["Phòng giám đốc",[-14.8,-59.5],"Bậc thang cạnh chuồng chim",-.3],["Hiên nhà chính",[-7,-55],"Cà phê, thấy thung lũng",-1.9],["Hồ bơi",[16,-56.4],"Hồ rộng gấp rưỡi",.5],["Nhà kính",[12,-70.5],"Trồng trái cây",.25],["Vườn hồng",[-27.5,-73.5],"Hàng rào trắng",.3],["Nhà blue",[-9,-69.5],"2 căn, 2 cửa chính",.1],["Đồi chè",[30,-68],"Hái chè",.5],["Vườn của khách",[-32,-41.5],"Trồng cây",.3],["Sân cắm trại",[3,-42.5],"Đối diện nhà 2 tầng",.15],["Lửa trại",[-13,-45],"Tối 18:00",.2],["Đường 2 chữ U",[26,8],"Uốn lượn, có kè đá",2.9],["Hồ cá koi",[5,17.2],"Giữa vườn hoa",.2],["Đường mòn dây leo",[21.5,-49],"10 m dây leo lên hồ bơi",.2],["Vườn cà phê",[-4,0],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,58],"Nghỉ chân",2.4],["Bãi trại thác",[-37,54],"Cắm trại gần thác",2.4],["Thác nước",[-18,67.5],"Rộng 4 m",1.45],["Cuối suối · hoàng hôn",[42,70],"Thung lũng, hướng mặt trời lặn",-1.9]];
+const SPOT_LIST=[["Cổng · trước cầu",[GATE_IN[0]+.5,GATE_IN[1]+5],"Ba chú chó đón khách",GATE_YAW],["Chỗ nông · sỏi",[FORD[0]+1,FORD[1]-5],"Cách cầu 6 m, lội qua được",Math.PI],["Bãi đậu xe",[-29.5,-65.6],"Đỗ được 3 xe",.25],["Bảng lưu bút",[-31.5,-60.5],"Ký tên, xem lượt ghé",.7],["Cửa chính nhà main",[-8,-48.5],"Từ bãi trại đi thẳng vào",.1],["Phòng giám đốc",[-14.8,-59.5],"Bậc thang cạnh chuồng chim",-.3],["Hiên nhà chính",[-7,-55],"Cà phê, thấy thung lũng",-2.09],["Hồ bơi",[16,-56.4],"Hồ rộng gấp rưỡi",.5],["Nhà kính",[12,-70.5],"Trồng trái cây",.25],["Vườn hồng",[-16.7,-73.4],"Hàng rào trắng",.3],["Nhà blue",[-28.6,-67.6],"2 căn, cạnh bãi đậu xe",.1],["Đồi chè",[30,-68],"Hái chè",.5],["Vườn của khách",[-32,-41.5],"Trồng cây",.3],["Sân cắm trại",[3,-42.5],"Đối diện nhà 2 tầng",.15],["Lửa trại",[-13,-45],"Tối 18:00",.2],["Đường 2 chữ U",[26,8],"Uốn lượn, có kè đá",2.9],["Hồ cá koi",[5,17.2],"Giữa vườn hoa",.2],["Đường mòn dây leo",[21.5,-49],"10 m dây leo lên hồ bơi",.2],["Vườn cà phê",[-4,0],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,58],"Nghỉ chân",2.4],["Bãi trại thác",[-37,54],"Cắm trại gần thác",2.4],["Thác nước",[-18,67.5],"Rộng 4 m",1.45],["Cuối suối · hoàng hôn",[42,70],"Thung lũng, hướng mặt trời lặn",-2.09]];
 
 /* ================= UI ================= */
 function card(k,title,body,acts){const c=$("card");c.replaceChildren(el("button",{class:"x","aria-label":"Đóng",onclick:closeCard},"×"));if(k)c.append(el("div",{class:"k"},k));c.append(el("h2",null,title));
   if(body)c.append(body.nodeType?body:el("p",null,body));if(acts&&acts.length){const a=el("div",{class:"acts"});acts.forEach(([t,f,keep],i)=>a.append(el("button",{class:"btn"+(i===0?" pri":""),onclick:()=>{f();if(!keep)closeCard()}},t)));c.append(a)}c.hidden=false}
 function closeCard(){$("card").hidden=true}
-function lookSunset(){if(camS.mode==="drone")setView(false);camS.yaw=-1.9;camS.pitch=.12;camS.dist=9;
+function lookSunset(){if(camS.mode==="drone")setView(false);camS.yaw=-2.09;camS.pitch=.12;camS.dist=9;
   toast(TOD>=16&&TOD<18.4?"Mặt trời đang xuống dần cuối thung lũng.":TOD<16?"Hoàng hôn tới khoảng 17:30–18:00, mặt trời lặn ở cuối thung lũng.":"Mặt trời đã lặn. Mai quay lại khoảng 17:30 nhé.",4500)}
 function showSpot(s){card(s.k,s.t,s.d(),typeof s.acts==="function"?s.acts():s.acts)}
 function sayMe(t){me.s=t;me.st=Date.now();say("me",t);pushPresence();logChat(me.n,t)}
@@ -1320,7 +1325,9 @@ function updateEnv(){
   renderer.setClearColor(fogC);
   const elv=Math.sin((TOD-6)/12*Math.PI),az=(TOD-6)/12*Math.PI;
   sun.intensity=clamp(elv,0,1)*(1.15-WX.cloud*.65-WX.rain*.3)+.02;sun.color.set(dusk>.2?0xffc890:0xfff1dc);
-  sun.position.set(camTarget.x-Math.cos(az)*120,camTarget.y+Math.max(.15,elv)*150,camTarget.z+40);sun.target.position.copy(camTarget);
+  const hz=-Math.cos(az);sun.position.set(camTarget.x+hz*SUNSET[0]*125,camTarget.y+Math.max(.15,elv)*150,camTarget.z+hz*SUNSET[1]*125);sun.target.position.copy(camTarget);
+  {const e=.17+Math.max(0,elv)*1.1,ce=Math.cos(e);sunDisc.position.set(camera.position.x+hz*SUNSET[0]*ce*2300,camera.position.y+Math.sin(e)*2300+20,camera.position.z+hz*SUNSET[1]*ce*2300);
+   sunDisc.material.opacity=clamp((TOD-5.5)/.5,0,1)*clamp((18.6-TOD)/.5,0,1)*clamp(.5+dusk*.5,0,1)*(1-WX.cloud*.45)*(1-WX.rain*.6);sunDisc.scale.setScalar(380+dusk*220);}
   hemi.intensity=lerp(.78,.22,dk)*(1-WX.rain*.2);hemi.color.copy(tTop).lerp(WHITE,.5);
   stars.material.opacity=dk*(1-WX.cloud)*.9;
   winMat.emissiveIntensity=(TOD>=WAKE-.5&&TOD<SLEEP)?dk*.9:dk*.1;glows.forEach(g=>g.material.opacity=dk*.9);bulbMat.color.set(dk>.35?0xffd38a:0xf2efe6);
