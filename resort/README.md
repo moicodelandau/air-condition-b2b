@@ -81,3 +81,11 @@ Phần giữa `<!--ARTIFACT-START-->` và `<!--ARTIFACT-END-->` là nội dung �
 - Vườn khách nhỏ lại 3 m mỗi chiều.
 - Từ cổng gỗ sân trước có đường sỏi đi vòng quanh sân, nối tới bảng lưu bút.
 - `.claude/settings.json`: `autoCompactWindow` = 250000 (tự compact khi context vượt 250k token).
+
+## Chỉnh bố cục vòng 11
+- Nhà kính về lại cạnh vườn hồng; bãi đậu xe mở rộng về phía Tây (tới x −40,6), 4 xe; cổng gỗ cổng chính dời theo (x −41,2).
+- Bỏ cổng gỗ sân trước; đường sỏi đi thẳng lên bảng lưu bút.
+- Nhà chính làm rỗng, vào được: cửa ở tường Nam (đứng gần tự mở), sàn gỗ, sofa, kệ sách, bàn ăn, bếp, piano. Mái/tường chắn camera ẩn khi bạn ở trong. Trạng thái cửa chỉ trên máy mình.
+- Menu "Hoạt động": trồng/tưới cây, đọc sách, chụp ảnh + selfie (khung polaroid, tải về), câu cá koi, yoga, guitar, vẽ tranh, pha trà, piano, ngắm sao (ban đêm), nhảy. Có dáng người + đạo cụ, đồng bộ cho khách khác qua presence.
+- Âm thanh tổng hợp bằng Web Audio (không file ngoài): tiếng động theo hoạt động, tiếng "ha/hmm" khi chạm nhân vật, tiếng chó/mèo/thỏ/gấu/chim/cú; nhạc nền kalimba (C–Am–F–G). Nút loa trên thanh dưới: nhạc+tiếng → chỉ tiếng → tắt (nhớ lựa chọn). Chỉ phát sau thao tác đầu tiên của người dùng.
+- Mặt trời: cung mặt trời trong chip giờ, vầng sáng lớn hơn, nút "Nhìn mặt trời" xoay camera và ngước lên đúng hướng theo giờ.
