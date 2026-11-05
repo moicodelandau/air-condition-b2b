@@ -1,6 +1,11 @@
 # Anh Sơn Retreat — retreat 3D online
 
-Khu nghỉ trên đồi Bảo Lộc dựng lại bằng 3D (Three.js), ai cũng có thể ghé chơi. Bản đồ lấy theo reel của Anh Sơn Retreat: khu đất ~17.000 m² (đa giác ranh đất trong code tính ra 17.136 m²), đường bê tông chạy chéo dọc ranh phía Tây, cụm 3 căn nhà và hồ bơi ở phần cao, đồi chè góc Đông Bắc, đường đất chữ S đổ xuống dốc, sườn giữa trồng cà phê, bơ, sầu riêng và chuối, suối lớn chảy ngang phần thấp có ghềnh đá, thác nhỏ và chòi nghỉ mái xanh. Xung quanh là rừng và ba lớp đồi núi xa.
+Khu nghỉ trên đồi Bảo Lộc dựng lại bằng 3D (Three.js), ai cũng có thể ghé chơi. Bản đồ lấy theo ảnh drone của Anh Sơn Retreat:
+
+- Khu đất khoảng 17.000 m² trên sườn dốc. Sân nhà chính cao hơn mặt suối 44 m, tầng trên cao hơn 50 m.
+- Dải đồi chè chạy dọc ranh trên cùng, vươn sang góc Đông Bắc. Cụm nhà ngay dưới: nhà chính 2 mái (xám và ngói đỏ) có hiên bạt trắng và sofa xanh, nhà mái xanh phía sau, nhà lưới (thỏ ở trong), **nhà làm vườn** là nhà kính trắng. Hồ bơi chạy dọc nhà chính.
+- **Hai đường bê tông lên nhà chính:** đường phía Tây qua cầu bắc qua suối, ngay cạnh nhà hàng xóm ở góc dưới (nhà hàng xóm không thuộc retreat). Đường phía Đông chạy dọc ranh phải lên tới hồ bơi. Đi bộ được trên cả hai đường.
+- Bên trong: đường đất chữ S đổ xuống dốc, vườn cà phê, bơ, sầu riêng, chuối. Suối lớn chảy ngang phần thấp, có ghềnh đá, thác nhỏ và chòi nghỉ mái xanh.
 
 Bản chạy nhiều người: https://claude.ai/artifact/VwL6JCfhYkCXSC1qSvhoRV (mặc định riêng tư, mở quyền ở menu Share).
 
@@ -13,14 +18,15 @@ Bản chạy nhiều người: https://claude.ai/artifact/VwL6JCfhYkCXSC1qSvhoRV
 | **Anh Tèo**, làm vườn | Cho thú cưng ăn, xới vườn khách, cắt cỏ, nướng bắp ở lửa trại |
 | **3 khách vãng lai** | Lúc nào cũng có đúng 3 người, đổi người mỗi 2 tiếng, mỗi người một kiểu (dân văn phòng trốn deadline, youtuber, bác tập dưỡng sinh…) |
 | **Thú cưng** | Chó Mực, Vàng · mèo Mướp, Miu · thỏ Bông, Tuyết |
+| **Chim** | Đàn chim bay vòng trên đồi ban ngày; chào mào, chim sẻ, chích choè nhảy dưới đất (lại gần là bay, rắc hạt là sà xuống); sáng sớm chim hót; cú mèo trực đêm trên tháp nước |
 
-Ai cũng có lời thoại vui. Nhân viên và khách vãng lai di chuyển theo giờ thật, nên mọi người xem cùng lúc sẽ thấy họ ở cùng một chỗ.
+Ai cũng có lời thoại vui. **Mọi người dậy lúc 6:00 và đi ngủ lúc 23:00**: nhân viên, khách vãng lai và thú cưng đều theo giờ đó. Họ di chuyển theo giờ thật, nên những người xem cùng lúc sẽ thấy họ ở cùng một chỗ.
 
 ## Hoạt động
 
 Bơi ở hồ nước lạnh · cà phê ngắm đồi trên hiên · hái chè · trồng 10 loại cây (có mai anh đào, dã quỳ, bơ, sầu riêng, cà phê) và tưới cây của người khác · thả hoa đăng trôi theo suối 48 giờ · ngồi chòi bên suối · lửa trại 18:00–21:30 · vuốt ve, cho thú cưng ăn · sổ lưu bút · chat.
 
-**Thời gian và thời tiết** chạy theo giờ Việt Nam, kiểu khí hậu Bảo Lộc: sáng thường có sương mù, mùa mưa (tháng 5–11) hay mưa chiều, nhiệt độ 15–28°C. Thời tiết sinh từ ngày tháng nên ai xem cũng thấy giống nhau.
+**Thời gian và thời tiết** chạy theo giờ Việt Nam. Thời tiết thay đổi liên tục trong ngày theo kiểu Bảo Lộc: sáng hay có sương, trưa nắng, mây kéo đến rồi tan, mùa mưa (tháng 5–11) dễ có mưa rào hoặc dông buổi chiều, đêm se lạnh 15–18°C. Thời tiết được tính từ thời gian thật nên mọi người ghé cùng lúc thấy giống nhau, và liền mạch qua nửa đêm.
 
 ## Điều khiển
 
@@ -35,6 +41,6 @@ Muốn mở công khai cho người không có tài khoản: thay `Store` và `i
 
 ## Tuỳ chỉnh
 
-Đầu `<script>` trong `index.html`: `LAND` (ranh đất), `ROAD`, `DRIVE`, `SROAD`, `STREAM` (đường và suối), `POOL`, `TEA`, `GARDEN`, `HUT`, `FALL` (vị trí các khu), `STAFF` (lịch làm việc, câu thoại), `PERSONAS` (khách vãng lai), `PETS`, `KINDS` (loại cây). Toạ độ tính bằng mét, x hướng Đông, z hướng Nam (xuống dốc).
+Đầu `<script>` trong `index.html`: `WAKE`/`SLEEP` (giờ dậy/ngủ), `SLOPE` (độ dốc), `LAND` (ranh đất), `ROAD_W`, `ROAD_E`, `DRIVE`, `SROAD`, `STREAM` (đường và suối), `UP_PAD`/`LOW_PAD` (hai tầng nền nhà), `POOL`, `TEA`, `GARDEN`, `HUT`, `FALL`, `NEIGHBOR` (vị trí các khu), `STAFF` (lịch làm việc, câu thoại), `PERSONAS` (khách vãng lai), `PETS`, `KINDS` (loại cây). Toạ độ tính bằng mét, x hướng Đông, z hướng Nam (xuống dốc).
 
 Phần giữa `<!--ARTIFACT-START-->` và `<!--ARTIFACT-END-->` là nội dung được xuất bản lên claude.ai.

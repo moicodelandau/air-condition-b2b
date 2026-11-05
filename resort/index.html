@@ -165,21 +165,36 @@ if(!window.THREE){document.getElementById("loading").textContent="Không tải �
 const T=THREE;
 /* ================= CONFIG ================= */
 const NAME="Anh Sơn Retreat", CAPACITY=200, TZ=7, SPEED=6;
-// Ranh đất (mét). x: Đông, z: Nam (xuống dốc). Diện tích ≈ 17.136 m².
-const LAND=[[-33,-75],[85,-75],[85,-41],[29,-41],[54,77],[-64,77],[-79,23]];
-const ROAD=[[160,-80],[-36,-80],[-84,24],[-94,170]];
-const DRIVE=[[-38,-62],[-26,-58],[-14,-50],[-2,-46]];
-const SROAD=[[-2,-46],[-1,-36],[6,-24],[20,-11],[33,4],[40,20],[42,30]];
-const LOWPATH=[[-62,20],[-32,23],[-4,27],[26,35],[46,42]];
-const STREAM=[[-110,46],[-72,49],[-50,53],[-34,58],[-12,58],[12,61],[36,64],[70,68],[120,72]];
-const HOUSE_PAD={x0:-31,x1:31,z0:-74,z1:-43,y:9.6,f:7};
-const GARDEN={x0:-44,x1:-14,z0:-33,z1:-10};
-const GARDEN_PAD={x0:GARDEN.x0,x1:GARDEN.x1,z0:GARDEN.z0,z1:GARDEN.z1,y:3.4,f:6};
-const TEA={x0:33,x1:82,z0:-72,z1:-44};
-const POOL={x0:14,x1:25,z0:-55,z1:-48};
-const HUT={x:-50,z:42}, FALL={x:-36,z:57};
-const PADS=[HOUSE_PAD,GARDEN_PAD,{x0:HUT.x-4,x1:HUT.x+4,z0:HUT.z-4,z1:HUT.z+4,y:null,f:4}];
-const BLOCKS=[{x0:-23,x1:-11,z0:-67,z1:-59},{x0:-7,x1:7,z0:-66,z1:-57},{x0:-7,x1:5,z0:-57,z1:-50},{x0:10,x1:26,z0:-71,z1:-63},{x0:-8,x1:-4,z0:-72,z1:-68},{x0:-33.8,x1:-32.2,z0:-66.3,z1:-64.7}];
+const WAKE=6, SLEEP=23;   // mọi người dậy 6:00, đi ngủ 23:00
+// Ranh đất (mét). x: Đông, z: Nam (xuống dốc). Diện tích ≈ 17.000 m². Nhà cao hơn mặt suối ≈ 45 m.
+const LAND=[[-34.5,-84],[84,-84],[95,-76],[26,-58],[50,82],[-75.5,82],[-80,62]];
+const ROAD_W=[[-39,-150],[-38,-87.5],[-83.5,62],[-87,92],[-92,180]];   // đường bê tông phía Tây, cầu qua suối cạnh nhà hàng xóm
+const ROAD_E=[[56,180],[53.5,83],[29.5,-55.5],[98,-73.5],[170,-66]];    // đường bê tông phía Đông, lên tới hồ bơi
+const ROADS=[ROAD_W,ROAD_E];
+const DRIVE=[[-41,-66],[-32,-63],[-24,-59],[-13,-55.5]];                // cổng Tây → hiên nhà chính
+const DRIVE_E=[[30,-55.5],[21,-55.8]];                                    // lối từ đường Đông vào hồ bơi
+const SROAD=[[-10,-51],[-6,-44],[2,-32],[14,-18],[26,-4],[33,12],[34,26]];
+const LOWPATH=[[-76,58],[-46,48],[-14,42],[14,44],[40,50]];
+const STREAM=[[-150,60],[-100,63],[-84,66],[-62,68],[-40,72],[-15,71],[10,74],[34,73],[52,75],[75,79],[150,86]];
+const SLOPE=.33;
+const UP_PAD={x0:-30,x1:24,z0:-82,z1:-69,y:null,f:5};    // tầng trên: nhà mái xanh, nhà làm vườn
+const LOW_PAD={x0:-32,x1:22,z0:-68,z1:-50,y:null,f:6};   // tầng dưới: nhà chính, hồ bơi, lửa trại
+const GARDEN={x0:-44,x1:-20,z0:-40,z1:-22};
+const GARDEN_PAD={x0:GARDEN.x0,x1:GARDEN.x1,z0:GARDEN.z0,z1:GARDEN.z1,y:null,f:6};
+const TEA={x0:21,x1:92,z0:-83,z1:-62};
+const POOL={x0:9,x1:20,z0:-64,z1:-58};
+const HUT={x:-50,z:63}, FALL={x:-28,z:71.5}, FIRE={x:-25,z:-53}, NEIGHBOR={x:-98,z:48}, NETH={x:-21,z:-61};
+const PADS=[UP_PAD,LOW_PAD,GARDEN_PAD,{x0:HUT.x-4,x1:HUT.x+4,z0:HUT.z-4,z1:HUT.z+4,y:null,f:4},{x0:NEIGHBOR.x-8,x1:NEIGHBOR.x+8,z0:NEIGHBOR.z-6,z1:NEIGHBOR.z+6,y:null,f:5}];
+const BLOCKS=[
+  {x0:-19.5,x1:-8.5,z0:-78.5,z1:-72.5},  // nhà mái xanh
+  {x0:4.5,x1:19.5,z0:-78,z1:-72},        // nhà làm vườn (nhà kính trắng)
+  {x0:-12.5,x1:-3.5,z0:-64.5,z1:-57.5},  // nhà chính – mái xám
+  {x0:-3,x1:8,z0:-66,z1:-59},            // nhà chính – mái ngói đỏ
+  {x0:-25,x1:-17,z0:-64.5,z1:-57.5},     // nhà lưới (thỏ ở trong)
+  {x0:-4,x1:0,z0:-82,z1:-78},            // tháp nước
+  {x0:-28.8,x1:-27.2,z0:-71.8,z1:-70.2}, // chuồng chó
+  {x0:NEIGHBOR.x-6,x1:NEIGHBOR.x+6,z0:NEIGHBOR.z-4,z1:NEIGHBOR.z+4}, // nhà hàng xóm
+];
 const $=id=>document.getElementById(id);
 
 /* ================= UTILS ================= */
@@ -195,52 +210,60 @@ function inPoly(x,z,P=LAND){let c=false;for(let i=0,j=P.length-1;i<P.length;j=i+
 function segDist(px,pz,ax,az,bx,bz){const dx=bx-ax,dz=bz-az,l=dx*dx+dz*dz;let t=l?((px-ax)*dx+(pz-az)*dz)/l:0;t=clamp(t,0,1);const x=ax+dx*t,z=az+dz*t;return{d:Math.hypot(px-x,pz-z),t,cross:dx*(pz-az)-dz*(px-ax)}}
 function polyDist(px,pz,P){let best=1e9,cr=0;for(let i=0;i<P.length-1;i++){const s=segDist(px,pz,P[i][0],P[i][1],P[i+1][0],P[i+1][1]);if(s.d<best){best=s.d;cr=s.cross}}return{d:best,side:cr>0?1:-1}}
 function curvePts(P,step){const c=new T.CatmullRomCurve3(P.map(p=>new T.Vector3(p[0],0,p[1])),false,"centripetal");const n=Math.max(4,Math.ceil(c.getLength()/step));return c.getSpacedPoints(n).map(v=>[v.x,v.z])}
-const STREAM_PTS=curvePts(STREAM,2), DRIVE_PTS=curvePts(DRIVE,1.5), SROAD_PTS=curvePts(SROAD,1.5), LOW_PTS=curvePts(LOWPATH,1.5);
+const STREAM_PTS=curvePts(STREAM,2), DRIVE_PTS=curvePts(DRIVE,1.5), DRIVE_E_PTS=curvePts(DRIVE_E,1), SROAD_PTS=curvePts(SROAD,1.5), LOW_PTS=curvePts(LOWPATH,1.5), ROAD_PTS=ROADS.map(R=>curvePts(R,2));
 function streamDist(x,z){let b=1e9;for(let i=0;i<STREAM_PTS.length;i++){const p=STREAM_PTS[i];const d=(p[0]-x)**2+(p[1]-z)**2;if(d<b)b=d}return Math.sqrt(b)}
 
 /* ================= TERRAIN HEIGHT ================= */
 function baseH(x,z){
-  let y=-0.16*z;
+  let y=-SLOPE*clamp(z,-140,140);
   y+=0.7*Math.sin(x*.07+1.3)*Math.cos(z*.06)+0.35*Math.sin(x*.19+z*.11);
-  const r=polyDist(x,z,ROAD);
+  const r=polyDist(x,z,ROAD_W);
   if(r.side>0&&r.d>2.5){const d=r.d-2.5;y+=Math.min(46,d*.34+d*d*.0025)}
-  const R=Math.hypot(x,z);if(R>200)y+=(R-200)*.12*(0.6+0.4*Math.sin(Math.atan2(z,x)*3));
+  const R=Math.hypot(x,z);if(R>220)y+=(R-220)*.12*(0.6+0.4*Math.sin(Math.atan2(z,x)*3));
   const ds=streamDist(x,z);y-=3.0*Math.exp(-ds*ds/28);
   return y;
 }
 function padW(p,x,z){const dx=Math.max(p.x0-x,0,x-p.x1),dz=Math.max(p.z0-z,0,z-p.z1);const d=Math.hypot(dx,dz);return d>=p.f?0:1-smooth(d/p.f)}
 for(const p of PADS)if(p.y==null)p.y=baseH((p.x0+p.x1)/2,(p.z0+p.z1)/2);
 function H(x,z){let y=baseH(x,z);for(const p of PADS){const w=padW(p,x,z);if(w>0)y=lerp(y,p.y,w)}return y}
+const houseW=(x,z)=>Math.max(padW(UP_PAD,x,z),padW(LOW_PAD,x,z));
+function roadY(x,z){const ds=streamDist(x,z);return H(x,z)+3.0*Math.exp(-ds*ds/28)}  // mặt đường/cầu vắt qua lòng suối
+const onRoad=(x,z)=>ROADS.some(R=>polyDist(x,z,R).d<2.3);
 const inPool=(x,z)=>x>POOL.x0+.4&&x<POOL.x1-.4&&z>POOL.z0+.4&&z<POOL.z1-.4;
 const inRect=(x,z,r)=>x>=r.x0&&x<=r.x1&&z>=r.z0&&z<=r.z1;
-function blocked(x,z){if(!inPoly(x,z))return true;for(const b of BLOCKS)if(x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1)return true;return false}
-function groundY(x,z){if(inPool(x,z))return HOUSE_PAD.y-1.05;const ds=streamDist(x,z);if(ds<2.4)return H(x,z)+.05;return H(x,z)}
+const walkable=(x,z)=>inPoly(x,z)||onRoad(x,z);
+function blocked(x,z){if(!walkable(x,z))return true;for(const b of BLOCKS)if(x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1)return true;return false}
+function groundY(x,z){if(inPool(x,z))return LOW_PAD.y-1.05;if(!inPoly(x,z)&&onRoad(x,z))return roadY(x,z)+.15;const ds=streamDist(x,z);if(ds<2.4)return H(x,z)+.05;return H(x,z)}
 
-/* ================= TIME & WEATHER (Bảo Lộc) ================= */
+/* ================= TIME & WEATHER (Bảo Lộc, thay đổi theo giờ) ================= */
 const WD=["Chủ nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
 function vnNow(){const d=new Date(Date.now()+TZ*3600e3);return{y:d.getUTCFullYear(),mo:d.getUTCMonth()+1,d:d.getUTCDate(),h:d.getUTCHours(),mi:d.getUTCMinutes(),s:d.getUTCSeconds(),wd:d.getUTCDay()}}
-function dayWx(y,mo,d){
-  const r=rng(hash(`bl-${y}-${mo}-${d}`)),wet=mo>=5&&mo<=11,roll=r();
-  const type=wet?(roll<.18?"storm":roll<.72?"shower":roll<.88?"cloudy":"sunny"):(roll<.06?"shower":roll<.38?"cloudy":"sunny");
-  return{type,wet,tmin:(wet?17:15)+r()*2,tmax:(wet?24.5:26)+r()*3-(type==="storm"?2:0),rs:12.5+r()*4,rd:type==="storm"?1.5+r()*2:.8+r()*2,
-    fog:r()<(wet?.7:.45),fogEnd:8+r()*2.5,cloud:type==="sunny"?.12:type==="cloudy"?.6:.4,seed:r()};
-}
-function hourWx(D,h){
-  let rain=0;if(D.type==="shower"||D.type==="storm"){const t=(h-D.rs)/D.rd;if(t>=0&&t<=1)rain=(D.type==="storm"?1:.6)*Math.pow(Math.sin(Math.PI*t),.6)}
-  let cloud=D.cloud+.12*Math.sin(h*.9+D.seed*6);if(D.type!=="sunny"&&h>D.rs-1.5&&h<D.rs+D.rd+2)cloud+=.35;cloud=clamp(cloud+rain*.5,0,1);
-  let fog=0;if(D.fog){if(h<D.fogEnd)fog=h<4?.55:clamp(1-(h-6)/(D.fogEnd-6),0,1)*.9+.1;if(h>21)fog=Math.max(fog,(h-21)/3*.5)}
-  fog=Math.max(fog,rain*.75);
-  const k=Math.cos((h-14)/24*2*Math.PI)*.5+.5;const temp=D.tmin+(D.tmax-D.tmin)*k-rain*2.5;
-  return{rain,cloud,fog,temp,storm:D.type==="storm"&&rain>.5};
+function hf(seed,i){let h=Math.imul((i|0)^0x9e3779b9,0x85ebca6b)^Math.imul(seed,0xc2b2ae35);h^=h>>>13;h=Math.imul(h,0x27d4eb2f);h^=h>>>16;return(h>>>0)/4294967296}
+function vnoise(seed,t,period){const u=t/period,i=Math.floor(u),f=u-i;return lerp(hf(seed,i),hf(seed,i+1),f*f*(3-2*f))}
+// t = số giờ (theo giờ Việt Nam) tính từ 1/1/1970: thời tiết đổi liên tục trong ngày, liền mạch qua nửa đêm, ai xem cũng giống nhau
+function wxAt(t){
+  const mo=new Date(t*3600e3).getUTCMonth()+1,h=((t%24)+24)%24,wet=mo>=5&&mo<=11;
+  const aft=Math.exp(-(((h-15)/2.6)**2));
+  const cloud=clamp((wet?.42:.24)+.55*(vnoise(11,t,3.1)-.5)+.3*(vnoise(12,t,.9)-.5)+(wet?.28:.08)*aft+.18*(vnoise(13,t,30)-.5),0,1);
+  const gate=smooth(clamp((vnoise(14,t,1.4)-.3)/.4,0,1));
+  const rain=clamp((cloud-.58)/.32,0,1)*gate*(wet?1:.45);
+  const storm=wet&&rain>.65&&h>12&&h<20;
+  const fogMorning=Math.exp(-(((h-6.3)/1.7)**2))*(vnoise(15,t,24)>.35?.95:.45);
+  const fogNight=(h>21||h<4)?.3*vnoise(16,t,5):0;
+  const fog=clamp(Math.max(fogMorning,fogNight,rain*.7),0,1);
+  const day=Math.cos((h-14)/24*2*Math.PI)*.5+.5;
+  const tmin=(wet?16.5:14.5)+2*vnoise(17,t,24),tmax=(wet?25:27)+2.5*vnoise(18,t,24);
+  return{rain,cloud,fog,storm,wet,temp:tmin+(tmax-tmin)*day-rain*2.8-cloud*1.2*day};
 }
 function wxIcon(w,h){const n=h<5.8||h>18.2;if(w.storm)return"⛈️";if(w.rain>.4)return"🌧️";if(w.rain>.05)return"🌦️";if(w.fog>.45)return"🌫️";if(w.cloud>.6)return"☁️";if(w.cloud>.32)return n?"☁️":"⛅";return n?"🌙":"☀️"}
 function wxText(w){if(w.storm)return"Mưa dông";if(w.rain>.4)return"Mưa to";if(w.rain>.05)return"Mưa rào";if(w.fog>.45)return"Sương mù";if(w.cloud>.6)return"Nhiều mây";if(w.cloud>.32)return"Có mây";return"Trời trong"}
-let NOW=vnNow(),TOD=0,DW,WX;
-function tick(){NOW=vnNow();TOD=NOW.h+NOW.mi/60+NOW.s/3600;DW=dayWx(NOW.y,NOW.mo,NOW.d);WX=hourWx(DW,TOD)}
+let NOW=vnNow(),TOD=0,TABS=0,WX;
+function tick(){NOW=vnNow();TOD=NOW.h+NOW.mi/60+NOW.s/3600;TABS=Date.now()/3600e3+TZ;WX=wxAt(TABS)}
 tick();
 function darkness(h){if(h>=6.3&&h<=17.6)return 0;if(h>=18.9||h<=5.1)return 1;return h<12?1-(h-5.1)/1.2:(h-17.6)/1.3}
+const awake=()=>TOD>=WAKE&&TOD<SLEEP;
 
-/* ================= CHARACTERS ================= */
+/* ================= CHARACTERS (thức 6:00 – ngủ 23:00) ================= */
 function routeLoop(pts,t,speed=1.1,pause=20){
   let total=0;const segs=pts.map((a,i)=>{const b=pts[(i+1)%pts.length];const d=Math.hypot(b[0]-a[0],b[1]-a[1])/speed;total+=d+pause;return{a,b,d}});
   let tt=((t%total)+total)%total;
@@ -248,73 +271,76 @@ function routeLoop(pts,t,speed=1.1,pause=20){
   return{x:pts[0][0],z:pts[0][1],moving:false,dir:0};
 }
 const STAFF=[
-  {id:"mo",name:"Chị Mơ",role:"Quản lý",shirt:"#f4f1ea",acc:"#2f78c4",hat:"none",hair:"#2b1d14",scarf:0x2f78c4,
+  {id:"mo",name:"Chị Mơ",role:"Quản lý",shirt:"#f4f1ea",acc:"#2f78c4",hat:"none",hair:"#2b1d14",scarf:0x2f78c4,sleep:"đang ngủ ở nhà chính",
    plan:[
-     {from:6,to:9,verb:"đón khách ở cổng",pts:[[-34,-60],[-22,-55],[-8,-47]]},
-     {from:9,to:11.5,verb:"đi kiểm tra hồ bơi",pts:[[13,-47],[27,-47],[27,-56],[13,-56]]},
-     {from:11.5,to:13.5,verb:"lo bữa trưa ở hiên nhà",pts:[[-3,-47],[6,-47]]},
-     {from:13.5,to:17,verb:"dẫn khách tham quan suối",pts:[[-44,38],[-40,49],[-22,53],[-8,51]]},
-     {from:17,to:21.5,verb:"nhóm lửa trại ở bãi cỏ",pts:[[-22,-47],[-15,-45],[-4,-46]]},
+     {from:6,to:9,verb:"đón khách ở cổng Tây",pts:[[-37,-64.5],[-28,-61],[-14,-54.5]]},
+     {from:9,to:11.5,verb:"đi kiểm tra hồ bơi",pts:[[7.5,-56.5],[21,-56.5],[21,-65.5],[8.5,-65.5]]},
+     {from:11.5,to:13.5,verb:"lo bữa trưa ngoài hiên",pts:[[-11,-55.5],[-5,-55.5]]},
+     {from:13.5,to:17,verb:"dẫn khách xuống suối",pts:[[-44,57],[-32,64],[-16,64],[-4,62]]},
+     {from:17,to:21.5,verb:"nhóm lửa trại",pts:[[-27,-51],[-21,-50.5],[-14,-53.5]]},
+     {from:21.5,to:23,verb:"đi tuần tắt đèn",pts:[[-37,-64.5],[-14,-54],[21,-56.5],[12,-70.5],[-14,-71.5]]},
    ],
-   lines:["Chào mừng tới Anh Sơn Retreat! Chỗ nào sóng điện thoại yếu nhất, chỗ đó view đẹp nhất.","Ở đây không có giờ cao điểm, chỉ có giờ sương mù cao điểm.","Đừng hỏi chị mấy giờ. Ở đây tính giờ bằng số ly cà phê.","Hồ bơi nước lạnh nha. Nhảy xuống là tỉnh hết mọi ảo tưởng.","Ai làm rớt dép xuống suối thì coi như quà tặng thần suối.","Check-out 12 giờ trưa, nhưng chị chưa thấy ai chịu về đúng giờ hết.","Khách hỏi pass wifi, chị nói pass là ‘ngắm núi đi’. Không ai tin."]},
-  {id:"ba",name:"Chú Ba",role:"Làm vườn · đồi chè",shirt:"#4f7a45",acc:"#3a2f22",hat:"non",hair:"#999999",
+   lines:["Chào mừng tới Anh Sơn Retreat! Chỗ nào sóng điện thoại yếu nhất, chỗ đó view đẹp nhất.","Từ nhà xuống suối dốc 45 mét. Đi xuống thì thơ, đi lên thì thở.","Ở đây không có giờ cao điểm, chỉ có giờ sương mù cao điểm.","Đừng hỏi chị mấy giờ. Ở đây tính giờ bằng số ly cà phê.","Hồ bơi nước lạnh nha. Nhảy xuống là tỉnh hết mọi ảo tưởng.","Có hai đường lên nhà chính: đường Tây qua cầu, đường Đông qua hồ bơi. Đường nào cũng dốc như nhau, đừng mặc cả.","11 giờ đêm là cả retreat đi ngủ. Con Mướp ngủ trước 10 tiếng rồi."]},
+  {id:"ba",name:"Chú Ba",role:"Làm vườn · đồi chè",shirt:"#4f7a45",acc:"#3a2f22",hat:"non",hair:"#999999",sleep:"đang ngủ ở nhà làm vườn",
    plan:[
-     {from:5.5,to:11,verb:"hái chè trên đồi",pts:[[36,-69],[79,-69],[79,-47],[36,-47]]},
-     {from:11,to:13,verb:"ngủ trưa sau nhà kính",pts:[[18,-61],[19,-61]]},
-     {from:13,to:17.5,verb:"tỉa cà phê, sầu riêng",pts:[[-30,-4],[8,4],[18,26],[-22,24]]},
-     {from:17.5,to:19.5,verb:"tưới vườn khách trồng",pts:[[-42,-31],[-16,-31],[-16,-12],[-42,-12]]},
+     {from:6,to:11,verb:"hái chè trên đồi",pts:[[24,-81],[70,-81],[58,-72],[24,-69]]},
+     {from:11,to:13,verb:"ngủ trưa trước nhà làm vườn",pts:[[11,-70.5],[13,-70.5]]},
+     {from:13,to:17.5,verb:"tỉa cà phê, sầu riêng",pts:[[-30,-6],[4,4],[14,30],[-26,30]]},
+     {from:17.5,to:19.5,verb:"tưới vườn khách trồng",pts:[[-42,-38.5],[-21,-38.5],[-21,-23.5],[-42,-23.5]]},
+     {from:19.5,to:23,verb:"pha trà trước nhà làm vườn",pts:[[10,-70.5],[14,-70.5]]},
    ],
-   lines:["Chè chú trồng hai chục năm, người ta uống hai chục giây. Đời là vậy đó con.","Đừng đứng dưới gốc sầu riêng lâu quá, trái rụng là lên báo đó.","Cây bơ này trái bự cỡ trái banh, mà con sóc ăn trước chú.","Trồng cây đi con. Cây không seen không rep, nhưng lớn đều.","Mưa Bảo Lộc có lịch đàng hoàng: chiều nào cũng có, chỉ không báo trước mấy giờ.","Hồi trẻ chú cũng lên thành phố. Kẹt xe ba bữa là chú về hái chè lại."]},
-  {id:"teo",name:"Anh Tèo",role:"Làm vườn · thú cưng",shirt:"#c9673f",acc:"#2c3e50",hat:"cap",hair:"#1d1410",
+   lines:["Chè chú trồng hai chục năm, người ta uống hai chục giây. Đời là vậy đó con.","Đừng đứng dưới gốc sầu riêng lâu quá, trái rụng là lên báo đó.","Cây bơ này trái bự cỡ trái banh, mà con sóc ăn trước chú.","Trồng cây đi con. Cây không seen không rep, nhưng lớn đều.","Trời Bảo Lộc như tính con gái: sáng sương, trưa nắng, chiều mưa, tối lại dịu.","Nhà kính trắng là nhà làm vườn của chú với thằng Tèo. Cây con ở trong đó còn được chăm kỹ hơn tụi chú."]},
+  {id:"teo",name:"Anh Tèo",role:"Làm vườn · thú cưng",shirt:"#c9673f",acc:"#2c3e50",hat:"cap",hair:"#1d1410",sleep:"đang ngủ ở nhà làm vườn",
    plan:[
-     {from:6,to:8,verb:"cho chó mèo thỏ ăn sáng",pts:[[-29,-49.5],[-24,-49],[-32,-48]]},
-     {from:8,to:11,verb:"xới đất vườn khách",pts:[[-40,-29],[-18,-29],[-18,-13]]},
-     {from:11,to:13,verb:"ăn cơm ở hiên",pts:[[2,-47],[4,-47]]},
-     {from:13,to:16.5,verb:"cắt cỏ dọc đường chữ S",pts:[[-1,-36],[20,-11],[40,20]]},
-     {from:16.5,to:18,verb:"cho thú cưng ăn chiều",pts:[[-29,-49.5],[-24,-49],[-32,-48]]},
-     {from:18,to:21.5,verb:"nướng bắp ở lửa trại",pts:[[-19,-44.5],[-17,-45]]},
+     {from:6,to:8,verb:"cho chó mèo thỏ ăn sáng",pts:[[-21,-56.8],[-16,-56],[-26,-56.5]]},
+     {from:8,to:11,verb:"xới đất vườn khách",pts:[[-39,-36],[-23,-36],[-23,-25]]},
+     {from:11,to:13,verb:"ăn cơm ngoài hiên",pts:[[-6,-55.2],[-3,-55.2]]},
+     {from:13,to:16.5,verb:"cắt cỏ dọc đường chữ S",pts:[[-6,-44],[14,-18],[33,12]]},
+     {from:16.5,to:18,verb:"cho thú cưng ăn chiều",pts:[[-21,-56.8],[-16,-56],[-26,-56.5]]},
+     {from:18,to:21.5,verb:"nướng bắp ở lửa trại",pts:[[-23.5,-51],[-22,-51.5]]},
+     {from:21.5,to:23,verb:"đi khoá cổng, soi đèn qua cầu",pts:[[-37,-64.5],[-79,48],[-83,58],[-79,48]]},
    ],
-   lines:["Anh tưới cây mà con Mực cứ tưởng anh rủ chơi đuổi bắt.","Hôm qua anh cắt cỏ, hôm nay cỏ mọc lại để chào khách.","Đi lối này nè, lối kia của mấy con thỏ, tụi nó thu phí cà rốt.","Thấy con mèo nằm trên mái nhà không? Nó là giám sát công trình.","Sương dày vầy thì selfie khỏi cần filter.","Bắp nướng của anh có công thức bí mật: than hồng và đói bụng."]},
+   lines:["Anh tưới cây mà con Mực cứ tưởng anh rủ chơi đuổi bắt.","Leo từ suối lên nhà một lần là khỏi cần đi gym một tuần.","Đi lối này nè, lối kia của mấy con thỏ, tụi nó thu phí cà rốt.","Thấy con mèo nằm trên mái nhà không? Nó là giám sát công trình.","Nhà ngay góc dưới là nhà hàng xóm nha, đừng vô. Chó nhà họ sủa còn to hơn anh hát.","Bắp nướng của anh có công thức bí mật: than hồng và đói bụng."]},
 ];
 const PERSONAS=[
   {role:"Dân văn phòng trốn deadline",lines:["Mình lên đây để quên email. Mà điện thoại vẫn rung trong tim.","Sếp hỏi đang ở đâu, mình nói đang họp trên mây. Đúng mà, sương mù nè.","Ở đây ba ngày, lần đầu mình thấy bình minh mà không phải vì thức chạy báo cáo."]},
   {role:"Cặp đôi đi chụp ảnh",lines:["Đứng yên! Thêm 47 tấm nữa là đủ chọn một tấm.","View này mà không đăng thì phí cả tuổi trẻ.","Người yêu mình chụp mình đẹp nhất là lúc sương mù che hết mặt."]},
-  {role:"Bác tập dưỡng sinh",lines:["Không khí ở đây trong lành, bác hít một hơi trẻ lại năm tuổi.","Tụi nhỏ đi nghỉ dưỡng mà nhìn điện thoại nhiều hơn nhìn núi.","Bác đi bộ quanh đồi chè ba vòng, chè chưa mệt mà bác mệt."]},
+  {role:"Bác tập dưỡng sinh",lines:["Không khí ở đây trong lành, bác hít một hơi trẻ lại năm tuổi.","Dốc 45 mét, bác đi xuống ba phút, đi lên ba mươi phút.","Bác đi bộ quanh đồi chè ba vòng, chè chưa mệt mà bác mệt."]},
   {role:"Youtuber du lịch",lines:["Chào cả nhà, hôm nay mình review… ủa con chó cướp micro rồi!","Nhớ like, share và đăng ký… à ở đây không có sóng.","Clip này tên là: Một ngày làm người làm vườn. Mới tưới hai cây đã muốn nghỉ."]},
   {role:"Sinh viên đi phượt",lines:["Tiền ít nhưng tâm hồn giàu có. Chủ yếu là tâm hồn.","Đường đèo lên đây mình bóp thắng muốn mòn, mà thấy view là hết tiếc.","Mì gói ăn ở đây ngon gấp đôi, chắc tại không khí."]},
   {role:"Dân IT",lines:["Ở đây ping cao nhưng huyết áp thấp. Đáng.","Mình định code một chút, rồi con mèo nằm lên bàn phím. Thôi nghỉ.","Bug lớn nhất mình gặp hôm nay là con kiến trong ly cà phê."]},
   {role:"Mẹ bỉm sữa được nghỉ phép",lines:["Lần đầu sau ba năm mình uống hết ly cà phê khi nó còn nóng.","Không ai kêu mẹ ơi suốt hai tiếng. Mình hơi hoảng.","Mình ngủ trưa được 45 phút liền. Mình muốn khóc vì hạnh phúc."]},
-  {role:"Nhiếp ảnh gia",lines:["Ánh sáng này, góc này, khoảnh khắc này… thôi xong, hết pin.","Sương sớm Bảo Lộc là softbox miễn phí to nhất mình từng thấy.","Mình chờ con thỏ quay mặt lại 20 phút rồi."]},
-  {role:"Chú tài xế chở đoàn",lines:["Đường lên đây cong như đường đời, nhưng cảnh đẹp hơn.","Khách ngủ hết rồi, chú ra đây uống cà phê canh sương.","Chú lái 30 năm, chưa thấy con dốc nào hiền như dốc vườn này."]},
+  {role:"Nhiếp ảnh gia",lines:["Ánh sáng này, góc này, khoảnh khắc này… thôi xong, hết pin.","Sương sớm Bảo Lộc là softbox miễn phí to nhất mình từng thấy.","Chờ con chào mào đậu yên 20 phút, nó bay đúng lúc mình bấm máy."]},
+  {role:"Chú tài xế chở đoàn",lines:["Đường lên đây cong như đường đời, nhưng cảnh đẹp hơn.","Khách ngủ hết rồi, chú ra đây uống cà phê canh sương.","Chú chạy xe 30 năm, con dốc từ suối lên nhà này là con dốc chú không dám chạy."]},
 ];
 const GUEST_NAMES=["Minh","Thư","Khoa","Vy","Bác Hùng","Cô Lan","Quân","Ngân","Duy","Trâm","Phúc","Hằng","Tú","Linh","Bảo","Nhi"];
-const POIS=[[-34,-58],[2,-45],[13,-46],[27,-50],[48,-46],[60,-46],[-30,-21],[-2,8],[16,30],[-45,38],[-42,51],[8,52],[-21,-44],[38,18],[-26,-36],[24,-30]];
-const NIGHT_POIS=[[2,-45],[-21,-44],[-17,-43],[13,-46],[-6,-44]];
+const POIS=[[-37,-64],[-7,-55.2],[6,-56.5],[21,-60],[40,-78],[30,-73],[-30,-30],[-4,10],[14,30],[-44,57],[-30,64],[6,64],[-23,-50.5],[33,18],[-28,-44],[20,-20],[-60,52],[12,-70.5]];
+const EVE_POIS=[[-7,-55.2],[-23,-50.5],[-20,-50],[6,-56.5],[-13,-53.5],[12,-70.5]];
 function guestsNow(){
   const slot=Math.floor(TOD/2);const r=rng(hash(`g-${NOW.y}-${NOW.mo}-${NOW.d}-${slot}`));
   const ps=[...PERSONAS].sort(()=>r()-.5).slice(0,3),ns=[...GUEST_NAMES].sort(()=>r()-.5);
-  const night=TOD>=21.5||TOD<5.5;
-  return ps.map((p,i)=>{const pool=night?NIGHT_POIS:POIS;const pts=[];for(let k=0;k<4;k++)pts.push(pool[Math.floor(r()*pool.length)]);
-    return{id:`g${slot}-${i}`,name:ns[i],role:p.role,lines:p.lines,pts,shirt:pick(["#d9577a","#3d8bd9","#e8b84a","#7b5ea7","#2a9d8f","#f4a261","#e76f51","#6c8ead"],r),hat:pick(["none","beanie","cap","none"],r),acc:pick(["#c0392b","#34495e","#8e44ad"],r),hair:pick(["#1d1410","#3b2a1f","#5a3b22"],r),night}});
+  return ps.map((p,i)=>{const pts=[],eve=[];for(let k=0;k<4;k++){pts.push(POIS[Math.floor(r()*POIS.length)]);eve.push(EVE_POIS[Math.floor(r()*EVE_POIS.length)])}
+    return{id:`g${slot}-${i}`,name:ns[i],role:p.role,lines:p.lines,pts,eve,shirt:pick(["#d9577a","#3d8bd9","#e8b84a","#7b5ea7","#2a9d8f","#f4a261","#e76f51","#6c8ead"],r),hat:pick(["none","beanie","cap","none"],r),acc:pick(["#c0392b","#34495e","#8e44ad"],r),hair:pick(["#1d1410","#3b2a1f","#5a3b22"],r)}});
 }
 let GUESTS=guestsNow(),guestSlot=Math.floor(TOD/2);
 function npcState(s){
-  if(s.plan){const p=s.plan.find(p=>TOD>=p.from&&TOD<p.to);if(!p)return{away:true,verb:"đang ngủ, mai gặp lại",x:18,z:-61};
-    const q=routeLoop(p.pts,Date.now()/1000+hash(s.id)%997);return Object.assign(q,{verb:p.verb})}
-  const q=routeLoop(s.pts,Date.now()/1000+hash(s.id)%613,.9,36);return Object.assign(q,{verb:s.night?"ngồi ngắm sao":"đang dạo quanh"})
+  if(s.plan){const p=s.plan.find(p=>TOD>=p.from&&TOD<p.to);if(!p)return{away:true,verb:s.sleep,x:12,z:-70.5};
+    return Object.assign(routeLoop(p.pts,Date.now()/1000+hash(s.id)%997),{verb:p.verb})}
+  if(!awake())return{away:true,verb:"đang ngủ, 6 giờ sáng mới dậy",x:-14,z:-71.5};
+  const eve=TOD>=21;return Object.assign(routeLoop(eve?s.eve:s.pts,Date.now()/1000+hash(s.id)%613,.9,36),{verb:eve?"ngồi ngắm sao":"đang dạo quanh"});
 }
 const PETS=[
-  {id:"muc",name:"Mực",kind:"chó",color:"#1d1d1d",area:{cx:-10,cz:-30,rx:30,rz:20},spd:1,sleep:[[23,5.5]],react:["Mực lăn ra cho bạn gãi bụng, rồi đứng dậy đòi phí.","Mực đưa bạn một cành cây. Bạn ném đi, Mực không thèm nhặt.","Mực sủa một tiếng. Anh Tèo dịch: ‘Cho xin miếng bánh’."]},
-  {id:"vang",name:"Vàng",kind:"chó",color:"#c99a4a",area:{cx:-30,cz:-56,rx:5,rz:3},spd:.7,sleep:[[22,5]],react:["Vàng canh cổng mười năm, chưa bắt được trộm, chỉ bắt được tình cảm.","Vàng vẫy đuôi mạnh tới mức cả người lắc theo.","Vàng ngửi giày bạn, đánh giá: đi nhiều, đáng tin."]},
-  {id:"muop",name:"Mướp",kind:"mèo",color:"#d98a3a",area:{cx:0,cz:-47,rx:7,rz:1.5},spd:.5,sleep:[[12,14.5],[1,5]],react:["Mướp nhìn bạn như nhìn nhân viên mới.","Mướp cho bạn vuốt đúng ba cái rồi bỏ đi. Hết giờ hành chính.","Mướp nằm phơi bụng. Đây là cái bẫy."]},
-  {id:"miu",name:"Miu",kind:"mèo",color:"#2b2b2b",area:{cx:19,cz:-46.5,rx:5,rz:.8},spd:.45,sleep:[[13,15.5],[0,6]],react:["Miu ngồi canh hồ bơi nhưng ghét nước. Nghề tay trái.","Miu dụi đầu vào chân bạn rồi giả vờ không quen.","Miu kêu meo. Có thể là cảm ơn, có thể là chê."]},
-  {id:"bong",name:"Bông",kind:"thỏ",color:"#f6f3ee",area:{cx:-29,cz:-53,rx:1.6,rz:1.2},spd:1.4,sleep:[[21,5]],react:["Bông giật giật mũi, xác nhận bạn không mang cà rốt. Thất vọng.","Bông nhảy một vòng khoe cơ đùi.","Bông ăn cỏ với tốc độ của người vừa hết deadline."]},
-  {id:"tuyet",name:"Tuyết",kind:"thỏ",color:"#d9d4cc",area:{cx:-29,cz:-53,rx:1.6,rz:1.2},spd:1.2,sleep:[[22,5.5]],react:["Tuyết đứng hai chân nhìn bạn, nghiêm túc như họp quý.","Tuyết dụi mũi vào tay bạn. Tim bạn tan chảy 30%.","Tuyết chui vô góc chuồng. Hôm nay Tuyết hướng nội."]},
+  {id:"muc",name:"Mực",kind:"chó",color:"#1d1d1d",area:{cx:-12,cz:-16,rx:26,rz:22},spd:1,sleep:[[23,6]],react:["Mực lăn ra cho bạn gãi bụng, rồi đứng dậy đòi phí.","Mực đưa bạn một cành cây. Bạn ném đi, Mực không thèm nhặt.","Mực sủa một tiếng. Anh Tèo dịch: ‘Cho xin miếng bánh’."]},
+  {id:"vang",name:"Vàng",kind:"chó",color:"#c99a4a",area:{cx:-35,cz:-63.5,rx:2.5,rz:1.8},spd:.7,sleep:[[23,6]],react:["Vàng canh cổng mười năm, chưa bắt được trộm, chỉ bắt được tình cảm.","Vàng vẫy đuôi mạnh tới mức cả người lắc theo.","Vàng ngửi giày bạn, đánh giá: đi nhiều, đáng tin."]},
+  {id:"muop",name:"Mướp",kind:"mèo",color:"#d98a3a",area:{cx:-8,cz:-55.6,rx:3.8,rz:.8},spd:.5,sleep:[[12,14.5],[23,6]],react:["Mướp nhìn bạn như nhìn nhân viên mới.","Mướp cho bạn vuốt đúng ba cái rồi bỏ đi. Hết giờ hành chính.","Mướp nằm phơi bụng. Đây là cái bẫy."]},
+  {id:"miu",name:"Miu",kind:"mèo",color:"#2b2b2b",area:{cx:14.5,cz:-56.6,rx:5,rz:.5},spd:.45,sleep:[[13,15.5],[23,6]],react:["Miu ngồi canh hồ bơi nhưng ghét nước. Nghề tay trái.","Miu dụi đầu vào chân bạn rồi giả vờ không quen.","Miu kêu meo. Có thể là cảm ơn, có thể là chê."]},
+  {id:"bong",name:"Bông",kind:"thỏ",color:"#f6f3ee",area:{cx:NETH.x-.8,cz:NETH.z,rx:2.2,rz:1.8},spd:1.4,sleep:[[23,6]],react:["Bông giật giật mũi, xác nhận bạn không mang cà rốt. Thất vọng.","Bông nhảy một vòng khoe cơ đùi.","Bông ăn cỏ với tốc độ của người vừa hết deadline."]},
+  {id:"tuyet",name:"Tuyết",kind:"thỏ",color:"#d9d4cc",area:{cx:NETH.x+.8,cz:NETH.z,rx:2.2,rz:1.8},spd:1.2,sleep:[[23,6]],react:["Tuyết đứng hai chân nhìn bạn, nghiêm túc như họp quý.","Tuyết dụi mũi vào tay bạn. Tim bạn tan chảy 30%.","Tuyết chui vô góc chuồng. Hôm nay Tuyết hướng nội."]},
 ];
 const petAsleep=p=>p.sleep.some(([a,b])=>a<b?(TOD>=a&&TOD<b):(TOD>=a||TOD<b));
 function petPos(p){const ph=hash(p.id)%1000/159;const t=(petAsleep(p)?Math.floor(Date.now()/600000)*600:Date.now()/1000)*p.spd*.02,a=p.area;
   let x=a.cx+a.rx*(.7*Math.sin(t*1.3+ph)+.3*Math.sin(t*3.1+ph*2)),z=a.cz+a.rz*(.7*Math.cos(t*1.1+ph*1.7)+.3*Math.sin(t*2.3+ph));
-  if(blocked(x,z)){x=a.cx;z=a.cz}const dx=Math.cos(t*1.3+ph),dz=-Math.sin(t*1.1+ph*1.7);return{x,z,dir:Math.atan2(dx*a.rx,dz*a.rz)}}
+  if(!inPoly(x,z)){x=a.cx;z=a.cz}const dx=Math.cos(t*1.3+ph),dz=-Math.sin(t*1.1+ph*1.7);return{x,z,dir:Math.atan2(dx*a.rx,dz*a.rz)}}
 
 /* ================= PLANTS ================= */
 const KINDS={
@@ -377,7 +403,7 @@ function buildTerrain(size,seg,inner){
   const p=g.attributes.position,col=new Float32Array(p.count*3);const cGrass=C("#79a650"),cGrass2=C("#8fb85c"),cForest=C("#3f6b38"),cTea=C("#4d8a3c"),cPad=C("#9cbd6b"),cBank=C("#7d7a5a"),cFar=C("#4c7a49"),tmp=new T.Color();
   const r=rng(inner?17:23);
   for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);let y=H(x,z);if(!inner&&Math.abs(x)<139&&Math.abs(z)<139)y-=.8;p.setY(i,y);
-    if(inPoly(x,z)){tmp.copy(cGrass).lerp(cGrass2,.5+.5*Math.sin(x*.13+z*.09));if(inRect(x,z,TEA))tmp.lerp(cTea,.6);if(padW(HOUSE_PAD,x,z)>.6||padW(GARDEN_PAD,x,z)>.6)tmp.lerp(cPad,.4)}
+    if(inPoly(x,z)){tmp.copy(cGrass).lerp(cGrass2,.5+.5*Math.sin(x*.13+z*.09));if(inRect(x,z,TEA))tmp.lerp(cTea,.6);if(houseW(x,z)>.6||padW(GARDEN_PAD,x,z)>.6)tmp.lerp(cPad,.4)}
     else tmp.copy(Math.hypot(x,z)>260?cFar:cForest).offsetHSL(0,0,(r()-.5)*.04);
     const ds=streamDist(x,z);if(ds<5)tmp.lerp(cBank,1-ds/5);
     col[i*3]=tmp.r;col[i*3+1]=tmp.g;col[i*3+2]=tmp.b}
@@ -391,13 +417,13 @@ scene.add(buildTerrain(2600,130,false));
 function ribbon(pts,w,color,off,opts){
   const pos=[],idx=[];for(let i=0;i<pts.length;i++){const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];let tx=b[0]-a[0],tz=b[1]-a[1];const l=Math.hypot(tx,tz)||1;tx/=l;tz/=l;const nx=-tz,nz=tx,x=pts[i][0],z=pts[i][1];
     const yc=opts&&opts.flatY?opts.flatY(x,z):null;
-    for(const s of[-1,1]){const px=x+nx*w/2*s,pz=z+nz*w/2*s;pos.push(px,(yc!=null?yc:H(px,pz))+off,pz)}
+    for(const s of[-1,1]){const px=x+nx*w/2*s,pz=z+nz*w/2*s;pos.push(px,(yc!=null?yc:(opts&&opts.yfn?opts.yfn(px,pz):H(px,pz)))+off,pz)}
     if(i){const k=i*2;idx.push(k-2,k-1,k,k-1,k+1,k)}}
   const g=new T.BufferGeometry();g.setAttribute("position",new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
   const m=new T.Mesh(g,new T.MeshLambertMaterial(Object.assign({color,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2},opts&&opts.mat||{})));m.receiveShadow=true;return m;
 }
-scene.add(ribbon(curvePts(ROAD,2),4.2,0xc9c7c0,.15));
-scene.add(ribbon(DRIVE_PTS,3.4,0xb99a6c,.12),ribbon(SROAD_PTS,3.2,0xb5946a,.12),ribbon(LOW_PTS,2,0xae9068,.1));
+ROAD_PTS.forEach(P=>scene.add(ribbon(P,4.2,0xc9c7c0,.15,{yfn:roadY})));
+scene.add(ribbon(DRIVE_E_PTS,3,0xc9c7c0,.12),ribbon(DRIVE_PTS,3.4,0xb99a6c,.12),ribbon(SROAD_PTS,3.2,0xb5946a,.12),ribbon(LOW_PTS,2,0xae9068,.1));
 const water=ribbon(STREAM_PTS,5.2,0x7fb3c4,0,{flatY:(x,z)=>baseH(x,z)+.55,mat:{transparent:true,opacity:.86}});water.receiveShadow=false;scene.add(water);
 
 /* ---- instanced helpers ---- */
@@ -409,11 +435,11 @@ function colorize(im,items,fn){items.forEach((t,i)=>im.setColorAt(i,fn(t,i)));if
 /* ---- vegetation ---- */
 (function(){
   const r=rng(101);
-  const nearPath=(x,z,d)=>{for(const P of[DRIVE_PTS,SROAD_PTS,LOW_PTS])for(const p of P)if((p[0]-x)**2+(p[1]-z)**2<d*d)return true;return false};
+  const nearPath=(x,z,d)=>{for(const P of[DRIVE_PTS,DRIVE_E_PTS,SROAD_PTS,LOW_PTS])for(const p of P)if((p[0]-x)**2+(p[1]-z)**2<d*d)return true;return false};
   const LANDC=LAND.concat([LAND[0]]);
-  const CLEAR=[[FALL.x,FALL.z-3,11],[HUT.x,HUT.z,8],[20,-11,6],[-4,10,6],[-37,51,9]];const clear=(x,z)=>CLEAR.some(([a,b,r])=>(x-a)**2+(z-b)**2<r*r);
+  const CLEAR=[[FALL.x,FALL.z-3,11],[HUT.x,HUT.z,8],[14,-18,6],[-4,10,6],[-29,66,9],[-78,60,6],[46,68,6]];const clear=(x,z)=>CLEAR.some(([a,b,r])=>(x-a)**2+(z-b)**2<r*r);
   const forest=[],pines=[];
-  for(let i=0;i<5200;i++){const x=(r()-.5)*640,z=(r()-.5)*640;if(inPoly(x,z)||polyDist(x,z,LANDC).d<4)continue;if(polyDist(x,z,ROAD).d<5)continue;if(streamDist(x,z)<4)continue;(r()<.28?pines:forest).push({x,z,s:.8+r()*.8,c:r()})}
+  for(let i=0;i<5200;i++){const x=(r()-.5)*640,z=(r()-.5)*640;if(inPoly(x,z)||polyDist(x,z,LANDC).d<4)continue;if(ROADS.some(R=>polyDist(x,z,R).d<5)||Math.hypot(x-NEIGHBOR.x,z-NEIGHBOR.z)<13)continue;if(streamDist(x,z)<4)continue;(r()<.28?pines:forest).push({x,z,s:.8+r()*.8,c:r()})}
   const trunkG=new T.CylinderGeometry(.18,.28,1,5);trunkG.translate(0,.5,0);
   const canG=new T.IcosahedronGeometry(1,0);
   const pineG=new T.ConeGeometry(1,1,6);pineG.translate(0,.5,0);
@@ -423,15 +449,15 @@ function colorize(im,items,fn){items.forEach((t,i)=>im.setColorAt(i,fn(t,i)));if
   colorize(instanced(canG,leafM,forest,t=>setM(t.x,H(t.x,t.z)+t.s*3.6,t.z,t.s*2.6,t.s*2.2,t.s*2.6,t.c*6)),forest,t=>pal[Math.floor(t.c*4)]);
   colorize(instanced(pineG,new T.MeshLambertMaterial({color:0xffffff}),pines,t=>setM(t.x,H(t.x,t.z)+t.s*1.2,t.z,t.s*2.2,t.s*9,t.s*2.2)),pines,t=>_c.set("#2f5a36").offsetHSL(0,0,(t.c-.5)*.06).clone());
   // cà phê theo hàng
-  const coffee=[];for(let z=-38;z<48;z+=3)for(let x=-75;x<52;x+=2.6){const xx=x+(r()-.5)*.8,zz=z+(r()-.5)*.6;if(!inPoly(xx,zz)||r()<.18)continue;if(inRect(xx,zz,{x0:GARDEN.x0-3,x1:GARDEN.x1+3,z0:GARDEN.z0-3,z1:GARDEN.z1+3}))continue;if(clear(xx,zz)||nearPath(xx,zz,2.6)||streamDist(xx,zz)<7||padW(HOUSE_PAD,xx,zz)>.3||Math.hypot(xx-HUT.x,zz-HUT.z)<7)continue;coffee.push({x:xx,z:zz,s:.7+r()*.4,c:r()})}
+  const coffee=[];for(let z=-46;z<64;z+=3)for(let x=-80;x<52;x+=2.6){const xx=x+(r()-.5)*.8,zz=z+(r()-.5)*.6;if(!inPoly(xx,zz)||r()<.18)continue;if(inRect(xx,zz,{x0:GARDEN.x0-3,x1:GARDEN.x1+3,z0:GARDEN.z0-3,z1:GARDEN.z1+3}))continue;if(clear(xx,zz)||nearPath(xx,zz,2.6)||streamDist(xx,zz)<7||houseW(xx,zz)>.3||Math.hypot(xx-HUT.x,zz-HUT.z)<7)continue;coffee.push({x:xx,z:zz,s:.7+r()*.4,c:r()})}
   colorize(instanced(canG,new T.MeshLambertMaterial({color:0xffffff}),coffee,t=>setM(t.x,H(t.x,t.z)+t.s*.8,t.z,t.s*1.05,t.s,t.s*1.05,t.x)),coffee,t=>_c.set("#2f5e2c").offsetHSL(0,0,(t.c-.5)*.05).clone());
   // cây ăn trái
-  const fruit=[];for(let i=0;i<300&&fruit.length<85;i++){const x=-70+r()*120,z=-36+r()*82;if(!inPoly(x,z)||clear(x,z)||nearPath(x,z,4)||streamDist(x,z)<7||inRect(x,z,GARDEN)||padW(HOUSE_PAD,x,z)>.2||Math.hypot(x-HUT.x,z-HUT.z)<7)continue;if(fruit.some(f=>(f.x-x)**2+(f.z-z)**2<36))continue;fruit.push({x,z,s:.9+r()*.5,c:r()})}
+  const fruit=[];for(let i=0;i<300&&fruit.length<85;i++){const x=-76+r()*126,z=-44+r()*104;if(!inPoly(x,z)||clear(x,z)||nearPath(x,z,4)||streamDist(x,z)<7||inRect(x,z,GARDEN)||houseW(x,z)>.2||Math.hypot(x-HUT.x,z-HUT.z)<7)continue;if(fruit.some(f=>(f.x-x)**2+(f.z-z)**2<36))continue;fruit.push({x,z,s:.9+r()*.5,c:r()})}
   for(let i=0;i<30;i++){const p=STREAM_PTS[Math.floor(r()*STREAM_PTS.length)];const x=p[0]+(r()-.5)*22,z=p[1]+(r()<.5?-1:1)*(5+r()*6);if(inPoly(x,z)&&!clear(x,z)&&streamDist(x,z)>4.5&&Math.hypot(x-HUT.x,z-HUT.z)>6)fruit.push({x,z,s:.8+r()*.6,c:r()})}
   instanced(trunkG,trunkM,fruit,t=>setM(t.x,H(t.x,t.z)-.1,t.z,t.s*1.3,t.s*2.6,t.s*1.3));
   colorize(instanced(canG,new T.MeshLambertMaterial({color:0xffffff}),fruit,t=>setM(t.x,H(t.x,t.z)+t.s*3.3,t.z,t.s*2.4,t.s*2,t.s*2.4,t.c*5)),fruit,t=>C(t.c<.5?"#3f7a33":"#5d8f3a"));
   // chuối
-  const ban=[];for(let i=0;i<260&&ban.length<46;i++){const x=-72+r()*120,z=-40+r()*96;if(!inPoly(x,z)||clear(x,z)||nearPath(x,z,3)||streamDist(x,z)<4||inRect(x,z,GARDEN)||padW(HOUSE_PAD,x,z)>.2)continue;ban.push({x,z,s:.8+r()*.4,a:r()*6})}
+  const ban=[];for(let i=0;i<260&&ban.length<46;i++){const x=-78+r()*128,z=-48+r()*110;if(!inPoly(x,z)||clear(x,z)||nearPath(x,z,3)||streamDist(x,z)<4||inRect(x,z,GARDEN)||houseW(x,z)>.2)continue;ban.push({x,z,s:.8+r()*.4,a:r()*6})}
   const bladeG=new T.BoxGeometry(.42,.04,2);bladeG.translate(0,0,1.1);
   instanced(trunkG,lam(0x8a9a4a),ban,t=>setM(t.x,H(t.x,t.z),t.z,t.s*1.1,t.s*2.6,t.s*1.1));
   const blades=[];ban.forEach(t=>{for(let k=0;k<6;k++)blades.push({t,a:t.a+k*1.05,tilt:.25+((k*7)%3)*.18})});
@@ -440,10 +466,10 @@ function colorize(im,items,fn){items.forEach((t,i)=>im.setColorAt(i,fn(t,i)));if
   const tea=[];for(let z=TEA.z0+1.2;z<TEA.z1;z+=2.4)for(let x=TEA.x0+1;x<TEA.x1-1;x+=3.1){if(inPoly(x,z))tea.push({x,z})}
   instanced(new T.SphereGeometry(1,8,6),lam(0x4c8b36),tea,t=>setM(t.x,H(t.x,t.z)+.35,t.z,1.75,.75,.85));
   // thông quanh nhà
-  const pin2=[[-28,-71],[-27,-45],[30,-60],[9,-44],[-12,-72.5],[28,-44]].map(([x,z])=>({x,z}));
+  const pin2=[[-30,-79],[-31,-48],[24,-66],[-24,-81],[23,-51]].map(([x,z])=>({x,z}));
   instanced(pineG,lam(0x2f5a36),pin2,t=>setM(t.x,H(t.x,t.z)+.5,t.z,1.6,7,1.6));
   // hoa
-  const fl=[];for(let i=0;i<220;i++){const a=r();let x,z;if(a<.45){x=POOL.x0-1.5+r()*(POOL.x1-POOL.x0+3);z=POOL.z1+1+r()*2.4}else if(a<.75){x=-22+r()*14;z=-58+r()*2.6}else{x=-6+r()*12;z=-49.8+r()*1.6}if(blocked(x,z)||inPool(x,z))continue;fl.push({x,z,c:r()})}
+  const fl=[];for(let i=0;i<220;i++){const a=r();let x,z;if(a<.45){x=POOL.x0-1.5+r()*(POOL.x1-POOL.x0+3);z=POOL.z1+.9+r()*1.6}else if(a<.75){x=-20+r()*12;z=-72.2+r()*1.6}else{x=-12+r()*8;z=-53.8+r()*1.4}if(blocked(x,z)||inPool(x,z))continue;fl.push({x,z,c:r()})}
   const fcs=["#c77dd8","#f08ab0","#ffffff","#f6c445","#e5566e"].map(C);
   colorize(instanced(new T.IcosahedronGeometry(.22,0),new T.MeshLambertMaterial({color:0xffffff}),fl,t=>setM(t.x,H(t.x,t.z)+.25,t.z,1,1,1),false),fl,t=>fcs[Math.floor(t.c*5)]);
   // đá
@@ -464,54 +490,83 @@ function colorize(im,items,fn){items.forEach((t,i)=>im.setColorAt(i,fn(t,i)));if
 const winMat=new T.MeshLambertMaterial({color:0x2c4a63,emissive:0xffc26b,emissiveIntensity:0});
 function hipRoof(w,d,h,color){const g=new T.ConeGeometry(1,h,4,1);g.rotateY(Math.PI/4);g.scale((w/2+.6)/.7071,1,(d/2+.6)/.7071);g.translate(0,h/2,0);return new T.Mesh(g,lam(color,{flatShading:true}))}
 function gableRoof(w,d,h,color,opts){const s=new T.Shape();s.moveTo(-d/2-.5,0);s.lineTo(d/2+.5,0);s.lineTo(0,h);s.lineTo(-d/2-.5,0);const g=new T.ExtrudeGeometry(s,{depth:w+.8,bevelEnabled:false});g.rotateY(Math.PI/2);g.translate(-(w+.8)/2,0,0);return new T.Mesh(g,lam(color,Object.assign({flatShading:true},opts||{})))}
-function house(o){const g=new T.Group();const y0=H(o.x,o.z);
+function house(o){const g=new T.Group();const y0=o.y!=null?o.y:H(o.x,o.z);
   g.add(mesh(new T.BoxGeometry(o.w,o.h,o.d),lam(o.wall||0xf4f2ec),0,o.h/2,0));
   g.add(mesh(new T.BoxGeometry(o.w+.08,.25,o.d+.08),lam(o.trim||0x2f78c4),0,o.h-.12,0,false));
   g.add(mesh(new T.BoxGeometry(o.w+.3,.35,o.d+.3),lam(0xd9d4c7),0,.17,0,false));
+  if(o.floors===2)g.add(mesh(new T.BoxGeometry(o.w+.12,.2,o.d+.12),lam(o.trim||0x2f78c4),0,o.h/2,0,false));
   const roof=o.hip?hipRoof(o.w,o.d,o.rh,o.roof):gableRoof(o.w,o.d,o.rh,o.roof,o.roofOpts);roof.position.y=o.h;roof.castShadow=true;g.add(roof);
-  const n=Math.max(2,Math.floor(o.w/3));for(let i=0;i<n;i++){for(const s of[-1,1])g.add(mesh(new T.BoxGeometry(1.1,1.1,.08),winMat,-o.w/2+(i+.5)*o.w/n,o.h*.52,s*(o.d/2+.03),false));
-    const aw=mesh(new T.BoxGeometry(1.5,.08,.7),lam(o.trim||0x2f78c4),-o.w/2+(i+.5)*o.w/n,o.h*.52+.8,o.d/2+.35,false);aw.rotation.x=.3;g.add(aw)}
+  const n=Math.max(2,Math.floor(o.w/3));for(const fy of(o.floors===2?[.27,.75]:[.52]))for(let i=0;i<n;i++){for(const s of[-1,1])g.add(mesh(new T.BoxGeometry(1.1,1.1,.08),winMat,-o.w/2+(i+.5)*o.w/n,o.h*fy,s*(o.d/2+.03),false));
+    const aw=mesh(new T.BoxGeometry(1.5,.08,.7),lam(o.trim||0x2f78c4),-o.w/2+(i+.5)*o.w/n,o.h*fy+.8,o.d/2+.35,false);aw.rotation.x=.3;g.add(aw)}
   g.position.set(o.x,y0,o.z);g.rotation.y=o.ry||0;scene.add(g);return g}
-const PY=HOUSE_PAD.y;
-house({x:-17,z:-63,w:11,d:7,h:3.1,rh:2.2,roof:0x3aa39a,trim:0x2f78c4,hip:true});
-house({x:0,z:-61.5,w:13,d:8,h:3.4,rh:2.6,roof:0xb4553a,trim:0x2f78c4});
-house({x:-1,z:-53.5,w:11,d:6,h:2.7,rh:1.8,roof:0x5b5f63,trim:0x2f78c4});
-house({x:18,z:-67,w:15,d:7,h:3,rh:2.2,roof:0xe9eef0,wall:0xdfe6e3,trim:0x9aa7a3,roofOpts:{transparent:true,opacity:.85}});
-scene.add(mesh(new T.BoxGeometry(12,.25,3.2),lam(0xb4553a),-1,PY+.12,-48.9,false));
-scene.add(mesh(new T.BoxGeometry(3.6,.6,1),lam(0x2f6fd1),-4,PY+.55,-48.8),mesh(new T.BoxGeometry(3.6,.9,.3),lam(0x2f6fd1),-4,PY+.9,-48.2));
-for(let i=0;i<5;i++)scene.add(mesh(new T.BoxGeometry(1.6,.25,.6),lam(0x4f8a3c),8,PY+.12-i*.02,-49+i*.6,false));
+const PY=LOW_PAD.y, UY=UP_PAD.y;
+house({x:-14,z:-75.5,w:11,d:6,h:3.1,rh:2.2,roof:0x3aa39a,trim:0x2f78c4,hip:true,y:UY});            // nhà mái xanh
+house({x:-8,z:-61,w:9,d:7,h:3.2,rh:2.4,roof:0x5b5f63,trim:0x2f78c4,y:PY});                          // nhà chính – mái xám
+house({x:2.5,z:-62.5,w:11,d:7,h:3.2,rh:2.4,roof:0xb4553a,trim:0x2f78c4,y:PY});                      // nhà chính – mái ngói đỏ
+house({x:12,z:-75,w:15,d:6,h:3,rh:2.3,roof:0xe9eef0,wall:0xdfe6e3,trim:0x9aa7a3,roofOpts:{transparent:true,opacity:.85},y:UY}); // nhà làm vườn
+// hiên: sàn gạch đỏ, mái bạt trắng, sofa xanh
+scene.add(mesh(new T.BoxGeometry(9.4,.3,3.6),lam(0xb4553a),-8,PY+.15,-55.8,false));
+for(const a of[-4.5,4.5])for(const b of[-1.7,1.7])scene.add(mesh(new T.CylinderGeometry(.06,.06,2.6,5),lam(0xf4f4f0),-8+a,PY+1.4,-55.8+b));
+scene.add(mesh(new T.BoxGeometry(9.8,.12,4),lam(0xf7f7f2),-8,PY+2.75,-55.8));
+scene.add(mesh(new T.BoxGeometry(9.4,.8,.08),lam(0xf4f2ec),-8,PY+.7,-54.05,false));
+scene.add(mesh(new T.BoxGeometry(3.6,.6,1),lam(0x2f6fd1),-10,PY+.6,-56.8),mesh(new T.BoxGeometry(3.6,.9,.3),lam(0x2f6fd1),-10,PY+.95,-57.3));
+// bậc cỏ từ hiên xuống vườn
+for(let i=0;i<7;i++){const z=-53.4+i*.65;scene.add(mesh(new T.BoxGeometry(1.6,.3,.65),lam(0x4f8a3c),-1.5,H(-1.5,z)+.12,z,false))}
+// máy nước nóng mặt trời trên mái ngói
+{const m=mesh(new T.BoxGeometry(1.6,.08,1.1),lam(0x2d5f8a),5.5,PY+4.3,-61.5,false);m.rotation.x=-.5;scene.add(m);scene.add(mesh(new T.CylinderGeometry(.18,.18,1.7,8),lam(0xdddddd),5.5,PY+4.75,-62.2,false)).children}
+// hồ bơi
 {const pw=POOL.x1-POOL.x0,pd=POOL.z1-POOL.z0,cx=(POOL.x0+POOL.x1)/2,cz=(POOL.z0+POOL.z1)/2;
- const rim=lam(0xa9dde6);[[-pd/2],[pd/2]].forEach(([dz])=>scene.add(mesh(new T.BoxGeometry(pw+1,.5,.5),rim,cx,PY+.2,cz+dz,false)));
- [[-pw/2],[pw/2]].forEach(([dx])=>scene.add(mesh(new T.BoxGeometry(.5,.5,pd),rim,cx+dx,PY+.2,cz,false)));
+ const rim=lam(0xa9dde6);for(const dz of[-pd/2,pd/2])scene.add(mesh(new T.BoxGeometry(pw+1,.5,.5),rim,cx,PY+.2,cz+dz,false));
+ for(const dx of[-pw/2,pw/2])scene.add(mesh(new T.BoxGeometry(.5,.5,pd),rim,cx+dx,PY+.2,cz,false));
  const pwm=new T.Mesh(new T.PlaneGeometry(pw-.4,pd-.4),new T.MeshLambertMaterial({color:0x3fc4cf,transparent:true,opacity:.88}));pwm.rotation.x=-Math.PI/2;pwm.position.set(cx,PY+.32,cz);scene.add(pwm);
- for(let i=0;i<3;i++)scene.add(mesh(new T.BoxGeometry(.8,.3,1.9),lam(0xffffff),POOL.x0+2+i*3.4,PY+.25,POOL.z0-1.6,false));}
-{const x=-6,z=-70,y=H(x,z);const lg=new T.CylinderGeometry(.08,.08,7,4);for(const[a,b]of[[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]])scene.add(mesh(lg,lam(0x9aa3a8),x+a,y+3.5,z+b));scene.add(mesh(new T.CylinderGeometry(1.1,1.1,1.8,12),lam(0xd8dde0),x,y+7.9,z))}
-{const x=-37.4,z=-61.5,y=H(x,z);const g=new T.Group();g.position.set(x,y,z);g.rotation.y=Math.atan2(-104,-48);scene.add(g);
+ for(let i=0;i<10;i++)scene.add(mesh(new T.BoxGeometry(.9,.06,.9),lam(0xb8a98a),POOL.x1+1.4+(i%2)*1.1,PY+.04,POOL.z0+.6+i*.6,false));}
+// nhà lưới (thỏ ở trong)
+{const x=NETH.x,z=NETH.z,w=8,d=7,h=2.6,y=PY,fr=lam(0x333333);for(const a of[-w/2,w/2])for(const b of[-d/2,d/2])scene.add(mesh(new T.BoxGeometry(.1,h,.1),fr,x+a,y+h/2,z+b,false));
+ const net=new T.Mesh(new T.BoxGeometry(w,h,d),new T.MeshLambertMaterial({color:0x1e1e1e,transparent:true,opacity:.3,depthWrite:false}));net.position.set(x,y+h/2,z);scene.add(net);
+ const edges=new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(w,h,d)),new T.LineBasicMaterial({color:0x222222}));edges.position.copy(net.position);scene.add(edges);
+ scene.add(mesh(new T.BoxGeometry(1.6,.9,1.1),lam(0xc9a066),x+2.6,y+.45,z-2.4))}
+// tháp nước
+{const x=-2,z=-80,y=UY;const lg=new T.CylinderGeometry(.08,.08,7,4);for(const a of[-.8,.8])for(const b of[-.8,.8])scene.add(mesh(lg,lam(0x9aa3a8),x+a,y+3.5,z+b));scene.add(mesh(new T.CylinderGeometry(1.1,1.1,1.8,12),lam(0xd8dde0),x,y+7.9,z))}
+// cổng gỗ phía Tây + bảng tên
+{const x=-40.3,z=-66,y=H(x,z);const g=new T.Group();g.position.set(x,y,z);g.rotation.y=Math.atan2(-149.5,-45.5);scene.add(g);
  const post=new T.BoxGeometry(.3,3.2,.3);g.add(mesh(post,lam(0x6b4a2f),-2.4,1.6,0),mesh(post,lam(0x6b4a2f),2.4,1.6,0));
  const sc=document.createElement("canvas");sc.width=512;sc.height=96;const sx2=sc.getContext("2d");
  const paintSign=()=>{sx2.fillStyle="#6b4a2f";sx2.fillRect(0,0,512,96);sx2.fillStyle="#f6ead2";sx2.font="italic 500 52px Lora, Georgia, serif";sx2.textAlign="center";sx2.textBaseline="middle";sx2.fillText("Anh Sơn Retreat",256,50)};paintSign();
  const tex=new T.CanvasTexture(sc);tex.encoding=T.sRGBEncoding;const wood=lam(0x6b4a2f),face=new T.MeshLambertMaterial({map:tex});
  const sign=new T.Mesh(new T.BoxGeometry(5.2,.95,.15),[wood,wood,wood,wood,face,face]);sign.position.y=3.1;g.add(sign);
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{paintSign();tex.needsUpdate=true})}
-{const y=H(HUT.x,HUT.z),g=new T.Group();g.position.set(HUT.x,y,HUT.z);g.rotation.y=.35;scene.add(g);
- g.add(mesh(new T.BoxGeometry(5,.3,4),lam(0xb07a52),0,.15,0));const pg=new T.CylinderGeometry(.1,.1,2.6,5);for(const[a,b]of[[-2.3,-1.8],[2.3,-1.8],[-2.3,1.8],[2.3,1.8]])g.add(mesh(pg,lam(0x7a5236),a,1.45,b));
+// nhà hàng xóm (không thuộc retreat)
+house({x:NEIGHBOR.x,z:NEIGHBOR.z,w:12,d:8,h:5.8,rh:1.5,roof:0x6f8fb8,trim:0x8a9bb0,wall:0xeef0f2,floors:2,ry:-.3});
+{const x=NEIGHBOR.x+9,z=NEIGHBOR.z-6,y=H(x,z);scene.add(mesh(new T.BoxGeometry(2.4,2,2.4),lam(0xf0f0ee),x,y+1,z));const rf=hipRoof(2.4,2.4,1,0x3aa39a);rf.position.set(x,y+2,z);scene.add(rf)}
+// cầu bê tông vắt qua suối trên cả hai con đường
+const BRIDGES=ROAD_PTS.map((P,ri)=>{let bi=0,bd=1e9;P.forEach((p,i)=>{const d=streamDist(p[0],p[1]);if(d<bd){bd=d;bi=i}});const a=P[Math.max(0,bi-2)],b=P[Math.min(P.length-1,bi+2)],c=P[bi];
+  const g=new T.Group(),y=roadY(c[0],c[1])+.2;g.position.set(c[0],y,c[1]);g.rotation.y=Math.atan2(b[0]-a[0],b[1]-a[1]);scene.add(g);
+  g.add(mesh(new T.BoxGeometry(4.8,.4,10),lam(0xbdbab2),0,-.1,0));for(const s of[-2.4,2.4]){g.add(mesh(new T.BoxGeometry(.18,.9,10),lam(0xd8d5cc),s,.45,0));for(const k of[-4.6,0,4.6])g.add(mesh(new T.BoxGeometry(.3,1.1,.3),lam(0xa9a59b),s,.5,k))}
+  for(const k of[-3.5,3.5])g.add(mesh(new T.BoxGeometry(4,2.6,.6),lam(0x9a968c),0,-1.5,k));
+  return{x:c[0],z:c[1],name:ri===0?"Cầu phía Tây":"Cầu phía Đông"}});
+// chòi nghỉ bên suối
+{const y=H(HUT.x,HUT.z),g=new T.Group();g.position.set(HUT.x,y,HUT.z);g.rotation.y=.2;scene.add(g);
+ g.add(mesh(new T.BoxGeometry(5,.3,4),lam(0xb07a52),0,.15,0));const pg=new T.CylinderGeometry(.1,.1,2.6,5);for(const a of[-2.3,2.3])for(const b of[-1.8,1.8])g.add(mesh(pg,lam(0x7a5236),a,1.45,b));
  const rf=gableRoof(5,4,1.1,0x2fae8e);rf.position.y=2.7;rf.castShadow=true;g.add(rf);
  g.add(mesh(new T.BoxGeometry(3,.15,.8),lam(0x8b5e3c),0,.75,1.2),mesh(new T.BoxGeometry(3,.15,.8),lam(0x8b5e3c),0,.75,-1.2))}
-const fallFoam=[];{const y=baseH(FALL.x,FALL.z);for(let i=0;i<14;i++){const m=new T.Mesh(new T.SphereGeometry(.35+Math.random()*.3,6,4),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));m.position.set(FALL.x+(Math.random()-.5)*3,y+.5,FALL.z+(Math.random()-.5)*1.5);scene.add(m);fallFoam.push({m,ph:Math.random()*6,y0:m.position.y})}
+// thác nhỏ
+const fallFoam=[];{const y=baseH(FALL.x,FALL.z),r=rng(31);for(let i=0;i<14;i++){const m=new T.Mesh(new T.SphereGeometry(.35+r()*.3,6,4),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));m.position.set(FALL.x+(r()-.5)*3,y+.5,FALL.z+(r()-.5)*1.5);scene.add(m);fallFoam.push({m,ph:r()*6,y0:m.position.y})}
  const sheet=new T.Mesh(new T.PlaneGeometry(2.6,1.6),new T.MeshBasicMaterial({color:0xe8f4f7,transparent:true,opacity:.75,side:T.DoubleSide}));sheet.position.set(FALL.x,y+1.2,FALL.z);sheet.rotation.y=.2;scene.add(sheet)}
-const FIRE={x:-19,z:-47};const fire=new T.PointLight(0xff8a3c,0,14,2);const flame=new T.Mesh(new T.ConeGeometry(.45,1.1,6),new T.MeshBasicMaterial({color:0xff9a3c,transparent:true,opacity:.9}));
+// lửa trại
+const fire=new T.PointLight(0xff8a3c,0,14,2);const flame=new T.Mesh(new T.ConeGeometry(.45,1.1,6),new T.MeshBasicMaterial({color:0xff9a3c,transparent:true,opacity:.9}));
 {const x=FIRE.x,z=FIRE.z,y=H(x,z);for(let i=0;i<8;i++){const a=i/8*6.28;scene.add(mesh(new T.DodecahedronGeometry(.25,0),lam(0x777777),x+Math.cos(a)*.8,y+.1,z+Math.sin(a)*.8,false))}
  fire.position.set(x,y+.8,z);scene.add(fire);flame.position.set(x,y+.55,z);scene.add(flame);
  for(const[a,b,ry]of[[-2.5,0,Math.PI/2],[2.5,0,Math.PI/2],[0,2.4,0]]){const lg=mesh(new T.CylinderGeometry(.22,.22,2.2,6),lam(0x7a5236),x+a,y+.22,z+b);lg.rotation.set(0,ry,Math.PI/2);scene.add(lg)}}
-{const x=-29,z=-53,y=H(x,z),fm=lam(0xa07a4f);[[0,-2,4.4,.08],[0,2,4.4,.08],[-2.2,0,.08,4],[2.2,0,.08,4]].forEach(([a,b,w,d])=>scene.add(mesh(new T.BoxGeometry(w,.6,d),fm,x+a,y+.3,z+b,false)));scene.add(mesh(new T.BoxGeometry(1.4,.9,1),lam(0xc9a066),x+1.4,y+.45,z-1.2))}
-{const x=-33,z=-65.5,y=H(x,z);scene.add(mesh(new T.BoxGeometry(1.2,.9,1.2),lam(0xa0522d),x,y+.45,z));const rf=gableRoof(1.2,1.2,.6,0x6b3a22);rf.position.set(x,y+.9,z);scene.add(rf)}
-const LAMPS=[[-34,-60],[-26,-56.5],[-13,-48.5],[0,-43.8],[3,-36],[9,-23],[21,-9],[31,3],[13,-46],[27,-46],[-46,40],[-29,-34],[-14,-44],[-40,-46]];
+// chuồng chó
+{const x=-28,z=-71,y=H(x,z);scene.add(mesh(new T.BoxGeometry(1.2,.9,1.2),lam(0xa0522d),x,y+.45,z));const rf=gableRoof(1.2,1.2,.6,0x6b3a22);rf.position.set(x,y+.9,z);scene.add(rf)}
+// đèn
+const LAMPS=[[-38,-64.5],[-30,-61],[-22,-56.6],[-14,-53.2],[-6,-47],[1,-35],[8,-25],[16,-14.5],[27,-1],[8,-56.3],[21,-56.3],[-44,60],[-32,-41.5],[-20,-49.5],[-33,-52],[12,-70.3],[-14,-71.6],[-80,46],[-79,58],[47,64],[43,48]];
 const bulbMat=new T.MeshBasicMaterial({color:0xfff2d0});
 const glowTex=(()=>{const c=document.createElement("canvas");c.width=c.height=64;const g=c.getContext("2d"),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,214,140,1)");gr.addColorStop(.35,"rgba(255,190,110,.45)");gr.addColorStop(1,"rgba(255,190,110,0)");g.fillStyle=gr;g.fillRect(0,0,64,64);return new T.CanvasTexture(c)})();
 const glows=[];
-for(const[x,z]of LAMPS){const y=H(x,z);scene.add(mesh(new T.CylinderGeometry(.06,.08,2.6,5),lam(0x333333),x,y+1.3,z,false));scene.add(mesh(new T.SphereGeometry(.17,8,6),bulbMat,x,y+2.65,z,false));
+for(const[x,z]of LAMPS){const y=walkable(x,z)?groundY(x,z):H(x,z);scene.add(mesh(new T.CylinderGeometry(.06,.08,2.6,5),lam(0x333333),x,y+1.3,z,false));scene.add(mesh(new T.SphereGeometry(.17,8,6),bulbMat,x,y+2.65,z,false));
   const sp=new T.Sprite(new T.SpriteMaterial({map:glowTex,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0}));sp.position.set(x,y+2.65,z);sp.scale.set(5,5,1);scene.add(sp);glows.push(sp)}
-const porch=[new T.PointLight(0xffc27a,0,18,2),new T.PointLight(0xffc27a,0,16,2)];porch[0].position.set(-1,PY+2.4,-49);porch[1].position.set(-17,PY+2.4,-58.5);porch.forEach(l=>scene.add(l));
+const porch=[new T.PointLight(0xffc27a,0,18,2),new T.PointLight(0xffc27a,0,16,2)];porch[0].position.set(-8,PY+2.4,-55.8);porch[1].position.set(-14,UY+2.4,-71.8);porch.forEach(l=>scene.add(l));
 
 /* ---- rain, clouds, mist ---- */
 const RAIN_N=1600;const rainGeo=new T.BufferGeometry();const rainPos=new Float32Array(RAIN_N*6);rainGeo.setAttribute("position",new T.BufferAttribute(rainPos,3));
@@ -548,6 +603,40 @@ const npcObjs=new Map();
 function npcObj(s){let o=npcObjs.get(s.id);if(!o){o=makePerson(s);scene.add(o);npcObjs.set(s.id,o)}return o}
 PETS.forEach(p=>p.obj=makeAnimal(p));
 
+/* ---- chim: đàn bay trên trời, chim nhỏ dưới đất, cú mèo ban đêm ---- */
+const BG={body:new T.ConeGeometry(.09,.38,5),wR:new T.BoxGeometry(.42,.02,.16),wL:new T.BoxGeometry(.42,.02,.16)};BG.body.rotateX(Math.PI/2);BG.wR.translate(.21,0,0);BG.wL.translate(-.21,0,0);
+function makeFlyer(col){const g=new T.Group(),m=lam(col);const w1=new T.Mesh(BG.wR,m),w2=new T.Mesh(BG.wL,m);g.add(new T.Mesh(BG.body,m),w1,w2);g.userData={w1,w2};g.scale.setScalar(1.6);scene.add(g);return g}
+const FLOCKS=[0,1,2,3].map(i=>({ph:i*1.7,r:38+i*12,cx:[-10,6,-26,16][i],cz:[-12,18,32,-40][i],h:14+i*5,sp:.05+i*.012,
+  birds:Array.from({length:5+i},(_,k)=>({o:makeFlyer(i%2?"#3b3b3b":"#5a4632"),dx:(k%3-1)*1.7+((k*7)%5-2)*.4,dz:-Math.floor(k/2)*1.4,dy:((k*13)%5)*.3,fp:k*.9}))}));
+const BIRD_LINES={"Chào mào":["Chào mào hót ‘chào mào!’. Có thể là chào bạn, cũng có thể đang chửi con Mướp.","Chào mào dựng mào đỏ lên như vừa đi làm tóc ở Bảo Lộc về.","Nó đậu trên cành bơ, nhìn xuống bạn như quản lý nhìn nhân viên đi trễ."],
+  "Chim sẻ":["Chim sẻ nhảy ba bước, nhìn bạn, nhảy ba bước nữa. Nó đang đánh giá bạn có mang bánh mì không.","Chim sẻ mổ một hạt cỏ rồi nhả ra. Khó tính như khách review một sao.","Cả nhóm chim sẻ đang họp, chủ đề: ai ăn hết hạt kê của Anh Tèo."],
+  "Chích choè":["Chích choè hót một tràng dài như đọc rap. Chú Ba nói hay hơn karaoke cả xóm.","Chích choè vẫy đuôi liên tục, kiểu đang tập aerobic buổi sáng.","Nó hót đúng 6 giờ sáng mỗi ngày. Báo thức của cả retreat là nó."],
+  "Cú mèo":["Cú… cú… Dịch: ‘Ngủ đi, 11 giờ rồi’.","Cú mèo xoay đầu nhìn bạn 180 độ. Bạn thua.","Cú mèo trực đêm thay Chị Mơ. Lương trả bằng chuột."]};
+const GB_G={body:new T.SphereGeometry(.13,8,6),head:new T.SphereGeometry(.085,8,6),tail:new T.BoxGeometry(.08,.02,.18),beak:new T.ConeGeometry(.025,.08,4),crest:new T.ConeGeometry(.035,.12,4)};GB_G.beak.rotateX(Math.PI/2);
+const GBIRDS=[["Chào mào",-8,-53.2,3],["Chim sẻ",-31,-30,6],["Chim sẻ",-27,-27,6],["Chào mào",14.5,-56.4,4],["Chích choè",-45,59,4],["Chim sẻ",-21,-49.5,3],["Chích choè",40,-76,6],["Chào mào",0,-70.4,3],["Chim sẻ",4,6,5]].map(([name,x,z,r],i)=>{
+  const g=new T.Group(),col=name==="Chào mào"?0x6b5a4a:name==="Chích choè"?0x262626:0x8a6a4a;const b=new T.Mesh(GB_G.body,lam(col));b.scale.set(1,.85,1.35);b.position.y=.16;const hd=new T.Mesh(GB_G.head,lam(col));hd.position.set(0,.28,.12);
+  const tl=new T.Mesh(GB_G.tail,lam(col));tl.position.set(0,.2,-.2);tl.rotation.x=-.4;const bk=new T.Mesh(GB_G.beak,lam(0xe0a030));bk.position.set(0,.27,.22);g.add(b,hd,tl,bk);
+  if(name==="Chào mào"){const c=new T.Mesh(GB_G.crest,lam(0x222222));c.position.set(0,.39,.1);g.add(c);const red=new T.Mesh(new T.SphereGeometry(.03,6,4),lam(0xd0302a));red.position.set(.07,.27,.14);g.add(red)}
+  if(name==="Chích choè"){const w=new T.Mesh(new T.BoxGeometry(.05,.03,.18),lam(0xffffff));w.position.set(.12,.2,0);g.add(w)}
+  g.scale.setScalar(1.3);scene.add(g);return{id:"b"+i,name,x,z,r,o:g,head:hd,flee:-99,_x:x,_z:z,_y:0}});
+const owl=(()=>{const g=new T.Group(),m=lam(0x7a6248);const b=new T.Mesh(new T.SphereGeometry(.22,8,6),m);b.scale.set(1,1.25,1);g.add(b);const h=new T.Mesh(new T.SphereGeometry(.17,8,6),m);h.position.y=.32;g.add(h);
+  for(const s of[-.07,.07]){const e=new T.Mesh(new T.SphereGeometry(.045,6,4),new T.MeshBasicMaterial({color:0xffd23f}));e.position.set(s,.34,.14);g.add(e)}g.position.set(-2,UY+9.05,-80);g.scale.setScalar(1.4);scene.add(g);return{id:"owl",name:"Cú mèo",o:g}})();
+let noteT=0;
+function updateBirds(time,dt){
+  const day=TOD>5.8&&TOD<18.4&&WX.rain<.5;
+  for(const f of FLOCKS){const a=time*f.sp+f.ph,x=f.cx+Math.cos(a)*f.r,z=f.cz+Math.sin(a)*f.r*.8,hd=Math.atan2(-Math.sin(a)*f.r,Math.cos(a)*f.r*.8),y=H(x,z)+f.h+Math.sin(time*.4+f.ph)*2;
+    const c=Math.cos(hd),s=Math.sin(hd);for(const b of f.birds){b.o.visible=day;if(!day)continue;b.o.position.set(x+b.dx*c+b.dz*s,y+b.dy,z-b.dx*s+b.dz*c);b.o.rotation.y=hd;const fl=Math.sin(time*13+b.fp)*.7;b.o.userData.w1.rotation.z=fl;b.o.userData.w2.rotation.z=-fl}}
+  for(const b of GBIRDS){const vis=TOD>5.5&&TOD<18.8&&WX.rain<.6;b.o.visible=vis;if(!vis)continue;
+    if(me.joined&&time-b.flee>9&&Math.hypot(me.x-b._x,me.z-b._z)<2.2)b.flee=time;
+    const ph=hash(b.id)%100/10,u=time*.12+ph;let x=b.x+b.r*.5*Math.sin(u*1.3)+b.r*.3*Math.sin(u*3.7),z=b.z+b.r*.5*Math.cos(u*1.1)+b.r*.3*Math.sin(u*2.9);
+    if(!inPoly(x,z)||blocked(x,z)){x=b.x;z=b.z}
+    const fl=time-b.flee;let lift=0;if(fl<9){lift=fl<4.5?Math.min(fl,1.2)*6:Math.max(0,(9-fl)/4.5)*7;x+=Math.sin(ph)*fl*1.5;z+=Math.cos(ph)*fl*1.5}
+    const hop=lift>0?0:Math.max(0,Math.sin(time*7+ph*3))*.12;b._x=x;b._z=z;b._y=H(x,z)+hop+lift;b.o.position.set(x,b._y,z);b.o.rotation.y=Math.atan2(Math.cos(u*1.3),-Math.sin(u*1.1));
+    b.head.position.y=.28-(lift>0?0:Math.max(0,Math.sin(time*5+ph))*.08)}
+  owl.o.visible=TOD>=19||TOD<5.5;
+  if(TOD>5.5&&TOD<8.5&&!WX.rain){noteT-=dt;if(noteT<=0){noteT=1.5+Math.random()*2.5;const b=pick(GBIRDS);if(b.o.visible)fx.push({e:"🎵",x:b._x,z:b._z,y:b._y+.6,vy:.6,t:0,life:1.6})}}
+}
+
 /* ---- plants ---- */
 const plantGroup=new T.Group();scene.add(plantGroup);
 const PG={mound:new T.SphereGeometry(.35,6,4),sprout:new T.ConeGeometry(.12,.5,5),bush:new T.IcosahedronGeometry(.45,0),stem:new T.CylinderGeometry(.03,.04,.9,4),bloom:new T.IcosahedronGeometry(.17,0),trunk:new T.CylinderGeometry(.1,.16,1.6,5),crown:new T.IcosahedronGeometry(1,0),dot:new T.SphereGeometry(.1,5,4)};
@@ -576,7 +665,7 @@ const streamInLand=STREAM_PTS.filter(p=>p[0]>-72&&p[0]<52);
 const SHIRTS=["#e07a5f","#3d8bd9","#e8b84a","#7b5ea7","#4caf7d","#d9577a","#2a9d8f","#f4f1ea"];
 const HATS=[["none","Không mũ"],["beanie","Mũ len"],["non","Nón lá"],["cap","Mũ lưỡi trai"]];
 const saved=ls.get("asr-me",null);
-const me={joined:false,n:saved&&saved.n||"",c:saved&&saved.c||pick(SHIRTS),hat:saved&&saved.hat||"beanie",x:-2,z:-44,r:Math.PI,tx:null,tz:null,a:"",s:"",st:0,fx:null,after:null,obj:null};
+const me={joined:false,n:saved&&saved.n||"",c:saved&&saved.c||pick(SHIRTS),hat:saved&&saved.hat||"beanie",x:-7,z:-55,r:0,tx:null,tz:null,a:"",s:"",st:0,fx:null,after:null,obj:null};
 let room=null,user=null,isOwner=false,roomOK=false;
 const remotes=new Map();
 function pushPresence(){if(!room||!me.joined)return;room.presence({j:1,n:me.n.slice(0,24),c:me.c,h:me.hat,x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.r*100)/100,a:me.a||null,s:me.s||null,st:me.st||null,fx:me.fx||null}).catch(()=>{})}
@@ -604,7 +693,7 @@ const onlineCount=()=>remotes.size+(me.joined?1:0);
 function updateOnline(){if(!roomOK)return;$("online").classList.remove("off");$("online-txt").textContent=`${onlineCount()}/${CAPACITY} đang ở đây`}
 
 /* ================= FX & BUBBLES ================= */
-const fx=[];const FXE={heart:"❤️",food:"🥕",water:"💧",splash:"💦",plant:"🌱",lantern:"🏮",coffee:"☕",corn:"🌽",wave:"👋",leaf:"🍃",camera:"📸"};
+const fx=[];const FXE={note:"🎵",seed:"🌾",heart:"❤️",food:"🥕",water:"💧",splash:"💦",plant:"🌱",lantern:"🏮",coffee:"☕",corn:"🌽",wave:"👋",leaf:"🍃",camera:"📸"};
 function spawnFx(k,x,z){if(!isFinite(x)||!isFinite(z))return;for(let i=0;i<(k==="heart"?4:3);i++)fx.push({e:FXE[k]||"✨",x:x+(Math.random()-.5),z:z+(Math.random()-.5),y:groundY(x,z)+1.6,vy:.8+Math.random()*.5,t:0,life:1.8})}
 function doFx(k,x,z){spawnFx(k,x,z);me.fx={k,x:Math.round(x*10)/10,z:Math.round(z*10)/10,t:Date.now()};pushPresence()}
 const bubbles=new Map();
@@ -616,11 +705,11 @@ const camS={yaw:Math.PI,pitch:.42,dist:16,tx:-2,tz:-40,mode:"follow"};
 const camTarget=new T.Vector3();
 function updateCamera(dt){
   let tx,ty,tz;
-  if(camS.mode==="drone"){tx=5;ty=0;tz=-5}
+  if(camS.mode==="drone"){tx=2;tz=-2;ty=H(2,-2)}
   else if(me.joined){tx=me.x;tz=me.z;ty=groundY(me.x,me.z)+1.6}
   else{tx=camS.tx;tz=camS.tz;ty=H(tx,tz)+1.6}
   const k=1-Math.pow(.003,dt);camTarget.x=lerp(camTarget.x,tx,k);camTarget.y=lerp(camTarget.y,ty,k);camTarget.z=lerp(camTarget.z,tz,k);
-  const d=camS.mode==="drone"?190:camS.dist,p=camS.mode==="drone"?.72:camS.pitch,yaw=camS.mode==="drone"?-.12:camS.yaw;
+  const d=camS.mode==="drone"?215:camS.dist,p=camS.mode==="drone"?.72:camS.pitch,yaw=camS.mode==="drone"?-.12:camS.yaw;
   const cx=camTarget.x+Math.sin(yaw)*Math.cos(p)*d,cz=camTarget.z+Math.cos(yaw)*Math.cos(p)*d;let cy=camTarget.y+Math.sin(p)*d;
   const gy=H(cx,cz)+1.2;if(cy<gy)cy=gy;
   camera.position.set(cx,cy,cz);camera.lookAt(camTarget);
@@ -654,6 +743,8 @@ function tap(px,py){
   for(const s of STAFF){const st=s._st;if(st&&!st.away)cand(st.x,groundY(st.x,st.z)+1.2,st.z,{t:"npc",o:s})}
   for(const g of GUESTS){const st=g._st;if(st)cand(st.x,groundY(st.x,st.z)+1.2,st.z,{t:"npc",o:g})}
   for(const p of PETS)if(p._x!=null)cand(p._x,H(p._x,p._z)+.4,p._z,{t:"pet",o:p});
+  for(const b of GBIRDS)if(b.o.visible)cand(b._x,b._y+.25,b._z,{t:"bird",o:b});
+  if(owl.o.visible)cand(owl.o.position.x,owl.o.position.y,owl.o.position.z,{t:"bird",o:owl});
   for(const r of remotes.values())cand(r.x,groundY(r.x,r.z)+1.2,r.z,{t:"guest",o:r});
   for(const L of lanterns)cand(L.m.position.x,L.m.position.y,L.m.position.z,{t:"lantern",o:L.l});
   if(!plantMode)for(const p of Store.data.plants)if(isFinite(p.x))cand(p.x,H(p.x,p.z)+.5,p.z,{t:"plant",o:p});
@@ -665,7 +756,7 @@ function tap(px,py){
   if(plantMode){if(!inRect(x,z,GARDEN)){toast("Chỉ trồng được trong vườn của khách (ô có hàng rào gỗ)");return}tryPlant(x,z);return}
   const spot=SPOTS.find(s=>s.hit(x,z));
   if(spot){showSpot(spot);walkTo(spot.at?spot.at[0]:x,spot.at?spot.at[1]:z);return}
-  if(!inPoly(x,z)){toast("Ngoài ranh đất của retreat");return}
+  if(!walkable(x,z)){toast("Ngoài ranh đất của retreat");return}
   closeCard();walkTo(x,z);
 }
 function walkTo(x,z,after){if(!me.joined){openJoin();return}if(camS.mode==="drone")setView(false);
@@ -684,19 +775,21 @@ function stepMe(dt){if(!me.joined)return;moving=false;
 
 /* ================= SPOTS ================= */
 const SPOTS=[
-  {hit:(x,z)=>x>POOL.x0-2&&x<POOL.x1+2&&z>POOL.z0-2.5&&z<POOL.z1+2,at:[19.5,-46.5],k:"Hồ bơi",t:"Hồ bơi nước lạnh",d:()=>`Nước mát lạnh kiểu Bảo Lộc. Ngoài trời ${Math.round(WX.temp)}°C.`,acts:[["Nhảy xuống bơi",()=>walkTo(17+Math.random()*5,-52.5+Math.random()*2,()=>{doFx("splash",me.x,me.z);sayMe(pick(["Lạnh! Lạnh! Ai nói nước ấm vậy trời!","Tỉnh ngủ luôn, khỏi cần cà phê.","Bơi một vòng mà thấy như vừa đi spa đá."]))})]]},
-  {hit:(x,z)=>x>-8&&x<8&&z>-51&&z<-43,at:[-2,-46.5],k:"Hiên nhà chính",t:"Cà phê ngắm đồi",d:()=>"Hiên gạch đỏ, sofa xanh, nhìn thẳng ra đồi núi Bảo Lộc.",acts:[["Uống cà phê",()=>walkTo(-3,-47.5,()=>{me.a="coffee";doFx("coffee",me.x,me.z)})],["Ngắm toàn cảnh",()=>setView(true)]]},
-  {hit:(x,z)=>inRect(x,z,TEA),at:[40,-46],k:"Đồi chè",t:"Hái chè cùng Chú Ba",d:()=>"Luống chè xanh chạy theo sườn đồi. Hái một tôm hai lá là chuẩn.",acts:[["Hái chè",()=>walkTo(38+Math.random()*30,-60+Math.random()*12,()=>{me.a="tea";doFx("leaf",me.x,me.z);toast(pick(["Bạn hái được một nắm chè. Chú Ba chấm 6 điểm.","Bạn hái nhầm lá già. Chú Ba giả vờ không thấy.","Một tôm hai lá chuẩn chỉnh! Chú Ba gật gù."]))})]]},
-  {hit:(x,z)=>inRect(x,z,{x0:GARDEN.x0-1,x1:GARDEN.x1+1,z0:GARDEN.z0-1,z1:GARDEN.z1+1}),at:[-29,-34.5],k:"Vườn của khách",t:"Trồng một cây",d:()=>`Ai ghé cũng trồng được. Vườn đang có ${Store.data.plants.length} cây. Cây lớn theo thời gian và mỗi lần được tưới.`,acts:[["Chọn cây để trồng",()=>openPlantPicker()]]},
-  {hit:(x,z)=>Math.hypot(x-HUT.x,z-HUT.z)<5,at:[HUT.x+3,HUT.z-2],k:"Bên suối",t:"Chòi nghỉ bên suối",d:()=>"Chòi gỗ mái xanh. Nghe suối chảy rồi ngủ gật là hoàn toàn hợp lệ.",acts:[["Ngồi nghỉ",()=>walkTo(HUT.x+.5,HUT.z,()=>{me.a="rest";pushPresence()})],["Viết lưu bút",()=>openBook()]]},
-  {hit:(x,z)=>Math.hypot(x-FALL.x,z-FALL.z)<8,at:[FALL.x-2,FALL.z-6],k:"Ghềnh đá",t:"Thác nhỏ",d:()=>"Ghềnh đá và thác nhỏ trên con suối lớn chảy ngang đất.",acts:[["Thả hoa đăng",()=>openLantern()],["Chụp ảnh",()=>{doFx("camera",me.x,me.z);toast("Tách! Ảnh đẹp tới mức điện thoại tự hỏi có cần filter không.")}]]},
+  {hit:(x,z)=>x>POOL.x0-2&&x<POOL.x1+3&&z>POOL.z0-2&&z<POOL.z1+2,at:[14.5,-56.4],k:"Hồ bơi",t:"Hồ bơi nước lạnh",d:()=>`Hồ chạy dọc nhà chính, lối đá bên cạnh dẫn ra đường phía Đông. Ngoài trời ${Math.round(WX.temp)}°C.`,acts:[["Nhảy xuống bơi",()=>walkTo(11+Math.random()*7,-62+Math.random()*2.5,()=>{doFx("splash",me.x,me.z);sayMe(pick(["Lạnh! Lạnh! Ai nói nước ấm vậy trời!","Tỉnh ngủ luôn, khỏi cần cà phê.","Bơi một vòng mà thấy như vừa đi spa đá."]))})]]},
+  {hit:(x,z)=>x>-13&&x<-3&&z>-58&&z<-53,at:[-7,-55.2],k:"Hiên nhà chính",t:"Cà phê ngắm đồi",d:()=>"Hiên gạch đỏ, mái bạt trắng, sofa xanh. Nhìn xuống là cả sườn đồi và con suối thấp hơn 45 mét.",acts:[["Uống cà phê",()=>walkTo(-9,-55.6,()=>{me.a="coffee";doFx("coffee",me.x,me.z)})],["Ngắm toàn cảnh",()=>setView(true)]]},
+  {hit:(x,z)=>x>3&&x<21&&z>-79&&z<-70,at:[12,-70.5],k:"Nhà làm vườn",t:"Nhà của Chú Ba và Anh Tèo",d:()=>"Nhà kính trắng: ươm cây con, cất cuốc xẻng, và là chỗ hai người làm vườn ngủ trưa.",acts:[["Xem vườn ươm",()=>toast(pick(["Trong nhà kính có 300 bầu cây con, mỗi bầu dán tên. Có bầu ghi ‘đừng tưới, cây này giả chết’.","Chú Ba đếm cây con mỗi sáng. Thiếu một cây là nghi con thỏ.","Bạn thấy một cái võng giữa các luống ươm. Đây là ‘phòng họp’ của Anh Tèo."]),5000)]]},
+  {hit:(x,z)=>inRect(x,z,TEA)&&inPoly(x,z),at:[30,-68],k:"Đồi chè",t:"Hái chè cùng Chú Ba",d:()=>"Dải chè chạy dọc ranh trên cùng, sau cụm nhà. Hái một tôm hai lá là chuẩn.",acts:[["Hái chè",()=>walkTo(26+Math.random()*30,-80+Math.random()*8,()=>{me.a="tea";doFx("leaf",me.x,me.z);toast(pick(["Bạn hái được một nắm chè. Chú Ba chấm 6 điểm.","Bạn hái nhầm lá già. Chú Ba giả vờ không thấy.","Một tôm hai lá chuẩn chỉnh! Chú Ba gật gù."]))})]]},
+  {hit:(x,z)=>inRect(x,z,{x0:GARDEN.x0-1,x1:GARDEN.x1+1,z0:GARDEN.z0-1,z1:GARDEN.z1+1}),at:[-32,-41.5],k:"Vườn của khách",t:"Trồng một cây",d:()=>`Ai ghé cũng trồng được. Vườn đang có ${Store.data.plants.length} cây. Cây lớn theo thời gian và mỗi lần được tưới.`,acts:[["Chọn cây để trồng",()=>openPlantPicker()]]},
+  {hit:(x,z)=>Math.hypot(x-HUT.x,z-HUT.z)<5,at:[HUT.x+3,HUT.z-3],k:"Bên suối",t:"Chòi nghỉ bên suối",d:()=>"Chòi gỗ mái xanh. Nghe suối chảy rồi ngủ gật là hoàn toàn hợp lệ.",acts:[["Ngồi nghỉ",()=>walkTo(HUT.x+.5,HUT.z,()=>{me.a="rest";pushPresence()})],["Viết lưu bút",()=>openBook()]]},
+  {hit:(x,z)=>Math.hypot(x-FALL.x,z-FALL.z)<8,at:[FALL.x-1,FALL.z-6],k:"Ghềnh đá",t:"Thác nhỏ",d:()=>"Ghềnh đá và thác nhỏ trên con suối lớn chảy ngang đất.",acts:[["Thả hoa đăng",()=>openLantern()],["Chụp ảnh",()=>{doFx("camera",me.x,me.z);toast("Tách! Ảnh đẹp tới mức điện thoại tự hỏi có cần filter không.")}]]},
+  {hit:(x,z)=>BRIDGES.some(b=>Math.hypot(x-b.x,z-b.z)<6),at:null,k:"Cầu qua suối",t:"Hai đường lên nhà chính",d:()=>"Đường bê tông phía Tây qua cầu cạnh nhà hàng xóm, đường phía Đông chạy dọc ranh lên tới hồ bơi. Cả hai đều dẫn lên nhà chính, dốc 45 mét.",acts:[["Đi đường Tây lên nhà",()=>{teleport(BRIDGES[0].x+1,BRIDGES[0].z-6,2.6);walkTo(-37,-64.5)}],["Đi đường Đông lên nhà",()=>{teleport(BRIDGES[1].x-.5,BRIDGES[1].z-6,2.8);walkTo(24,-56)}]]},
   {hit:(x,z)=>streamDist(x,z)<5&&inPoly(x,z),at:null,k:"Suối lớn",t:"Con suối chảy ngang đất",d:()=>"Nước trong, đá to. Thả một chiếc hoa đăng kèm lời ước, nó trôi trên suối 48 giờ.",acts:[["Thả hoa đăng",()=>openLantern()],["Lội suối",()=>{const p=pick(streamInLand);walkTo(p[0],p[1],()=>doFx("splash",me.x,me.z))}]]},
-  {hit:(x,z)=>Math.hypot(x-FIRE.x,z-FIRE.z)<4,at:[FIRE.x+2,FIRE.z+2],k:"Bãi cỏ",t:"Lửa trại",d:()=>TOD>=18&&TOD<21.5?"Lửa đang cháy, Anh Tèo nướng bắp.":"Lửa trại đốt từ 18:00 đến 21:30.",acts:[["Ngồi quanh lửa",()=>walkTo(FIRE.x+1.8,FIRE.z+1.5,()=>{me.a="fire";doFx("corn",me.x,me.z);if(!(TOD>=18&&TOD<21.5))toast("Chưa tới giờ đốt lửa. Ngồi ngắm củi trước cũng được.")})]]},
-  {hit:(x,z)=>Math.hypot(x+29,z+53)<3.5,at:[-26,-50],k:"Chuồng thỏ",t:"Nhà của Bông và Tuyết",d:()=>"Bấm vào từng bạn thỏ để vuốt ve hoặc cho ăn.",acts:[]},
-  {hit:(x,z)=>Math.hypot(x+37,z+61.5)<5,at:[-33,-59],k:"Cổng",t:"Cổng Anh Sơn Retreat",d:()=>"Sổ lưu bút để ở đây. Ký một dòng trước khi về nhé.",acts:[["Mở sổ lưu bút",()=>openBook()]]},
+  {hit:(x,z)=>Math.hypot(x-FIRE.x,z-FIRE.z)<4,at:[FIRE.x+2,FIRE.z+1.5],k:"Bãi cỏ",t:"Lửa trại",d:()=>TOD>=18&&TOD<21.5?"Lửa đang cháy, Anh Tèo nướng bắp.":"Lửa trại đốt từ 18:00 đến 21:30.",acts:[["Ngồi quanh lửa",()=>walkTo(FIRE.x+1.8,FIRE.z+1.5,()=>{me.a="fire";doFx("corn",me.x,me.z);if(!(TOD>=18&&TOD<21.5))toast("Chưa tới giờ đốt lửa. Ngồi ngắm củi trước cũng được.")})]]},
+  {hit:(x,z)=>Math.hypot(x-NETH.x,z-NETH.z)<5.5,at:[NETH.x,-56.6],k:"Nhà lưới",t:"Nhà của Bông và Tuyết",d:()=>"Nhà lưới đen cạnh nhà chính. Bấm vào từng bạn thỏ để vuốt ve hoặc cho ăn.",acts:[]},
+  {hit:(x,z)=>Math.hypot(x+40.3,z+66)<5,at:[-37,-64.5],k:"Cổng phía Tây",t:"Cổng Anh Sơn Retreat",d:()=>"Cổng gỗ trên đường bê tông phía Tây. Sổ lưu bút để ở đây.",acts:[["Mở sổ lưu bút",()=>openBook()]]},
+  {hit:(x,z)=>Math.hypot(x-NEIGHBOR.x,z-NEIGHBOR.z)<10,at:null,k:"Ngoài ranh đất",t:"Nhà hàng xóm",d:()=>"Nhà hai tầng ở góc dưới là của hàng xóm, không thuộc retreat. Chó nhà họ sủa to hơn chó mình, đừng ghé.",acts:[]},
 ];
-// [tên, vị trí, mô tả, hướng camera (0: đứng phía Nam nhìn lên nhà, π: đứng phía Bắc nhìn xuống đồi)]
-const SPOT_LIST=[["Cổng",[-33,-59],"Ký lưu bút",-1.1],["Hiên nhà chính",[-2,-46],"Cà phê ngắm đồi",.35],["Hồ bơi",[19.5,-46.2],"Bơi nước lạnh",.5],["Đồi chè",[40,-46],"Hái chè",.6],["Vườn của khách",[-29,-35],"Trồng cây",.3],["Lửa trại",[-16,-44],"Tối 18:00",.2],["Đường chữ S",[20,-11],"Đi dạo dốc",2.6],["Vườn cà phê",[-4,10],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,38],"Nghỉ chân",2.4],["Thác nhỏ",[-37,51],"Thả hoa đăng",2.8]];
+const SPOT_LIST=[["Cổng phía Tây",[-37,-64.5],"Ký lưu bút",-1.2],["Hiên nhà chính",[-7,-55],"Cà phê ngắm đồi",.35],["Hồ bơi",[14.5,-56.4],"Bơi nước lạnh",.5],["Nhà làm vườn",[12,-70.5],"Vườn ươm",.25],["Đồi chè",[30,-68],"Hái chè",.5],["Vườn của khách",[-32,-41.5],"Trồng cây",.3],["Lửa trại",[-23,-51],"Tối 18:00",.2],["Đường chữ S",[14,-18],"Đi dạo dốc",2.6],["Vườn cà phê",[-4,10],"Giữa sườn đồi",2.9],["Chòi bên suối",[-46,58],"Nghỉ chân",2.4],["Thác nhỏ",[-29,66],"Thả hoa đăng",2.8],["Cầu phía Tây",[-83,56],"Cạnh nhà hàng xóm",2.85],["Cổng phía Đông",[25,-56],"Đường bê tông Đông",-.9]];
 
 /* ================= UI ================= */
 function card(k,title,body,acts){const c=$("card");c.replaceChildren(el("button",{class:"x","aria-label":"Đóng",onclick:closeCard},"×"));if(k)c.append(el("div",{class:"k"},k));c.append(el("h2",null,title));
@@ -706,6 +799,9 @@ function showSpot(s){card(s.k,s.t,s.d(),s.acts)}
 function sayMe(t){me.s=t;me.st=Date.now();say("me",t);pushPresence();logChat(me.n,t)}
 function npcLine(s){s._i=((s._i==null?Math.floor(Math.random()*s.lines.length):s._i)+1)%s.lines.length;return s.lines[s._i]}
 function showEntity(b){
+  if(b.t==="bird"){const o=b.o,ls_=BIRD_LINES[o.name];card(o.name==="Cú mèo"?"Trực đêm":"Chim trong vườn",o.name,el("q",null,pick(ls_)),[
+      ["Huýt sáo",()=>{say(o.id,o.name==="Cú mèo"?"Cú… cú…":pick(["Chíp chíp!","Chíp… chíp chíp chíp!","Tuýt tuýt!"]));doFx("note",me.joined?me.x:o._x||0,me.joined?me.z:o._z||0)}],
+      o.name==="Cú mèo"?["Chúc ngủ ngon",()=>toast("Cú mèo gật đầu một cái rồi quay đi trực tiếp.")]:["Rắc hạt",()=>{if(o._x!=null){doFx("seed",o._x,o._z);o.flee=-99;toast(o.name+" sà xuống mổ hạt, quên luôn là vừa sợ bạn.")}}]]);return}
   if(b.t==="npc"){const s=b.o,st=s._st;const line=npcLine(s);say(s.id,line);
     const body=el("div",{style:"display:flex;flex-direction:column;gap:6px"},el("q",null,line),el("p",null,`${s.role} · ${st&&!st.away?st.verb:"đang nghỉ"}`));
     card(s.plan?"Nhân viên":"Khách vãng lai",s.name,body,[["Nói chuyện tiếp",()=>showEntity(b),true],["Lại gần",()=>{if(st)walkTo(st.x+1.2,st.z+.8)}]]);return}
@@ -731,7 +827,7 @@ function setPlant(on){plantMode=on;$("plantbar").hidden=!on;$("b-plant").classLi
 function openPlantPicker(){if(!me.joined){openJoin();return}
   const b=modal("Trồng một cây","Mỗi người trồng tối đa 5 cây mỗi ngày. Cây qua 4 giai đoạn, tưới càng nhiều càng mau lớn.");const g=el("div",{class:"grid"});
   const sub={veg:"Rau củ",flower:"Hoa",tree:"Cây lâu năm"};
-  for(const k in KINDS)g.append(el("button",{class:"pick"+(k===plantKind?" sel":""),onclick:()=>{plantKind=k;closeModal();setPlant(true);teleport(-29,-35,.3);camS.pitch=.6;toast("Đã tới vườn. Chạm vào luống đất để trồng.")}},KINDS[k].n,el("small",null,sub[KINDS[k].t])));b.append(g)}
+  for(const k in KINDS)g.append(el("button",{class:"pick"+(k===plantKind?" sel":""),onclick:()=>{plantKind=k;closeModal();setPlant(true);teleport(-32,-41.5,.3);camS.pitch=.6;toast("Đã tới vườn. Chạm vào luống đất để trồng.")}},KINDS[k].n,el("small",null,sub[KINDS[k].t])));b.append(g)}
 const todayKey=()=>`${NOW.y}-${NOW.mo}-${NOW.d}`;
 function tryPlant(x,z){const k=KINDS[plantKind];if(Store.data.plants.find(p=>Math.hypot(p.x-x,p.z-z)<(k.t==="tree"?2.4:1.1))){toast("Chỗ này có cây rồi");return}
   if(Store.data.plants.length>=480){toast("Vườn kín chỗ rồi, tưới giúp cây của mọi người nhé");return}
@@ -769,7 +865,7 @@ function openJoin(){const full=roomOK&&remotes.size>=CAPACITY;
     if(roomOK&&remotes.size>=CAPACITY){toast(`Đang đủ ${CAPACITY} khách`);return}
     me.n=n.slice(0,24);ls.set("asr-me",{n:me.n,c:me.c,hat:me.hat});
     if(me.obj)scene.remove(me.obj);me.obj=makePerson({shirt:me.c,hat:me.hat});scene.add(me.obj);
-    if(!me.joined){me.joined=true;me.x=-33.5+Math.random()*2;me.z=-58.5;me.r=Math.PI*.7;camS.yaw=-1.1;camS.pitch=.35;camS.dist=14;camTarget.set(me.x,groundY(me.x,me.z)+1.6,me.z)}
+    if(!me.joined){me.joined=true;me.x=-37.5+Math.random()*1.5;me.z=-64.5;me.r=1.9;camS.yaw=-1.2;camS.pitch=.35;camS.dist=14;camTarget.set(me.x,groundY(me.x,me.z)+1.6,me.z)}
     setView(false);closeModal();updateOnline();sayMe(`Xin chào, mình là ${me.n}!`);
     toast("Chạm mặt đất để đi. Kéo để xoay. Chạm người và thú cưng để trò chuyện.",5000)});
   b.append(f);if(!roomOK)b.append(el("p",{class:"note",style:"margin-top:14px"},"Bản chạy riêng: chỉ thấy chính mình, dữ liệu lưu trên trình duyệt này."));
@@ -778,7 +874,7 @@ function openJoin(){const full=roomOK&&remotes.size>=CAPACITY;
 function logChat(n,s){const L=$("chatlog");const d=el("div",null,el("b",null,n.slice(0,24)+"  "),s.slice(0,120));L.append(d);while(L.children.length>6)L.firstChild.remove();setTimeout(()=>d.remove(),30000)}
 $("chat-form").addEventListener("submit",e=>{e.preventDefault();const i=$("chat-input"),t=i.value.trim();if(!t)return;if(!me.joined){openJoin();return}sayMe(t.slice(0,120));i.value="";i.blur()});
 
-function setView(on){camS.mode=on?"drone":"follow";$("b-view").classList.toggle("on",on)}
+function setView(on){const ch=camS.mode!==(on?"drone":"follow");camS.mode=on?"drone":"follow";$("b-view").classList.toggle("on",on);if(ch)updateEnv()}
 $("b-plant").onclick=()=>plantMode?setPlant(false):openPlantPicker();
 $("plant-done").onclick=()=>setPlant(false);
 $("b-view").onclick=()=>setView(camS.mode!=="drone");
@@ -793,9 +889,10 @@ function openPeople(){const b=modal("Ai đang ở đây",roomOK?`${onlineCount()
   if(me.joined)row(me.c,`${me.n} (bạn)`,"đang ở đây");for(const r of remotes.values()){const p=r.p||{};row(/^#[0-9a-f]{6}$/i.test(p.c)?p.c:"#888888",String(p.n||"Khách").slice(0,24),"online")}
   b.append(L)}
 $("online").onclick=openPeople;
-$("sky").onclick=()=>{const b=modal("Thời tiết Bảo Lộc",`${WD[NOW.wd]}, ${NOW.d}/${NOW.mo} · ${Math.round(DW.tmin)}–${Math.round(DW.tmax)}°C · ${DW.wet?"mùa mưa":"mùa khô"}${DW.fog?" · sáng có sương":""}. Ai ghé thăm cũng thấy cùng một thời tiết.`);
-  const g=el("div",{class:"hours"});for(let h=0;h<24;h++){const w=hourWx(DW,h+.5);g.append(el("div",{class:h===NOW.h?"now":""},el("span",{class:"e"},wxIcon(w,h+.5)),`${h}h`,el("br"),`${Math.round(w.temp)}°`))}b.append(g);
-  b.append(el("p",{class:"note",style:"margin-top:14px"},"Trong ngày: 5:30 Chú Ba lên đồi chè · 6:00 cho thú cưng ăn · 9:00 kiểm tra hồ bơi · 13:30 tham quan suối · 18:00 lửa trại · 22:00 đèn ngủ."))};
+$("sky").onclick=()=>{const t0=TABS-TOD,hrs=Array.from({length:24},(_,h)=>wxAt(t0+h+.5)),ts=hrs.map(w=>w.temp),rainH=hrs.filter(w=>w.rain>.05).length;
+  const b=modal("Thời tiết Bảo Lộc",`${WD[NOW.wd]}, ${NOW.d}/${NOW.mo} · ${Math.round(Math.min(...ts))}–${Math.round(Math.max(...ts))}°C · ${WX.wet?"mùa mưa":"mùa khô"} · ${rainH?`khoảng ${rainH} giờ có mưa`:"không mưa"}. Thời tiết đổi theo từng giờ, ai ghé cũng thấy giống nhau.`);
+  const g=el("div",{class:"hours"});for(let h=0;h<24;h++){const w=hrs[h];g.append(el("div",{class:h===NOW.h?"now":""},el("span",{class:"e"},wxIcon(w,h+.5)),`${h}h`,el("br"),`${Math.round(w.temp)}°`))}b.append(g);
+  b.append(el("p",{class:"note",style:"margin-top:14px"},"Trong ngày: 6:00 cả retreat thức dậy, chim hót · Chú Ba lên đồi chè, Anh Tèo cho thú ăn · 9:00 kiểm tra hồ bơi · 13:30 xuống suối · 18:00 lửa trại · 21:30 đi tuần · 23:00 mọi người đi ngủ."))};
 function updateHud(){$("clk").textContent=`${String(NOW.h).padStart(2,"0")}:${String(NOW.mi).padStart(2,"0")}`;$("wx").textContent=`${wxIcon(WX,TOD)} ${wxText(WX)} · ${Math.round(WX.temp)}°C`}
 
 /* ================= ENVIRONMENT ================= */
@@ -807,14 +904,14 @@ function updateEnv(){
   const grey=Math.max(WX.cloud*.5,WX.rain*.8);tTop.lerp(cRain,grey*(1-dk*.7));tHor.lerp(cRain,grey*.7*(1-dk*.7));
   paintSky(tTop,tHor);
   fogC.copy(tHor).lerp(cFog,WX.fog*(1-dk*.8));scene.fog.color.copy(fogC);
-  const vis=lerp(1500,70,Math.max(WX.fog,WX.rain*.8));scene.fog.near=Math.max(8,vis*.05);scene.fog.far=vis;
+  const vis=lerp(1500,70,Math.max(WX.fog,WX.rain*.8)),extra=camS.mode==="drone"?200:0;scene.fog.near=Math.max(8,vis*.05)+extra*.9;scene.fog.far=vis+extra*1.4;
   renderer.setClearColor(fogC);
   const elv=Math.sin((TOD-6)/12*Math.PI),az=(TOD-6)/12*Math.PI;
   sun.intensity=clamp(elv,0,1)*(1.15-WX.cloud*.65-WX.rain*.3)+.02;sun.color.set(dusk>.2?0xffc890:0xfff1dc);
   sun.position.set(camTarget.x-Math.cos(az)*120,camTarget.y+Math.max(.15,elv)*150,camTarget.z+40);sun.target.position.copy(camTarget);
   hemi.intensity=lerp(.78,.22,dk)*(1-WX.rain*.2);hemi.color.copy(tTop).lerp(WHITE,.5);
   stars.material.opacity=dk*(1-WX.cloud)*.9;
-  winMat.emissiveIntensity=dk*.9;glows.forEach(g=>g.material.opacity=dk*.9);bulbMat.color.set(dk>.35?0xffd38a:0xf2efe6);
+  winMat.emissiveIntensity=(TOD>=WAKE-.5&&TOD<SLEEP)?dk*.9:dk*.1;glows.forEach(g=>g.material.opacity=dk*.9);bulbMat.color.set(dk>.35?0xffd38a:0xf2efe6);
   porch.forEach(l=>l.intensity=dk*1.2);const fireOn=TOD>=18&&TOD<21.5;fire.intensity=fireOn?1.6:0;flame.visible=fireOn;
   clouds.forEach(c=>c.material.opacity=clamp(WX.cloud*.85,0,.85)*(1-dk*.6));
   mists.forEach(m=>m.material.opacity=WX.fog*.75*(1-dk*.4));
@@ -837,19 +934,20 @@ function drawLabel(x,y,z,name,kind,bubble,dist){const s=project(x,y,z);if(!s||s.
   octx.globalAlpha=1}
 
 /* ================= MINIMAP ================= */
-const MM={x0:-95,x1:95,z0:-90,z1:90};
+const MM={x0:-108,x1:108,z0:-96,z1:120};
 function drawMini(){const m=$("mini"),c=m.getContext("2d"),W=m.width,s=W/(MM.x1-MM.x0);const X=x=>(x-MM.x0)*s,Z=z=>(z-MM.z0)*s;const od=Math.min(devicePixelRatio||1,2);
   const line=(P,col,w)=>{c.strokeStyle=col;c.lineWidth=w;c.beginPath();P.forEach((p,i)=>i?c.lineTo(X(p[0]),Z(p[1])):c.moveTo(X(p[0]),Z(p[1])));c.stroke()};
   c.setTransform(1,0,0,1,0,0);c.fillStyle="#3f6b3c";c.fillRect(0,0,W,W);c.lineCap="round";c.lineJoin="round";
-  line(ROAD,"#cfcac0",3*s);
+  ROADS.forEach(R=>line(R,"#cfcac0",3.2*s));
   c.fillStyle="#86ad5c";c.beginPath();LAND.forEach((p,i)=>i?c.lineTo(X(p[0]),Z(p[1])):c.moveTo(X(p[0]),Z(p[1])));c.closePath();c.fill();c.strokeStyle="rgba(255,255,255,.75)";c.lineWidth=1;c.stroke();
   c.fillStyle="#5f9445";c.fillRect(X(TEA.x0),Z(TEA.z0),(TEA.x1-TEA.x0)*s,(TEA.z1-TEA.z0)*s);
   c.fillStyle="#8a6a45";c.fillRect(X(GARDEN.x0),Z(GARDEN.z0),(GARDEN.x1-GARDEN.x0)*s,(GARDEN.z1-GARDEN.z0)*s);
-  for(const P of[DRIVE_PTS,SROAD_PTS,LOW_PTS])line(P,"#c9a77a",2.4*s);
+  for(const P of[DRIVE_PTS,SROAD_PTS,LOW_PTS])line(P,"#c9a77a",2.4*s);line(DRIVE_E_PTS,"#cfcac0",2.4*s);
   line(STREAM_PTS,"#8cc4d4",4.5*s);
   c.fillStyle="#f4f1ea";BLOCKS.forEach(b=>c.fillRect(X(b.x0),Z(b.z0),(b.x1-b.x0)*s,(b.z1-b.z0)*s));
   c.fillStyle="#46c6d2";c.fillRect(X(POOL.x0),Z(POOL.z0),(POOL.x1-POOL.x0)*s,(POOL.z1-POOL.z0)*s);
   c.fillStyle="#2fae8e";c.fillRect(X(HUT.x)-2.5*s,Z(HUT.z)-2*s,5*s,4*s);
+  c.fillStyle="#9fb3cc";c.fillRect(X(NEIGHBOR.x-6),Z(NEIGHBOR.z-4),12*s,8*s);c.fillStyle="#e2dfd7";BRIDGES.forEach(b=>c.fillRect(X(b.x)-2.5*s,Z(b.z)-4*s,5*s,8*s));
   const dot=(x,z,col,r)=>{c.fillStyle=col;c.beginPath();c.arc(X(x),Z(z),r,0,7);c.fill()};
   for(const r of remotes.values())dot(r.x,r.z,"#ffffff",2.2*od);
   for(const g of GUESTS)if(g._st)dot(g._st.x,g._st.z,"#e8e2d6",1.8*od);
@@ -860,7 +958,7 @@ function drawMini(){const m=$("mini"),c=m.getContext("2d"),W=m.width,s=W/(MM.x1-
   if(me.joined){c.save();c.translate(X(me.x),Z(me.z));c.rotate(Math.PI-me.r);c.fillStyle="#ffffff";c.strokeStyle="#1e2a24";c.lineWidth=1.2*od;c.beginPath();c.moveTo(0,-5*od);c.lineTo(3.6*od,4*od);c.lineTo(0,2*od);c.lineTo(-3.6*od,4*od);c.closePath();c.fill();c.stroke();c.restore()}
   c.fillStyle="rgba(255,255,255,.85)";c.font=`600 ${9*od}px "Be Vietnam Pro",sans-serif`;c.textAlign="right";c.textBaseline="top";c.fillText("B ↑",W-6*od,6*od)}
 $("mini").addEventListener("click",e=>{const r=e.currentTarget.getBoundingClientRect();const x=MM.x0+(e.clientX-r.left)/r.width*(MM.x1-MM.x0),z=MM.z0+(e.clientY-r.top)/r.height*(MM.z1-MM.z0);
-  if(!inPoly(x,z)){toast("Ngoài ranh đất");return}let tx=x,tz=z;if(blocked(tx,tz)){for(let k=1;k<20;k++){if(!blocked(tx+k,tz)){tx+=k;break}if(!blocked(tx,tz+k)){tz+=k;break}}}setView(false);teleport(tx,tz)});
+  if(!walkable(x,z)){toast("Ngoài ranh đất");return}let tx=x,tz=z;if(blocked(tx,tz)){for(let k=1;k<20;k++){if(!blocked(tx+k,tz)){tx+=k;break}if(!blocked(tx,tz+k)){tz+=k;break}}}setView(false);teleport(tx,tz)});
 
 /* ================= LOOP ================= */
 let last=performance.now(),acc=0,chatterT=10,envT=0;
@@ -873,6 +971,7 @@ function frame(t){
   for(const s of STAFF.concat(GUESTS)){const st=npcState(s);s._st=st;const o=npcObj(s);o.visible=!st.away;if(st.away)continue;o.position.set(st.x,groundY(st.x,st.z),st.z);o.rotation.y=st.dir;animPerson(o,st.moving,time,false)}
   for(const p of PETS){const q=petPos(p);p._x=q.x;p._z=q.z;p.obj.position.set(q.x,H(q.x,q.z),q.z);p.obj.rotation.y=q.dir;const sl=petAsleep(p);p.obj.scale.y=sl?.75:1;if(p.obj.userData.tail)p.obj.userData.tail.rotation.y=sl?0:Math.sin(time*(p.kind==="chó"?12:3))*.5;
     if(p.kind==="thỏ"&&!sl)p.obj.position.y+=Math.abs(Math.sin(time*5+hash(p.id)))*.15}
+  updateBirds(time,dt);
   for(const r of remotes.values()){const p=r.p||{};const tx=+p.x,tz=+p.z;if(isFinite(tx)&&isFinite(tz)){const k=1-Math.pow(.001,dt);const mv=Math.hypot(tx-r.x,tz-r.z)>.05;r.x=lerp(r.x,tx,k);r.z=lerp(r.z,tz,k);r.obj.position.set(r.x,groundY(r.x,r.z),r.z);if(isFinite(+p.r))r.obj.rotation.y=+p.r;animPerson(r.obj,mv,time,p.a==="swim")}}
   if(me.joined&&me.obj){me.obj.position.set(me.x,groundY(me.x,me.z),me.z);me.obj.rotation.y=me.r;animPerson(me.obj,moving,time,me.a==="swim")}
   for(const L of lanterns){const n=streamInLand.length,u=((time*.004+L.off)%1)*(n-1),i=Math.floor(u),f=u-i,a=streamInLand[i],b=streamInLand[Math.min(n-1,i+1)];const x=lerp(a[0],b[0],f),z=lerp(a[1],b[1],f),y=baseH(x,z)+.75+Math.sin(time*2+L.off*9)*.04;L.m.position.set(x,y,z);L.m.rotation.y=time*.3+L.off*6;L.sp.position.set(x,y+.2,z)}
@@ -888,6 +987,7 @@ function frame(t){
   for(const s of STAFF.concat(GUESTS)){const st=s._st;if(!st||st.away)continue;drawLabel(st.x,groundY(st.x,st.z)+2.35,st.z,s.name,s.plan?"staff":"",bubbleOf(s.id),Math.hypot(st.x-cp.x,st.z-cp.z))}
   for(const r of remotes.values()){const p=r.p||{};const b=p.s&&Date.now()-r.sayAt<8000?String(p.s).slice(0,120):"";drawLabel(r.x,groundY(r.x,r.z)+2.35,r.z,String(p.n||"Khách").slice(0,24),"",b,Math.hypot(r.x-cp.x,r.z-cp.z))}
   for(const p of PETS){const d=Math.hypot(p._x-cp.x,p._z-cp.z);if(d<25)drawLabel(p._x,H(p._x,p._z)+1.05,p._z,p.name+(petAsleep(p)?" · zzz":""),"","",d*1.6)}
+  for(const b of GBIRDS.concat([owl])){if(!b.o.visible)continue;const pp=b.o.position,d=Math.hypot(pp.x-cp.x,pp.z-cp.z),bb=bubbleOf(b.id);if(d<14||bb)drawLabel(pp.x,pp.y+.75,pp.z,d<14?b.name:"","",bb,d*2)}
   if(me.joined)drawLabel(me.x,groundY(me.x,me.z)+2.35,me.z,me.n,"me",bubbleOf("me"),0);
   if(me.tx!=null){const s=project(me.tx,groundY(me.tx,me.tz)+.05,me.tz);if(s){octx.strokeStyle="rgba(255,255,255,.9)";octx.lineWidth=2;octx.beginPath();octx.ellipse(s.x,s.y,10+3*Math.sin(t/150),5+1.5*Math.sin(t/150),0,0,7);octx.stroke()}}
   for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;f.y+=f.vy*dt;if(f.t>f.life){fx.splice(i,1);continue}const s=project(f.x,f.y,f.z);if(!s)continue;octx.globalAlpha=1-f.t/f.life;octx.font='20px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';octx.textAlign="center";octx.textBaseline="middle";octx.fillText(f.e,s.x,s.y);octx.globalAlpha=1}
