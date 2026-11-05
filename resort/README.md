@@ -60,3 +60,9 @@ Muốn mở công khai cho người không có tài khoản: thay `Store` và `i
 Đầu `<script>` trong `index.html`: `WAKE`/`SLEEP` (giờ dậy/ngủ), `SLOPE` (độ dốc), `LAND` (ranh đất), `ROAD_W`, `ROAD_E`, `DRIVE`, `SROAD`, `STREAM` (đường và suối), `UP_PAD`/`LOW_PAD` (hai tầng nền nhà), `POOL`, `TEA`, `GARDEN`, `HUT`, `FALL`, `NEIGHBOR` (vị trí các khu), `STAFF` (lịch làm việc, câu thoại), `PERSONAS` (khách vãng lai), `PETS`, `KINDS` (loại cây). Toạ độ tính bằng mét, x hướng Đông, z hướng Nam (xuống dốc).
 
 Phần giữa `<!--ARTIFACT-START-->` và `<!--ARTIFACT-END-->` là nội dung được xuất bản lên claude.ai.
+
+## Gấu panda Bánh Bao & thoại hài
+
+- **Bánh Bao** là gấu panda to (≈2 m), sống cạnh một bụi tre, ngủ 23:00–6:00. Ban ngày đi dạo, thỉnh thoảng (mỗi 35–90 giây) rượt người/thú/NPC/khách khác để chơi. Tốc độ vừa phải, không cắn, chỉ ôm rồi ngồi thở. Bấm vào gấu để "Đưa tre", "Rủ chơi rượt bắt".
+- Thoại hài tự động mỗi ~11–24 giây: nhân viên/khách ↔ nhân viên/khách, người ↔ thú, thú ↔ thú, thú/nhân viên ↔ người chơi thật (gọi tên họ), và nhân viên "bình luận" khi hai người chơi đứng gần nhau. Khi có người mới vào, nhân viên gần nhất chào theo tên.
+- Gấu và thoại hài tính trên máy từng người (không đồng bộ giữa các người xem).

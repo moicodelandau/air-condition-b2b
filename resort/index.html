@@ -373,14 +373,18 @@ const PETS=[
   {id:"miu",name:"Miu",kind:"mèo",color:"#2b2b2b",area:{cx:14.5,cz:-56.6,rx:5,rz:.5},spd:.45,sleep:[[13,15.5],[23,6]],react:["Miu ngồi canh hồ bơi nhưng ghét nước. Nghề tay trái.","Miu dụi đầu vào chân bạn rồi giả vờ không quen.","Miu kêu meo. Có thể là cảm ơn, có thể là chê."]},
   {id:"bong",name:"Bông",kind:"thỏ",color:"#f6f3ee",area:{cx:NETH.x-.8,cz:NETH.z,rx:2.2,rz:1.8},spd:1.4,sleep:[[23,6]],react:["Bông giật giật mũi, xác nhận bạn không mang cà rốt. Thất vọng.","Bông nhảy một vòng khoe cơ đùi.","Bông ăn cỏ với tốc độ của người vừa hết deadline."]},
   {id:"tuyet",name:"Tuyết",kind:"thỏ",color:"#d9d4cc",area:{cx:NETH.x+.8,cz:NETH.z,rx:2.2,rz:1.8},spd:1.2,sleep:[[23,6]],react:["Tuyết đứng hai chân nhìn bạn, nghiêm túc như họp quý.","Tuyết dụi mũi vào tay bạn. Tim bạn tan chảy 30%.","Tuyết chui vô góc chuồng. Hôm nay Tuyết hướng nội."]},
+  {id:"panda",name:"Bánh Bao",kind:"gấu",panda:true,color:"#f4f1ea",area:{cx:0,cz:0,rx:1,rz:1},spd:1,sleep:[[23,6]],react:["Bánh Bao ôm bạn một cái, bạn thấy mình nhỏ lại còn bằng cái bánh bao thật.","Bánh Bao nhìn bạn, nhìn tre, rồi nhìn bạn. Bạn hiểu: nó đang đòi tre.","Bánh Bao ngồi phịch xuống chân bạn. Giờ bạn chưa đi đâu được."]},
 ];
 let petFollow=null;  // {id,until}: thú cưng đang đi theo bạn
-const PET_SOUNDS={"chó":["Gâu!","Gâu gâu!","*vẫy đuôi*","Ư ử…"],"mèo":["Meo.","Meoo?","*liếm chân*","Prrr…"],"thỏ":["*giật mũi*","*nhảy tưng*","…"]};
+const PET_SOUNDS={"chó":["Gâu!","Gâu gâu!","*vẫy đuôi*","Ư ử…"],"mèo":["Meo.","Meoo?","*liếm chân*","Prrr…"],"thỏ":["*giật mũi*","*nhảy tưng*","…"],"gấu":["Gừ~ (nhưng dễ thương)","*nhai tre rộp rộp*","Ú ù~","*lăn một vòng*"]};
+const PANDA={x:0,z:0,dir:0,run:0,mv:0,stuck:0,mode:"idle",until:0,tx:0,tz:0,target:null,nextChase:0,home:[-4,10]};
+{const c=[[-16,24],[-4,22],[-22,12],[12,44],[-8,36],[-4,10]];const h=c.find(q=>!blocked(q[0],q[1])&&!inPool(q[0],q[1]))||c[c.length-1];PANDA.home=h;PANDA.x=h[0];PANDA.z=h[1];PANDA.nextChase=Date.now()+25000}
 function petLeader(p){const now=Date.now();if(petAsleep(p))return null;
   if(me.joined&&petFollow&&petFollow.id===p.id&&petFollow.until>now)return{x:me.x,z:me.z,r:me.r};
   for(const r of remotes.values()){const q=r.p||{};if(q.pf===p.id&&+q.pfu>now)return{x:r.x,z:r.z,r:+q.r||0}}return null}
 const petAsleep=p=>p.sleep.some(([a,b])=>a<b?(TOD>=a&&TOD<b):(TOD>=a||TOD<b));
 function petPos(p){
+  if(p.panda)return{x:PANDA.x,z:PANDA.z,dir:PANDA.dir,run:PANDA.run};
   if(p.fetch){const f=p.fetch,u=(Date.now()-f.t0)/1000;if(u<1.4){const k=u/1.4;return{x:lerp(f.fx,f.tx,k),z:lerp(f.fz,f.tz,k),dir:Math.atan2(f.tx-f.fx,f.tz-f.fz),run:1}}
     if(u<3&&me.joined){const k=(u-1.4)/1.6;return{x:lerp(f.tx,me.x+.8,k),z:lerp(f.tz,me.z+.8,k),dir:Math.atan2(me.x-f.tx,me.z-f.tz),run:1}}p.fetch=null;if(f.done)f.done()}
   const L=petLeader(p);if(L){const side=(hash(p.id)%2?1:-1)*.7;const x=L.x-Math.sin(L.r)*1.5+Math.cos(L.r)*side,z=L.z-Math.cos(L.r)*1.5-Math.sin(L.r)*side;return{x,z,dir:L.r,follow:1}}
@@ -866,11 +870,118 @@ function makeAnimal(p){const g=new T.Group(),m=lam(p.color),dark=lam(0x222222);
     const tail=mesh(new T.BoxGeometry(.07,.07,.4),m,0,.66,-.55);tail.rotation.x=.7;g.add(tail);g.userData.tail=tail;for(const[a,b]of[[-.13,.3],[.13,.3],[-.13,-.3],[.13,-.3]])g.add(mesh(new T.BoxGeometry(.1,.34,.1),m,a,.17,b))}
   else if(p.kind==="mèo"){g.add(mesh(new T.BoxGeometry(.26,.24,.55),m,0,.3,0),mesh(new T.BoxGeometry(.24,.22,.22),m,0,.48,.33),mesh(new T.ConeGeometry(.05,.1,4),m,-.07,.63,.33),mesh(new T.ConeGeometry(.05,.1,4),m,.07,.63,.33));
     const tail=mesh(new T.BoxGeometry(.05,.05,.45),m,0,.45,-.42);tail.rotation.x=-.8;g.add(tail);g.userData.tail=tail;for(const[a,b]of[[-.08,.18],[.08,.18],[-.08,-.18],[.08,-.18]])g.add(mesh(new T.BoxGeometry(.07,.2,.07),m,a,.1,b))}
+  else if(p.kind==="gấu"){const S=new T.Group(),W=lam(0xf4f1ea),B=lam(0x1c1c1c);
+    const body=mesh(new T.SphereGeometry(.42,10,8),W,0,.58,0);body.scale.set(1,.95,1.25);S.add(body);
+    const band=mesh(new T.CylinderGeometry(.37,.37,.2,10),B,0,.58,.3);band.rotation.x=Math.PI/2;S.add(band);
+    const legs=[];for(const[a,b]of[[-.2,.3],[.2,.3],[-.2,-.3],[.2,-.3]]){const pv=new T.Group();pv.position.set(a,.36,b);pv.add(mesh(new T.BoxGeometry(.17,.36,.17),B,0,-.18,0));S.add(pv);legs.push(pv)}
+    const head=new T.Group();head.position.set(0,.82,.62);head.add(mesh(new T.SphereGeometry(.3,10,8),W,0,0,0),mesh(new T.SphereGeometry(.09,6,5),B,-.2,.25,-.04),mesh(new T.SphereGeometry(.09,6,5),B,.2,.25,-.04),mesh(new T.SphereGeometry(.1,6,5),W,0,-.06,.24));
+    for(const sx of[-1,1]){const e=mesh(new T.SphereGeometry(.075,6,5),B,sx*.12,.05,.25);e.scale.set(1,1.3,.5);head.add(e,mesh(new T.SphereGeometry(.022,5,4),W,sx*.12,.07,.285))}
+    head.add(mesh(new T.SphereGeometry(.05,6,5),B,0,-.02,.33));S.add(head,mesh(new T.SphereGeometry(.09,6,5),W,0,.6,-.56));
+    S.scale.setScalar(1.9);g.add(S);g.userData.legs=legs;g.userData.head=head}
   else{g.add(mesh(new T.SphereGeometry(.22,8,6),m,0,.22,0),mesh(new T.SphereGeometry(.14,8,6),m,0,.38,.17),mesh(new T.BoxGeometry(.05,.24,.03),m,-.05,.58,.15),mesh(new T.BoxGeometry(.05,.24,.03),m,.05,.58,.15),mesh(new T.SphereGeometry(.06,6,4),lam(0xffffff),0,.24,-.22))}
   scene.add(g);return g}
 const npcObjs=new Map();
 function npcObj(s){let o=npcObjs.get(s.id);if(!o){o=makePerson(s);scene.add(o);npcObjs.set(s.id,o)}return o}
 PETS.forEach(p=>p.obj=makeAnimal(p));
+
+/* ---- Gấu panda Bánh Bao: to, ham chơi, thỉnh thoảng rượt (chỉ để chơi) + bamboo ---- */
+const PANDA_P=PETS.find(p=>p.panda);
+{const g=new T.Group();const gm=lam(0x6fa84a),lm=lam(0x5f9340);const hx=PANDA.home[0],hz=PANDA.home[1];
+  for(let i=0;i<13;i++){const a=i*2.4+.5,r=2.4+(i*37%25)/10,x=hx+Math.cos(a)*r,z=hz+Math.sin(a)*r;if(blocked(x,z)||inPool(x,z))continue;const h=3.6+(i*53%27)/10,y=groundY(x,z);
+    g.add(mesh(new T.CylinderGeometry(.06,.08,h,6),gm,x,y+h/2,z));const lf=mesh(new T.SphereGeometry(.5,6,4),lm,x,y+h,z);lf.scale.set(1,.45,1);g.add(lf);if(i%3===0)g.add(mesh(new T.CylinderGeometry(.065,.065,.07,6),lam(0xb7d17a),x,y+h*.55,z))}
+  scene.add(g)}
+const PANDA_IDLE=["*nhai tre rộp rộp*","Ú ù~","*gãi bụng bằng cả hai chân*","*lăn một vòng rồi quên mất mình định làm gì*","Ưm… (Dịch: ai có tre không?)"];
+const CH_START=["Gừ gừ~ (Dịch: rượt chơi thôi, đừng sợ nha!)","Ê {T}, đứng lại cho ôm một cái!","Ú ù u! {T} chơi trốn tìm không?","*phóng tới* Mình chỉ muốn hỏi {T} có mang tre không thôi!"];
+const CH_RUN_NPC=["Á! Panda! Không sao, nó chỉ đòi chơi… chắc vậy!","Chạy thì chạy, nhưng chạy chậm thôi cho nó đuổi kịp, tội nó.","Cứu! Gấu to quá, mà dễ thương quá nên chạy cũng không đành!","Mình có mang tre đâu mà đuổi hoài vậy trời?"];
+const CH_RUN_PET={"chó":["Gâu gâu! (Dịch: Sếp gấu rượt rồi, tản ra!)","Gâu! (Dịch: Tui chạy vì tui thích chạy, không phải vì sợ.)"],"mèo":["Meo! (Dịch: Mèo không chạy, mèo… đi bộ rất nhanh.)"],"thỏ":["*nhảy tưng tưng chui vô bụi* (Dịch: Nhà có người rượt, mình ghé bụi cỏ chút.)"]};
+const CH_RUN_ME=["Gấu Bánh Bao đang rượt bạn. Yên tâm, nó chỉ muốn chơi: chạy hay đứng yên đều được.","Gấu phóng tới như bánh bao lăn dốc. Không cắn, chỉ ôm.","Bánh Bao rượt bạn với tốc độ vừa phải, để bạn còn chạy kịp chụp hình."];
+const CH_CATCH=["Bắt được rồi! Tới lượt {T} rượt gấu nha.","*chạm nhẹ vai {T}* Hết giờ. Cảm ơn đã chơi.","Hức hức (Dịch: thở không nổi, nghỉ tí).","*ngồi phịch xuống bên cạnh {T}* Ú ù~"];
+const CH_CAUGHT_NPC=["Thua rồi, gấu thắng. Mai mình tập thể dục sớm hơn.","Panda ôm nhẹ như gối ôm, mình chịu thua tâm phục.","Được rồi được rồi, mình bắt tay… à ôm gấu. Ấm ghê."];
+const CH_CAUGHT_PET={"chó":["Gâu! (Dịch: Chơi tiếp đi!)"],"mèo":["Meo. (Dịch: Hạng nhì cũng là hạng.)"],"thỏ":["*giật mũi, ngồi thành hình bánh bao nhỏ*"]};
+const CH_CAUGHT_ME=["Gấu Bánh Bao chạm nhẹ vào bạn rồi ngồi phịch xuống thở. Nó thắng, nhưng người mệt nhất vẫn là nó.","Gấu ôm bạn một giây rồi nhận ra mình cần uống nước.","Gấu bắt được bạn, tự hào quá nên ngồi nhìn trời một lát."];
+const fill=(s,m)=>s.replace(/\{(\w)\}/g,(_,k)=>m[k]!=null?m[k]:"");
+function pandaCan(x,z){return !blocked(x,z)&&!inPool(x,z)&&!(((x-KOI.x)/(KOI.rx+.6))**2+((z-KOI.z)/(KOI.rz+.6))**2<1)}
+function pandaMove(tx,tz,spd,dt){const P=PANDA,dx=tx-P.x,dz=tz-P.z,d=Math.hypot(dx,dz);if(d<.4){P.mv=0;return true}
+  const st=Math.min(d,spd*dt),ux=dx/d,uz=dz/d;let nx=P.x+ux*st,nz=P.z+uz*st,ok=true;
+  if(!pandaCan(nx,nz)){if(pandaCan(nx,P.z))nz=P.z;else if(pandaCan(P.x,nz))nx=P.x;else ok=false}
+  const mv=ok?Math.hypot(nx-P.x,nz-P.z):0;if(ok){P.x=nx;P.z=nz}P.mv=mv/Math.max(dt,1e-3);P.stuck=mv<st*.3?P.stuck+dt:0;
+  const ang=Math.atan2(ux,uz);let da=ang-P.dir;da=Math.atan2(Math.sin(da),Math.cos(da));P.dir+=da*Math.min(1,dt*6);return false}
+function pandaTargetPos(t){try{return t.pos()}catch(e){return null}}
+function pandaCandidates(){const P=PANDA,c=[];
+  for(const s of STAFF.concat(GUESTS)){const st=s._st;if(st&&!st.away)c.push({id:s.id,name:s.name,k:"npc",pos:()=>[s._st.x,s._st.z]})}
+  for(const p of PETS){if(p.panda||petAsleep(p)||p._x==null)continue;c.push({id:p.id,name:p.name,k:"pet",kind:p.kind,pos:()=>[p._x,p._z]})}
+  for(const [rk,r] of remotes.entries()){if(isFinite(r.x)&&isFinite(r.z))c.push({id:"r:"+rk,name:String((r.p&&r.p.n)||"Khách").slice(0,24),k:"rp",pos:()=>[r.x,r.z]})}
+  if(me.joined){const m={id:"me",name:me.n,k:"me",pos:()=>[me.x,me.z]};c.push(m,m)}
+  return c.filter(t=>{const q=t.pos();return q&&Math.hypot(q[0]-P.x,q[1]-P.z)<55&&pandaCan(q[0],q[1])})}
+function pandaChase(t){const P=PANDA,now=Date.now();P.target=t;P.mode="chase";P.until=now+9000;P.run=1;P.stuck=0;
+  say(PANDA_P.id,fill(pick(CH_START),{T:t.name}));
+  setTimeout(()=>{if(P.target!==t)return;if(t.k==="npc"||t.k==="rp")say(t.id,pick(CH_RUN_NPC));else if(t.k==="pet")say(t.id,pick(CH_RUN_PET[t.kind]||CH_RUN_PET["chó"]));else toast(pick(CH_RUN_ME),4200)},900)}
+function pandaStartChase(){const P=PANDA,c=pandaCandidates();if(!c.length){P.nextChase=Date.now()+20000;return false}pandaChase(pick(c));return true}
+function pandaPickWalk(){const P=PANDA;const c=POIS.filter(q=>pandaCan(q[0],q[1])&&Math.hypot(q[0]-P.x,q[1]-P.z)>6&&Math.hypot(q[0]-P.x,q[1]-P.z)<70);const q=c.length?pick(c):P.home;P.tx=q[0];P.tz=q[1];P.mode="wander";P.until=Date.now()+45000;P.run=0;P.stuck=0}
+function stepPanda(dt,time){const P=PANDA,pp=PANDA_P,now=Date.now(),asleep=petAsleep(pp);if(!pandaCan(P.x,P.z)){P.bad=(P.bad||0)+dt;if(P.bad>2){P.x=P.home[0];P.z=P.home[1];P.bad=0}}else P.bad=0;P.mv=0;
+  if(asleep){P.mode="sleep";P.run=0;pandaMove(P.home[0],P.home[1],2,dt)}
+  else{if(P.mode==="sleep"){P.mode="idle";P.until=now+3000}
+    if(P.mode==="idle"){if(now>P.until){if(!(now>P.nextChase&&pandaStartChase()))pandaPickWalk()}}
+    else if(P.mode==="wander"){if(pandaMove(P.tx,P.tz,1.5,dt)){P.mode="idle";P.until=now+(4+Math.random()*6)*1000;if(Math.random()<.5)say(pp.id,pick(PANDA_IDLE))}else if(now>P.until||P.stuck>1.2){P.mode="idle";P.until=now+800;P.stuck=0}}
+    else if(P.mode==="chase"){const q=pandaTargetPos(P.target);if(!q||now>P.until||P.stuck>1.4){P.mode="idle";P.until=now+3500;P.run=0;P.nextChase=now+(35+Math.random()*45)*1000;P.target=null;say(pp.id,"*thở hổn hển* Hết giờ, gấu cần ăn tre.")}
+      else if(Math.hypot(q[0]-P.x,q[1]-P.z)<1.7){const t=P.target;P.mode="catch";P.until=now+2600;P.run=0;P.nextChase=now+(40+Math.random()*50)*1000;doFx("heart",P.x,P.z);say(pp.id,fill(pick(CH_CATCH),{T:t.name}));
+        setTimeout(()=>{if(t.k==="npc"||t.k==="rp")say(t.id,pick(CH_CAUGHT_NPC));else if(t.k==="pet")say(t.id,pick(CH_CAUGHT_PET[t.kind]||CH_CAUGHT_PET["chó"]));else toast(pick(CH_CAUGHT_ME),4500)},900)}
+      else pandaMove(q[0],q[1],3.6,dt)}
+    else if(P.mode==="catch"){if(now>P.until){P.mode="idle";P.until=now+(6+Math.random()*4)*1000;P.target=null}}}
+  const u=pp.obj.userData;if(u.legs){const mv=P.mv>.2,k=mv?Math.sin(time*(P.run?11:7))*(P.run?.75:.45):0;u.legs[0].rotation.x=k;u.legs[3].rotation.x=k;u.legs[1].rotation.x=-k;u.legs[2].rotation.x=-k;
+    if(u.head)u.head.rotation.x=asleep?.55:mv?0:Math.sin(time*6)*.16+.12}}
+function pandaActs(p,near){return[["Đưa tre",near(()=>{doFx("food",p._x,p._z);say(p.id,pick(["*nhai rộp rộp* (Dịch: Tre ngon. Tui tặng lại một cái ôm.)","Ú ù~ (Dịch: Cảm ơn! Tui nhớ mặt bạn rồi.)"]));toast(pick(["Bánh Bao nhận tre bằng hai tay, nhai như đang dự tiệc.","Bánh Bao ăn xong ba cây tre rồi nhìn bạn chờ cây thứ tư."]),4000)})],
+  ["Rủ chơi rượt bắt",()=>{if(petAsleep(p)){toast("Bánh Bao đang ngủ. Rủ sáng mai nhé.");return}if(!me.joined)return;pandaChase({id:"me",name:me.n,k:"me",pos:()=>[me.x,me.z]});toast("Bánh Bao nhận lời, bắt đầu rượt bạn. Chạy đi, nó chạy chậm hơn bạn một chút.",4000)}]]}
+
+/* ---- thoại hài: người ↔ người / thú / khách khác ---- */
+const BAN_PP=[["{B} ơi, ở đây có sóng 4G không?","Sóng thì không, nhưng gió thì nhiều. Gió đủ cả nhà dùng."],["Hôm nay {B} đi bộ bao nhiêu bước rồi?","Xuống thì ít, lên thì tính gấp ba. Máy đếm bước đang xin nghỉ."],["{B} có thấy con gấu panda vừa chạy ngang không?","Thấy. Nó nhìn mình bằng ánh mắt của người đang tìm bữa trưa."],["Chụp giúp mình tấm ảnh nha {B}!","Được, nhưng {A} dịch qua trái, cây bơ đang chen vô khung hình."],["Trưa nay ăn gì hả {B}?","Món gì cũng được, miễn đừng hỏi lại câu này."],["View này đẹp quá {B} ơi.","Đẹp thật, nhưng {A} đang đứng chắn đúng chỗ đẹp nhất."],["{B} uống cà phê chưa?","Rồi, ly thứ ba. Giờ mình nghe được cả tiếng suối nói chuyện."],["Dốc này làm {B} nhớ ai không?","Nhớ người yêu cũ: lên thì khó, xuống thì mệt, mà vẫn quay lại."],["{B} nói nhỏ thôi, con Mướp đang nghe lén.","Mèo nào mà không nghe lén. Nhưng nó chỉ kể lại cho mấy con cá thôi."],["Nghe nói tối nay có sao, {B} ra xem không?","Ra chứ, ngắm sao là hoạt động duy nhất không cần sạc pin."],["{B} ơi, mình đi lạc ba vòng mà vẫn quay về chỗ cũ.","Đó là phong thủy. Đi đâu cũng về chỗ có đồ ăn."],["Hồi nãy {B} cười gì vậy?","Mình nhớ ra hôm nay thứ mấy, và nhớ ra mình đang không đi làm."],["{B} biết vì sao suối chảy xuống không?","Vì nó đi làm về, chỉ có điều nó đi nhanh hơn mình."],["Nếu được ước một điều ở đây, {B} ước gì?","Ước ở thêm một ngày. Và ước con gấu đừng coi mình là bánh bao."]];
+const BAN_PH=["Chào {B}! Dốc 45 mét thì thở dốc là bình thường, không cần ngại.","{B} mới tới hả? Nhớ nhìn xuống chân, sỏi ở đây thích chơi trò làm khó.","{B} ơi, có gấu panda đang đi quanh. Nó hiền, chỉ hơi ham chơi.","{B} có mang bánh không? Hỏi cho chắc, ba chú chó đang chờ.","Nhìn dáng {B} đi là biết dân thích phong cảnh, không phải dân thích chạy bộ.","{B} đứng yên một chút, có con chim đang cân nhắc đậu lên vai {B}.","Gặp {B} ở đây vui ghê, chắc suối cũng quý {B} nên chảy nhanh hơn một chút.","Cẩn thận {B}, cà phê ở đây dễ nghiện, hôm qua có người uống xong quên đường về.","{B} thử ngồi thiền trên bãi cỏ coi: hai phút đầu nghĩ về deadline, phút thứ ba nghĩ về mây.","Nếu {B} thấy lạc, cứ đi xuống suối rồi đi ngược lên. Cách nào cũng tới."];
+const BAN_PETP={"chó":[["{P} ơi, ngồi xuống nào!","Gâu! (Dịch: Có bánh thì ngồi, không thì tính sau.)"],["{A} đưa tay ra, {P} đưa chân. Hai bên bắt tay như ký hợp đồng.","Gâu! (Dịch: Hợp đồng này có điều khoản bánh quy.)"],["{P}, ai là chú chó ngoan nhất ở đây?","*vẫy đuôi tới mức cả người lắc theo* Gâu! (Dịch: Tui, tui, tui.)"],["{P}, canh cổng cẩn thận nhé.","Gâu! (Dịch: Dạ sếp. Mà canh xong có lương thực không sếp?)"]],
+  "mèo":[["{P} ơi, qua đây {A} vuốt cái nào.","Meo. (Dịch: Ba cái thôi. Hết giờ hành chính.)"],["{A} thử bế {P} lên, bị nhìn như nhìn người lạ.","Meo? (Dịch: Ai cho phép?)"],["{P} ơi, cưng quá à.","*quay mặt đi* Meo. (Dịch: Biết rồi, nói nhỏ thôi.)"],["{P} mới ngủ dậy hả?","Meo. (Dịch: Đâu, đang suy nghĩ về cuộc đời. Nhắm mắt cho dễ.)"]],
+  "thỏ":[["{P} ơi, ăn cà rốt không?","*giật mũi lia lịa* (Dịch: Có. Hỏi lại lần nữa cũng có.)"],["{A} thì thầm: {P} ơi, giữ bí mật nha.","*nhai nhai* (Dịch: Mình ăn cỏ thôi, bí mật gì cũng nuốt luôn.)"],["{P} nhảy giỏi quá!","*nhảy một vòng* (Dịch: Cơ đùi là tài sản duy nhất.)"]],
+  "gấu":[["{P} ơi, cho {A} chụp chung một tấm nhé!","Gừ~ (Dịch: Tui chụp không cần cười, mặt tui sẵn rồi.)"],["{A} thử đưa tre cho {P}.","*nhai rộp rộp* (Dịch: Cảm ơn. Tui không có tiền boa nhưng có cái ôm.)"],["{P}, hôm nay đừng rượt {A} nha, {A} vừa ăn no.","Hừ hừ (Dịch: Rượt để tiêu cơm cho {A}, tui tốt bụng mà.)"],["{A} hỏi: {P} nặng bao nhiêu ký vậy?","Gừ! (Dịch: Câu hỏi này vi phạm quy tắc đối thoại giữa hai bên.)"]]};
+const BAN_HP={"chó":["*ngửi giày {B}* Gâu! (Dịch: Giày này đi qua nhiều nơi, chấm 8 điểm.)","Gâu! (Dịch: {B} ơi, có bánh không? Hỏi chơi vậy thôi chứ hỏi thật.)","*lăn ra phơi bụng trước mặt {B}* (Dịch: Gãi đi, giá hữu nghị.)"],
+  "mèo":["*liếc {B} từ đầu tới chân* Meo. (Dịch: Tạm chấp nhận.)","Meo. (Dịch: {B} đứng chắn nắng của ta.)","*dụi chân {B} rồi giả vờ không quen* Prrr…"],
+  "thỏ":["*giật mũi nhìn {B}* (Dịch: Có mang cà rốt không hay chỉ mang điện thoại?)","*nhảy tới sát giày {B} rồi nhảy lùi* (Dịch: Chào hỏi xong.)","*đứng hai chân nhìn {B}* (Dịch: Nghiêm túc như họp quý.)"],
+  "gấu":["Gừ~ (Dịch: {B} ơi, chơi rượt bắt không? Mình hứa nhẹ tay.)","*vẫy tay chào {B}* Ú ù~","*ngồi phịch xuống nhìn {B}* (Dịch: Mệt rồi, nhưng vẫn muốn chơi.)"]};
+const BAN_PETPET={"gấu-chó":[["Gừ~ (Dịch: {B} rượt tui đi, tui chạy chậm cho.)","Gâu! (Dịch: Gấu to quá, tui sủa thử một tiếng cho đỡ sợ.)"],["*ngồi xuống ôm {B}* Ú ù~","Gâu… (Dịch: Ôm mềm quá, nhưng tui là chó canh cổng, đừng ôm lâu.)"]],
+  "gấu-mèo":[["Gừ~ (Dịch: {B} ơi, qua đây ôm một cái.)","Meo. (Dịch: Ôm thì được, nhưng gấu phải xin phép trước.)"],["*liếc nhìn {B}* Gừ…","Meo. (Dịch: Tui không sợ gấu, tui chỉ không thích bị ôm.)"]],
+  "gấu-thỏ":[["Gừ~ (Dịch: {B} bé xíu, để tui bảo vệ cho.)","*giật mũi nấp sau tre* (Dịch: Cảm ơn, nhưng gấu to quá nên cũng hơi sợ.)"],["*nhai tre nhìn {B}* Rộp rộp","*giật mũi* (Dịch: Mình ăn cỏ, gấu ăn tre. Tụi mình cùng phe rau.)"]],
+  "chó-chó":[["{A} nhìn {B}. Hai bên sủa chào nhau như trao danh thiếp.","Gâu gâu! (Dịch: Hôm nay ai canh cổng ca nào?)"],["Gâu! (Dịch: {B} ơi, nghe tiếng bánh quy trong túi ai không?)","Gâu! (Dịch: Nghe rồi, đang xin thương lượng.)"]],
+  "chó-mèo":[["Gâu! (Dịch: {B}, xuống khỏi chỗ đó đi.)","Meo. (Dịch: Không.)"],["{A} sủa một tiếng dài về phía {B}.","Meo. (Dịch: Ngươi sủa tiếp thì ta liếm chân tiếp.)"]],
+  "chó-thỏ":[["Gâu! (Dịch: {B}, chạy thử tui xem.)","*nhảy tưng tưng* (Dịch: Mình nhảy xa hơn bạn tưởng.)"],["{A} ngửi {B}, {B} ngửi lại. Cả hai gật đầu ngầm.","*giật mũi* (Dịch: Hợp đồng bạn bè ký xong.)"]],
+  "mèo-mèo":[["Meo. (Dịch: {B}, chỗ nắng này tui chọn trước.)","Meo. (Dịch: Chọn trước nhưng chưa nằm là chưa tính.)"]],
+  "mèo-thỏ":[["Meo. (Dịch: {B}, đừng nhìn tui như vậy.)","*giật mũi* (Dịch: Mình đâu có nhìn. Mình đang suy nghĩ về cỏ.)"]],
+  "thỏ-thỏ":[["*giật mũi* (Dịch: {B}, hôm nay bạn nhìn tròn trịa quá.)","*giật mũi lại* (Dịch: Đó là lông thôi. Lông mùa đông.)"]]};
+const BAN_COMM_NPC=["{X} với {Y} đứng gần nhau quá, mình đoán sắp rủ nhau chụp ảnh đôi.","{X} và {Y} đang nói chuyện gì mà cười ghê vậy? Chắc về cái dốc.","Nhìn {X} với {Y} là biết cùng team thích đi bộ, ghét lên dốc.","{X}, {Y}, hai người có biết con gấu panda đang đứng ngay sau lưng không? Đùa thôi… hoặc không."];
+const BAN_COMM_PET=["*nhìn {X} rồi nhìn {Y}* (Dịch: Hai người này sắp xin bánh cùng lúc.)","*ngó {X} và {Y}* (Dịch: Đông vui quá, chia tui miếng bánh nhé.)"];
+const WELCOME=["Chào {N}! Dốc mệt thì ngồi, ở đây không ai chấm điểm đâu.","Ồ, có {N} ghé chơi! Nhớ chào ba chú chó trước, không là tụi nó dỗi.","{N} tới rồi hả? Cà phê miễn phí, chỉ hơi chậm vì pha bằng tâm.","Chào {N}! Nếu thấy con gấu to tròn chạy ngang, đó là Bánh Bao, nó chỉ muốn chơi."];
+const PRANK={"gấu":0,"chó":1,"mèo":2,"thỏ":3};
+function banterEnts(){const E=[];
+  for(const s of STAFF.concat(GUESTS)){const st=s._st;if(st&&!st.away)E.push({k:"npc",id:s.id,name:s.name,x:st.x,z:st.z})}
+  for(const p of PETS){if(petAsleep(p)||p._x==null)continue;E.push({k:"pet",kind:p.kind,id:p.id,name:p.name,x:p._x,z:p._z})}
+  for(const [rk,r] of remotes.entries()){if(isFinite(r.x)&&isFinite(r.z))E.push({k:"rp",id:"r:"+rk,name:String((r.p&&r.p.n)||"Khách").slice(0,24),x:r.x,z:r.z})}
+  if(me.joined)E.push({k:"me",id:"me",name:me.n,x:me.x,z:me.z});return E}
+const isHuman=e=>e.k==="me"||e.k==="rp";
+function banSay(e,t){if(e.k==="me"||!t)return;say(e.id,t)}
+function runBanter(){const E=banterEnts(),cx=me.joined?me.x:camTarget.x,cz=me.joined?me.z:camTarget.z,near=E.filter(e=>Math.hypot(e.x-cx,e.z-cz)<40),sp=near.filter(e=>!isHuman(e)),hu=near.filter(isHuman);if(!sp.length)return;
+  const d=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+  if(hu.length>1&&Math.random()<.3){const X=pick(hu),ys=hu.filter(h=>h!==X&&d(h,X)<7);if(ys.length){const Y=pick(ys),c=sp.filter(s=>d(s,X)<16).sort((a,b)=>d(a,X)-d(b,X))[0];if(c){banSay(c,fill(pick(c.k==="npc"?BAN_COMM_NPC:BAN_COMM_PET),{X:X.name,Y:Y.name}));return}}}
+  let A,B;if(hu.length&&Math.random()<.6){B=pick(hu);const c=sp.filter(s=>d(s,B)<9);if(c.length)A=pick(c)}
+  if(!A){A=pick(sp);const c=near.filter(e=>e!==A&&d(e,A)<8);if(!c.length)return;B=pick(c)}
+  if(A.k==="pet"&&B.k==="npc"){const t=A;A=B;B=t}   // người nói trước, thú đáp
+  const later=(e,t)=>setTimeout(()=>banSay(e,t),2300+Math.random()*900);
+  if(A.k==="npc"){
+    if(B.k==="npc"){const l=pick(BAN_PP),m={A:A.name,B:B.name};banSay(A,fill(l[0],m));later(B,fill(l[1],m))}
+    else if(B.k==="pet"){const l=pick(BAN_PETP[B.kind]||BAN_PETP["chó"]),m={A:A.name,P:B.name};banSay(A,fill(l[0],m));later(B,fill(l[1],m))}
+    else banSay(A,fill(pick(BAN_PH),{B:B.name}))}
+  else if(A.k==="pet"){
+    if(B.k==="pet"){let a=A,b=B;if((PRANK[a.kind]||0)>(PRANK[b.kind]||0)){const t=a;a=b;b=t}const l=pick(BAN_PETPET[a.kind+"-"+b.kind]||BAN_PETPET["chó-chó"]),m={A:a.name,B:b.name};banSay(a,fill(l[0],m));later(b,fill(l[1],m))}
+    else if(isHuman(B))banSay(A,fill(pick(BAN_HP[A.kind]||BAN_HP["chó"]),{B:B.name}))}}
+const seenR=new Set(),seenInit=Date.now()+6000;let banterT=8;
+function watchNewcomers(){for(const [k,r] of remotes.entries()){if(seenR.has(k))continue;seenR.add(k);if(Date.now()<seenInit)continue;const n=String((r.p&&r.p.n)||"Khách").slice(0,24);
+    setTimeout(()=>{const c=banterEnts().filter(e=>e.k==="npc").sort((a,b)=>Math.hypot(a.x-r.x,a.z-r.z)-Math.hypot(b.x-r.x,b.z-r.z))[0];if(c&&Math.hypot(c.x-r.x,c.z-r.z)<60)say(c.id,fill(pick(WELCOME),{N:n}));setTimeout(()=>say(PANDA_P.id,pick(["*vẫy tay* Ú ù~","Gừ~ (Dịch: Có khách mới! Rượt chơi được không?)"])),1800)},2500)}
+  for(const k of seenR)if(!remotes.has(k))seenR.delete(k)}
 
 /* ---- chim: đàn bay trên trời, chim nhỏ dưới đất, cú mèo ban đêm ---- */
 const BG={body:new T.ConeGeometry(.09,.38,5),wR:new T.BoxGeometry(.42,.02,.16),wL:new T.BoxGeometry(.42,.02,.16)};BG.body.rotateX(Math.PI/2);BG.wR.translate(.21,0,0);BG.wL.translate(-.21,0,0);
@@ -1092,6 +1203,7 @@ function petActs(p,asleep){if(asleep)return[];const near=f=>()=>walkPet(p,f),fol
     :takenBy?[]:[[p.kind==="chó"?"Rủ đi dạo":"Rủ đi theo",near(()=>{if(p.kind==="mèo"&&Math.random()<.4){say(p.id,"Meo.");toast(`${p.name} nhìn bạn rồi đi hướng khác. Mèo không nhận lời mời, mèo gửi lời mời.`);return}
       petFollow={id:p.id,until:Date.now()+180000};pushPresence();doFx("paw",p._x,p._z);say(p.id,pick(PET_SOUNDS[p.kind]));toast(`${p.name} sẽ đi theo bạn 3 phút. Đi đâu cũng được, miễn có đồ ăn.`,4000)})]];
   const ahead=(d)=>{let tx=me.x+Math.sin(me.r)*d,tz=me.z+Math.cos(me.r)*d;if(!walkable(tx,tz)||blocked(tx,tz)){tx=me.x+1;tz=me.z+1}return[tx,tz]};
+  if(p.kind==="gấu")return pandaActs(p,near);
   if(p.kind==="chó")return[["Ném bóng",near(()=>{const[tx,tz]=ahead(9);doFx("ball",tx,tz);p.fetch={t0:Date.now(),fx:p._x,fz:p._z,tx,tz,done:()=>{say(p.id,"Gâu!");toast(pick([`${p.name} mang bóng về, đặt cách bạn đúng hai mét. Muốn thì tự ra lấy.`,`${p.name} nhặt được bóng, và cả một chiếc dép không rõ của ai.`,`${p.name} mang bóng về, ướt nhẹp, đầy tự hào.`]),4000)}}})],...follow];
   if(p.kind==="mèo")return[["Đưa cuộn len",near(()=>{const[tx,tz]=ahead(3);doFx("yarn",tx,tz);p.fetch={t0:Date.now(),fx:p._x,fz:p._z,tx,tz,done:()=>toast(pick([`${p.name} vờn cuộn len 40 giây rồi giả vờ chưa từng quan tâm.`,`${p.name} cuộn mình trong đống len. Cuộn len giờ thuộc về ${p.name}.`]),4000)}})],...follow];
   return[["Bế lên",near(()=>{me.a="pet";doFx("heart",p._x,p._z);toast(pick([`${p.name} nằm im trong tay bạn, tim đập nhanh hơn bạn tưởng.`,`${p.name} giãy một cái rồi chịu ngồi yên. Mềm như gối.`,`${p.name} gặm nhẹ cúc áo bạn để đánh dấu chủ quyền.`]),4000)})]]}
@@ -1107,7 +1219,7 @@ function showEntity(b){
     card(p.kind[0].toUpperCase()+p.kind.slice(1),p.name,z?`${p.name} đang ngủ. Nhẹ tay thôi.`:`${p.name} đang chơi quanh đây.`,[
       ["Vuốt ve",()=>walkPet(p,()=>{me.a="pet";doFx("heart",p._x,p._z);toast(z?`${p.name} mở một mắt nhìn bạn rồi ngủ tiếp.`:pick(p.react),4000)})],
       ...petActs(p,z),
-      [p.kind==="thỏ"?"Cho ăn cà rốt":p.kind==="mèo"?"Cho ăn cá khô":"Cho ăn bánh",()=>walkPet(p,()=>{doFx("food",p._x,p._z);say(p.id,pick(PET_SOUNDS[p.kind]));toast(z?`${p.name} ngửi thấy mùi đồ ăn, mắt vẫn nhắm mà miệng đã nhai.`:`${p.name} ăn sạch trong 3 giây rồi nhìn bạn chờ phần hai.`)})]]);return}
+      [p.kind==="thỏ"?"Cho ăn cà rốt":p.kind==="mèo"?"Cho ăn cá khô":p.kind==="gấu"?"Cho ăn tre":"Cho ăn bánh",()=>walkPet(p,()=>{doFx("food",p._x,p._z);say(p.id,pick(PET_SOUNDS[p.kind]));toast(z?`${p.name} ngửi thấy mùi đồ ăn, mắt vẫn nhắm mà miệng đã nhai.`:`${p.name} ăn sạch trong 3 giây rồi nhìn bạn chờ phần hai.`)})]]);return}
   if(b.t==="guest"){const p=b.o.p||{};card("Khách đang online",String(p.n||"Khách").slice(0,24),b.o.guest?"Khách được mời từ bên ngoài.":"Đang dạo quanh retreat.",[["Vẫy tay chào",()=>doFx("wave",me.x,me.z)],["Lại gần",()=>walkTo(b.o.x+1,b.o.z+.6)]]);return}
   if(b.t==="lantern"){const l=b.o;const body=el("div",{style:"display:flex;flex-direction:column;gap:6px"},el("q",null,String(l.t||"").slice(0,160)),el("p",null,`${String(l.by||"Ai đó").slice(0,24)} · ${ago(l.at)}`));
     card("Hoa đăng","Lời ước trên suối",body,isOwner?[["Gỡ hoa đăng",()=>Store.remove("lanterns",l.id).catch(writeErr)]]:[]);return}
@@ -1272,6 +1384,7 @@ function frame(t){
   stepMe(dt);
   const time=t/1000;
   for(const s of STAFF.concat(GUESTS)){const st=npcState(s);s._st=st;const o=npcObj(s);o.visible=!st.away;if(st.away)continue;o.position.set(st.x,groundY(st.x,st.z),st.z);o.rotation.y=st.dir;animPerson(o,st.moving,time,false)}
+  stepPanda(dt,time);
   for(const p of PETS){const q=petPos(p);if(p._x==null){p._x=q.x;p._z=q.z}const pk=1-Math.pow(q.run?.0001:.004,dt);p._x=lerp(p._x,q.x,pk);p._z=lerp(p._z,q.z,pk);
     const py=inPool(p._x,p._z)?LOW_PAD.y+.05:groundY(p._x,p._z);p.obj.position.set(p._x,py,p._z);p.obj.rotation.y=q.dir;const sl=petAsleep(p);p.obj.scale.y=sl?.75:1;if(p.obj.userData.tail)p.obj.userData.tail.rotation.y=sl?0:Math.sin(time*(p.kind==="chó"||q.follow?12:3))*.5;
     if((q.run||q.follow)&&p.kind!=="thỏ")p.obj.position.y+=Math.abs(Math.sin(time*14))*.06;
@@ -1294,13 +1407,15 @@ function frame(t){
   petT-=dt;if(petT<=0){petT=9+Math.random()*10;if(me.joined){const n=PETS.filter(p=>!petAsleep(p)&&Math.hypot(p._x-me.x,p._z-me.z)<5);if(n.length){const p=pick(n);say(p.id,pick(PET_SOUNDS[p.kind]))}}}
   if(petFollow&&petFollow.until<=Date.now()){const p=PETS.find(q=>q.id===petFollow.id);petFollow=null;pushPresence();if(p)toast(`${p.name} hết giờ đi dạo, chạy về chỗ cũ.`)}
   chatterT-=dt;if(chatterT<=0){chatterT=16+Math.random()*18;const near=STAFF.concat(GUESTS).filter(s=>s._st&&!s._st.away&&Math.hypot(s._st.x-camTarget.x,s._st.z-camTarget.z)<45);if(near.length){const s=pick(near);say(s.id,npcLine(s))}}
+  banterT-=dt;if(banterT<=0){banterT=11+Math.random()*13;try{runBanter()}catch(e){console.warn(e)}}
+  watchNewcomers();
   updateCamera(dt);
   renderer.render(scene,camera);
   octx.clearRect(0,0,CW,CH);
   const cp=camera.position;
   for(const s of STAFF.concat(GUESTS)){const st=s._st;if(!st||st.away)continue;drawLabel(st.x,groundY(st.x,st.z)+2.35,st.z,s.name,s.plan?"staff":"",bubbleOf(s.id),Math.hypot(st.x-cp.x,st.z-cp.z))}
-  for(const r of remotes.values()){const p=r.p||{};const b=p.s&&Date.now()-r.sayAt<8000?String(p.s).slice(0,120):"";drawLabel(r.x,groundY(r.x,r.z)+2.35,r.z,String(p.n||"Khách").slice(0,24),"",b,Math.hypot(r.x-cp.x,r.z-cp.z))}
-  for(const p of PETS){const d=Math.hypot(p._x-cp.x,p._z-cp.z),bb=bubbleOf(p.id);if(d<25||bb)drawLabel(p._x,p.obj.position.y+1.05,p._z,d<25?p.name+(petAsleep(p)?" · zzz":petLeader(p)?" · đi theo":""):"","",bb,d*1.6)}
+  for(const [rk,r] of remotes.entries()){const p=r.p||{};const b=(p.s&&Date.now()-r.sayAt<8000?String(p.s).slice(0,120):"")||bubbleOf("r:"+rk);drawLabel(r.x,groundY(r.x,r.z)+2.35,r.z,String(p.n||"Khách").slice(0,24),"",b,Math.hypot(r.x-cp.x,r.z-cp.z))}
+  for(const p of PETS){const d=Math.hypot(p._x-cp.x,p._z-cp.z),bb=bubbleOf(p.id);if(d<25||bb)drawLabel(p._x,p.obj.position.y+(p.panda?2.6:1.05),p._z,d<25?p.name+(petAsleep(p)?" · zzz":petLeader(p)?" · đi theo":""):"","",bb,d*1.6)}
   for(const b of GBIRDS.concat([owl])){if(!b.o.visible)continue;const pp=b.o.position,d=Math.hypot(pp.x-cp.x,pp.z-cp.z),bb=bubbleOf(b.id);if(d<14||bb)drawLabel(pp.x,pp.y+.75,pp.z,d<14?b.name:"","",bb,d*2)}
   if(me.joined)drawLabel(me.x,groundY(me.x,me.z)+2.35,me.z,me.n,"me",bubbleOf("me"),0);
   if(me.tx!=null){const s=project(me.tx,groundY(me.tx,me.tz)+.05,me.tz);if(s){octx.strokeStyle="rgba(255,255,255,.9)";octx.lineWidth=2;octx.beginPath();octx.ellipse(s.x,s.y,10+3*Math.sin(t/150),5+1.5*Math.sin(t/150),0,0,7);octx.stroke()}}
