@@ -183,7 +183,7 @@ const WAKE=6, SLEEP=23;   // mọi người dậy 6:00, đi ngủ 23:00
 const LAND=[[-41,-84],[84,-84],[95,-76],[26,-58],[50,82],[-75.5,82],[-80,62]];
 const ROAD_W=[[-39,-150],[-38,-87.5],[-83.5,62],[-87,92],[-92,180]];   // đường bê tông phía Tây, cầu qua suối cạnh nhà hàng xóm
 const ROADS=[ROAD_W];
-const DRIVE=[[-41.2,-66.8],[-37,-62.5],[-30,-55.8],[-24,-52],[-16,-51.4],[-8,-51.6],[-8,-53.4]];   // đường sỏi: cổng gỗ → sân cắm trại → cửa chính nhà main
+const DRIVE=[[-41.2,-66.8],[-38,-62],[-35.5,-56],[-32,-50.5],[-27,-46],[-21,-43.8],[-14,-43],[-9,-45.5],[-8,-49.5],[-8,-53.4]];   // đường sỏi: cổng gỗ → sân cắm trại → cửa chính nhà main
 // Đường 2: từ cổng vào uốn lượn chữ U, ít dốc hơn đường 1, vòng qua vườn cá koi rồi vào cổng sân trước
 const ROAD2=[[-81.1,54],[-62,49],[-40,42],[-16,35],[6,29],[22,24],[27,14],[25,2],[16,-8],[4,-16],[-6,-26],[-11,-34],[-11,-41]];
 const FALLPATH=[[-34,41],[-33,50],[-31,60],[-28,68.5]];                  // từ đường 2 xuống bãi trại và thác
@@ -380,6 +380,9 @@ const PETS=[
   {id:"miu",name:"Miu",kind:"mèo",color:"#2b2b2b",area:{cx:14.5,cz:-56.6,rx:5,rz:.5},spd:.45,sleep:[[13,15.5],[23,6]],react:["Miu ngồi canh hồ bơi nhưng ghét nước. Nghề tay trái.","Miu dụi đầu vào chân bạn rồi giả vờ không quen.","Miu kêu meo. Có thể là cảm ơn, có thể là chê."]},
   {id:"bong",name:"Bông",kind:"thỏ",color:"#f6f3ee",area:{cx:NETH.x-.8,cz:NETH.z,rx:2.2,rz:1.8},spd:1.4,sleep:[[23,6]],react:["Bông giật giật mũi, xác nhận bạn không mang cà rốt. Thất vọng.","Bông nhảy một vòng khoe cơ đùi.","Bông ăn cỏ với tốc độ của người vừa hết deadline."]},
   {id:"tuyet",name:"Tuyết",kind:"thỏ",color:"#d9d4cc",area:{cx:NETH.x+.8,cz:NETH.z,rx:2.2,rz:1.8},spd:1.2,sleep:[[23,6]],react:["Tuyết đứng hai chân nhìn bạn, nghiêm túc như họp quý.","Tuyết dụi mũi vào tay bạn. Tim bạn tan chảy 30%.","Tuyết chui vô góc chuồng. Hôm nay Tuyết hướng nội."]},
+  {id:"cam",name:"Cam",kind:"mèo",color:"#e8a24a",scout:true,spd:1,area:{cx:-30,cz:-55,rx:1,rz:1},route:[[-40,-66],[-37,-61],[-34,-55],[-30,-49.5],[-25,-45.5],[-20,-44]],sleep:[[12.5,14],[23,5.5]],react:["Cam dụi đầu vào chân bạn rồi đi tiếp, đang trong ca tuần tra.","Cam ngồi giữa đường sỏi, quyết định bạn là người vô hại.","Cam liếc bạn một cái. Đã ghi nhận."]},
+  {id:"bong",name:"Bông",kind:"mèo",color:"#f2efe8",scout:true,spd:.9,area:{cx:8,cz:-52,rx:1,rz:1},route:[[-4,-52],[2,-51.5],[9,-51],[16,-51],[22,-53],[24,-60]],sleep:[[13,15],[23,5.5]],react:["Bông nằm phơi nắng một lúc, mắt vẫn quét quanh hồ bơi.","Bông kêu khẽ, nghe như một bản báo cáo.","Bông cho bạn xoa đầu đúng một lần."]},
+  {id:"xam",name:"Xám",kind:"mèo",color:"#8a8f96",scout:true,spd:.8,area:{cx:-24,cz:-33,rx:1,rz:1},route:[[-38,-34],[-33,-31],[-27,-33],[-22,-30],[-14,-33],[-12,-40]],sleep:[[12,14],[23,5.5]],react:["Xám nhìn bạn từ trên cao hàng rào vườn, bước xuống khi thấy bạn không có đồ ăn.","Xám đang canh luống rau. Chuột nào cũng không qua được.","Xám gừ nhẹ, rồi ngoảnh đi như chưa có gì."]},
   {id:"panda",name:"Bánh Bao",kind:"gấu",panda:true,color:"#f4f1ea",area:{cx:0,cz:0,rx:1,rz:1},spd:1,sleep:[[23,6]],react:["Bánh Bao ôm bạn một cái, bạn thấy mình nhỏ lại còn bằng cái bánh bao thật.","Bánh Bao nhìn bạn, nhìn tre, rồi nhìn bạn. Bạn hiểu: nó đang đòi tre.","Bánh Bao ngồi phịch xuống chân bạn. Giờ bạn chưa đi đâu được."]},
 ];
 let petFollow=null;  // {id,until}: thú cưng đang đi theo bạn
@@ -390,11 +393,15 @@ function petLeader(p){const now=Date.now();if(petAsleep(p))return null;
   if(me.joined&&petFollow&&petFollow.id===p.id&&petFollow.until>now)return{x:me.x,z:me.z,r:me.r};
   for(const r of remotes.values()){const q=r.p||{};if(q.pf===p.id&&+q.pfu>now)return{x:r.x,z:r.z,r:+q.r||0}}return null}
 const petAsleep=p=>p.sleep.some(([a,b])=>a<b?(TOD>=a&&TOD<b):(TOD>=a||TOD<b));
+function _keepDir(p,mvg,b,a){if(mvg){const d=Math.atan2(b[0]-a[0],b[1]-a[1]);if(isFinite(d))p._dir=d;return{dir:p._dir}}return{dir:p._dir||0}}
 function petPos(p){
   if(p.panda)return{x:PANDA.x,z:PANDA.z,dir:PANDA.dir,run:PANDA.run};
   if(p.fetch){const f=p.fetch,u=(Date.now()-f.t0)/1000;if(u<1.4){const k=u/1.4;return{x:lerp(f.fx,f.tx,k),z:lerp(f.fz,f.tz,k),dir:Math.atan2(f.tx-f.fx,f.tz-f.fz),run:1}}
     if(u<3&&me.joined){const k=(u-1.4)/1.6;return{x:lerp(f.tx,me.x+.8,k),z:lerp(f.tz,me.z+.8,k),dir:Math.atan2(me.x-f.tx,me.z-f.tz),run:1}}p.fetch=null;if(f.done)f.done()}
   const L=petLeader(p);if(L){const side=(hash(p.id)%2?1:-1)*.7;const x=L.x-Math.sin(L.r)*1.5+Math.cos(L.r)*side,z=L.z-Math.cos(L.r)*1.5-Math.sin(L.r)*side;return{x,z,dir:L.r,follow:1}}
+  if(p.route){const R=p.route;if(!p._L){p._S=[];p._L=0;for(let i=1;i<R.length;i++){const l=Math.hypot(R[i][0]-R[i-1][0],R[i][1]-R[i-1][1]);p._S.push(l);p._L+=l}}
+    const T0=(petAsleep(p)?Math.floor(Date.now()/600000)*600:Date.now()/1000)+hash(p.id)%45,at=d=>{let m=d%(2*p._L);if(m>p._L)m=2*p._L-m;for(let i=0;i<p._S.length;i++){if(m<=p._S[i]||i===p._S.length-1){const u=clamp(m/Math.max(p._S[i],1e-6),0,1);return[lerp(R[i][0],R[i+1][0],u),lerp(R[i][1],R[i+1][1],u)]}m-=p._S[i]}return R[0]};
+    const dd=(Math.floor(T0/45)*30+Math.min(T0%45,30))*p.spd*.7,a=at(dd),b=at(dd+.2),mvg=T0%45<30&&!petAsleep(p);return{x:a[0],z:a[1],dir:mvg?Math.atan2(b[0]-a[0],b[1]-a[1]):(p._dir||0),run:0,..._keepDir(p,mvg,b,a)}}
   const ph=hash(p.id)%1000/159;const t=(petAsleep(p)?Math.floor(Date.now()/600000)*600:Date.now()/1000)*p.spd*.02,a=p.area;
   let x=a.cx+a.rx*(.7*Math.sin(t*1.3+ph)+.3*Math.sin(t*3.1+ph*2)),z=a.cz+a.rz*(.7*Math.cos(t*1.1+ph*1.7)+.3*Math.sin(t*2.3+ph));
   if(!walkable(x,z)){x=a.cx;z=a.cz}const dx=Math.cos(t*1.3+ph),dz=-Math.sin(t*1.1+ph*1.7);return{x,z,dir:Math.atan2(dx*a.rx,dz*a.rz)}}
@@ -403,11 +410,21 @@ function petPos(p){
 const KINDS={
   cai:{n:"Rau cải",c:"#7cc04a",t:"veg"}, cachua:{n:"Cà chua",c:"#e04b2f",t:"veg"}, ot:{n:"Ớt",c:"#d1261c",t:"veg"},
   hong:{n:"Hoa hồng",c:"#e3405f",t:"flower"}, quy:{n:"Dã quỳ",c:"#f5c518",t:"flower"}, cuc:{n:"Cúc hoạ mi",c:"#ffffff",t:"flower"},
+  huongduong:{n:"Hướng dương",c:"#f2b01e",t:"flower",sh:"sun"}, camtucau:{n:"Cẩm tú cầu",c:"#7a8cf0",t:"flower",sh:"hyd"}, oaihuong:{n:"Oải hương",c:"#9a6fd0",t:"flower",sh:"lav"},
   anhdao:{n:"Mai anh đào",c:"#f4a3c0",t:"tree"}, bo:{n:"Cây bơ",c:"#5b8a2e",t:"tree"}, saurieng:{n:"Sầu riêng",c:"#a6a33a",t:"tree"}, caphe:{n:"Cà phê",c:"#b3261e",t:"tree"},
 };
-function plantStage(p){const h=(Date.now()-(p.at||Date.now()))/3600e3,s=h/12+(p.w||0)*.6;return s<.25?0:s<1.5?1:s<4?2:3}
-const STAGE=["Mới gieo hạt","Nảy mầm","Đang lớn","Trưởng thành"];
-const thirsty=p=>Date.now()-Math.max(p.lw||0,p.at||0)>36*3600e3&&!(WX.rain>.05);
+function plantGrow(p){const h=(Date.now()-(p.at||Date.now()))/HR+Math.min(p.w||0,12);return h<1?0:h<6?1:h<24?2:3}   // 24 giờ là lớn đủ; mỗi lần tưới tính thêm 1 giờ (tối đa 12)
+const plantDead=p=>Date.now()-careAt(p)>48*HR;      // quá 48 giờ không được tưới thì héo
+function plantStage(p){return plantDead(p)?4:plantGrow(p)}
+const STAGE=["Mới gieo hạt","Nảy mầm","Đang lớn","Trưởng thành","Đã héo"];
+const HR=3600e3;
+// vòi tưới tự động: bật 6:00 và 17:30, mỗi lần 20 phút (không chạy khi mưa); cây trong 7 m coi như được tưới
+const SPRINK=[[-36,-30],[-25,-30],[-16.7,-78.2],[7.5,-78],[-3,-50],[-21,-44],[-2,12.5],[-28,-72],[-12,-71]],SPR_RUNS=[6,17.5],SPR_DUR=1/3;
+const sprActive=()=>WX.rain<.05&&SPR_RUNS.some(r=>TOD>=r&&TOD<r+SPR_DUR);
+function sprRunMs(){const T=Date.now()/HR+TZ,day=Math.floor(T/24)*24;let b=-1e9;for(const r of SPR_RUNS){let c=day+r;if(c>T)c-=24;if(c>b)b=c}return(b-TZ)*HR}
+const sprinkAt=p=>SPRINK.some(q=>Math.hypot(q[0]-p.x,q[1]-p.z)<7)?sprRunMs():0;
+const careAt=p=>Math.max(p.at||0,p.lw||0,sprinkAt(p));
+const thirsty=p=>Date.now()-careAt(p)>24*HR&&!(WX.rain>.05);
 
 /* ================= STORE ================= */
 const Store={mode:"local",db:null,subs:{},data:{plants:[],lanterns:[],guestbook:[]},
@@ -841,10 +858,10 @@ function railM(ax,ay,az,bx,by,bz,th){_v1.set(bx-ax,by-ay,bz-az);const L=_v1.leng
 function gravelPath(P,w,seed){const r=rng(seed||5);scene.add(ribbon(P,w,0xd6cdb8,.13));const pb=[];for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.round(L*1.6));for(let k=0;k<n;k++){const t=k/n;pb.push({x:lerp(a[0],b[0],t)+(r()-.5)*w*.95,z:lerp(a[1],b[1],t)+(r()-.5)*w*.95,s:.05+r()*.07,c:r(),a:r()*6})}}
  const pc=["#bdb3a0","#a79c88","#d3cab6","#8e8574","#c9b99a"].map(C);
  colorize(instanced(new T.DodecahedronGeometry(1,0),new T.MeshLambertMaterial({color:0xffffff}),pb,t=>setM(t.x,H(t.x,t.z)+.2,t.z,t.s,t.s*.7,t.s,t.a),false),pb,t=>pc[Math.floor(t.c*5)])}
-gravelPath(DRIVE_PTS,2.4,5);                                                                       // từ cổng gỗ xuống sân cắm trại, thẳng tới cửa chính
-gravelPath([[-8,-43],[-8,-47],[-8,-51],[-8,-53.2]],2,6);                                           // từ giữa bãi cắm trại đi thẳng vào cửa chính
+gravelPath(DRIVE_PTS,4.4,5);                                                                       // từ cổng gỗ xuống sân cắm trại, thẳng tới cửa chính
+gravelPath([[-8,-43],[-8,-47],[-8,-51],[-8,-53.2]],4,6);                                           // từ giữa bãi cắm trại đi thẳng vào cửa chính
 gravelPath(curvePts([[-.4,-66.5],[3,-67.6],[12,-67.4],[18,-67.4],[20,-64],[19.8,-59.5],[18.2,-56],[16.8,-55]],1.4),1.5,7);
-gravelPath(YPATH_PTS,2.4,8);
+gravelPath(YPATH_PTS,4.4,8);
 gravelPath(LOOP_PTS,2.4,9);   // đường 2 hết là vào sân trước (không còn cổng), đi thẳng lên bảng lưu bút   // đường lên dốc đi ngang cổng gỗ, rồi thẳng vào nhà vàng   // lối sỏi nhỏ: nhà vàng → ngang hồ bơi → đường dây leo
 // bậc thang đá cạnh chuồng chim đi xuống phòng giám đốc
 {const x=-14.8;for(let i=0;i<9;i++){const z=-57.6+i*.5,top=PY-.15-i*.37,bot=YARD.y;scene.add(mesh(new T.BoxGeometry(2.2,top-bot,.52),lam(i%2?0xb9b3a6:0xc4beb1),x,(top+bot)/2,z,false))}
@@ -1144,17 +1161,38 @@ function updateBirds(time,dt){
 
 /* ---- plants ---- */
 const plantGroup=new T.Group();scene.add(plantGroup);
+const sprHeads=new T.Group();scene.add(sprHeads);
+for(const[x,z]of SPRINK){const y=H(x,z);sprHeads.add(mesh(new T.CylinderGeometry(.1,.12,.3,8),lam(0x6d7478),x,y+.15,z,false),mesh(new T.CylinderGeometry(.05,.05,.1,6),lam(0xd8402f),x,y+.33,z,false))}
+const SPR_N=26,sprPos=new Float32Array(SPRINK.length*SPR_N*3),sprGeo=new T.BufferGeometry();sprGeo.setAttribute("position",new T.BufferAttribute(sprPos,3));
+const sprPts=new T.Points(sprGeo,new T.PointsMaterial({color:0xd6eeff,size:.16,transparent:true,opacity:.85,depthWrite:false}));sprPts.frustumCulled=false;sprPts.visible=false;scene.add(sprPts);
+let sprWas=false,sprSnd=0;
+function updateSprinklers(time){const on=sprActive();sprPts.visible=on;
+  if(on&&!sprWas&&me.joined)toast("Vòi tưới tự động đang chạy quanh retreat. Cây trong tầm vòi được tưới giúp.",4200);sprWas=on;if(!on)return;
+  for(let i=0;i<SPRINK.length;i++){const q=SPRINK[i],y=H(q[0],q[1])+.35;if(Math.hypot(q[0]-camTarget.x,q[1]-camTarget.z)>90){for(let k=0;k<SPR_N;k++){const j=(i*SPR_N+k)*3;sprPos[j+1]=-999}continue}
+    for(let k=0;k<SPR_N;k++){const ph=(time*1.1+k/SPR_N)%1,ang=k*2.399+time*.9+i,reach=1.4+(k%5)*1.15,pk=1.3+(k%3)*.45,j=(i*SPR_N+k)*3;sprPos[j]=q[0]+Math.cos(ang)*reach*ph;sprPos[j+1]=y+pk*4*ph*(1-ph);sprPos[j+2]=q[1]+Math.sin(ang)*reach*ph}}
+  sprGeo.attributes.position.needsUpdate=true;
+  if(me.joined&&time-sprSnd>1.8){const d=Math.min(...SPRINK.map(q=>Math.hypot(q[0]-me.x,q[1]-me.z)));if(d<24){Snd.play("hiss");sprSnd=time}}}
 const PG={mound:new T.SphereGeometry(.35,6,4),sprout:new T.ConeGeometry(.12,.5,5),bush:new T.IcosahedronGeometry(.45,0),stem:new T.CylinderGeometry(.03,.04,.9,4),bloom:new T.IcosahedronGeometry(.17,0),trunk:new T.CylinderGeometry(.1,.16,1.6,5),crown:new T.IcosahedronGeometry(1,0),dot:new T.SphereGeometry(.1,5,4)};
 function rebuildPlants(){
   while(plantGroup.children.length)plantGroup.remove(plantGroup.children[0]);
-  for(const p of Store.data.plants){if(!isFinite(p.x)||!isFinite(p.z))continue;const k=KINDS[p.k]||KINDS.cai,st=plantStage(p),y=H(p.x,p.z),g=new T.Group();g.position.set(p.x,y,p.z);
-    const leaf=lam(thirsty(p)?0x8f8a45:0x4f9a3a);
-    if(st===0){const m=mesh(PG.mound,lam(0x5a3e22),0,.02,0,false);m.scale.set(1,.35,1);g.add(m)}
-    else if(st===1)g.add(mesh(PG.sprout,leaf,0,.25,0,false));
-    else if(k.t==="tree"){const s=st===2?.5:1;const tr=mesh(PG.trunk,lam(0x6b4f35),0,.8*s,0);tr.scale.setScalar(s);const cr=mesh(PG.crown,lam(p.k==="anhdao"&&st===3?0xf4a3c0:0x3f7a33),0,2*s,0);cr.scale.set(1.2*s,s,1.2*s);g.add(tr,cr);
-      if(st===3&&p.k!=="anhdao")for(let i=0;i<5;i++){const a=i*1.3;g.add(mesh(PG.dot,lam(k.c),Math.cos(a)*.9,1.7+Math.sin(i)*.3,Math.sin(a)*.9,false))}}
-    else if(k.t==="flower"){const n=st===2?1:3;for(let i=0;i<n;i++){const ox=(i-(n-1)/2)*.18;g.add(mesh(PG.stem,leaf,ox,.45,0,false));if(st===3)g.add(mesh(PG.bloom,lam(k.c),ox,.95,0,false))}}
-    else{const b=mesh(PG.bush,leaf,0,.35,0);b.scale.setScalar(st===2?.7:1);g.add(b);if(st===3)for(let i=0;i<4;i++){const a=i*1.6;g.add(mesh(PG.dot,lam(k.c),Math.cos(a)*.35,.45,Math.sin(a)*.35,false))}}
+  for(const p of Store.data.plants){if(!isFinite(p.x)||!isFinite(p.z))continue;if(Date.now()-careAt(p)>7*24*HR)continue;   // héo quá 5 ngày thì biến mất
+    const k=KINDS[p.k]||KINDS.cai,dead=plantDead(p),gs=plantGrow(p),y=H(p.x,p.z),g=new T.Group();g.position.set(p.x,y,p.z);
+    const leaf=lam(dead?0x7a6a3a:thirsty(p)?0x8f8a45:0x4f9a3a),petal=lam(dead?0x8a7048:k.c),mk=(geo,m,x,yy,z,sc)=>{const q=mesh(geo,m,x,yy,z,false);if(sc)q.scale.set(sc[0],sc[1],sc[2]);g.add(q);return q};
+    if(gs===0){mk(PG.mound,lam(dead?0x6a5a40:0x5a3e22),0,.02,0,[1,.35,1]);if(!dead)for(let i=0;i<3;i++)mk(PG.dot,lam(0x2b1d14),(i-1)*.14,.14,(i%2?.07:-.07),[.4,.4,.4])}
+    else if(gs===1){mk(PG.mound,lam(0x5a3e22),0,.02,0,[.8,.3,.8]);for(const a of[-.5,.5]){const c=mk(PG.sprout,leaf,a*.12,.22,0,[.7,.7,.7]);c.rotation.z=-a*(dead?1.3:.7)}}
+    else if(k.t==="tree"){const s=gs===2?.5:1;const tr=mesh(PG.trunk,lam(dead?0x5a4a38:0x6b4f35),0,.8*s,0);tr.scale.setScalar(s);const cr=mesh(PG.crown,lam(dead?0x8a7a4a:p.k==="anhdao"&&gs===3?0xf4a3c0:0x3f7a33),0,2*s,0);cr.scale.set(1.2*s,s*(dead?.7:1),1.2*s);g.add(tr,cr);
+      if(gs===3&&!dead&&p.k!=="anhdao")for(let i=0;i<5;i++){const a=i*1.3;g.add(mesh(PG.dot,lam(k.c),Math.cos(a)*.9,1.7+Math.sin(i)*.3,Math.sin(a)*.9,false))}}
+    else if(k.t==="flower"){
+      const sh=k.sh||"daisy",tall=sh==="sun"?1.5:sh==="lav"?1.05:1,n=gs===2?2:sh==="sun"?1:3;
+      for(let i=0;i<n;i++){const ox=(i-(n-1)/2)*.2,lean=dead?(i%2?.7:-.5):0,st=mk(PG.stem,leaf,ox,.45*tall*(gs===2?.7:1),0,[1,tall*(gs===2?.7:1),1]);st.rotation.z=lean;
+        const top=gs===2?.62*tall:.95*tall,tx=ox+Math.sin(lean)*-.3*(dead?1:0),ty=dead?top*.78:top;
+        mk(PG.bush,leaf,ox+.1,.3,0,[.18,.1,.34]);mk(PG.bush,leaf,ox-.1,.4,.05,[.18,.1,.34]);
+        if(gs===2){mk(PG.bloom,lam(dead?0x8a7048:0x6aa84a),tx,ty,0,[.7,.9,.7])}   // nụ xanh
+        else if(sh==="sun"){mk(PG.dot,lam(dead?0x5a4630:0x4a2f1a),tx,ty,0,[2.1,.8,2.1]);for(let a=0;a<10;a++){const t=a/10*6.283;mk(PG.bloom,petal,tx+Math.cos(t)*.32,ty,Math.sin(t)*.32,[.7,.3,1.4]).rotation.y=-t}}
+        else if(sh==="hyd"){for(let a=0;a<7;a++){const t=a*2.4;mk(PG.bloom,petal,tx+Math.cos(t)*.17,ty+(a%3)*.07,Math.sin(t)*.17,[1.2,1.2,1.2])}}
+        else if(sh==="lav"){for(let a=0;a<5;a++)mk(PG.bloom,petal,tx,ty-.04+a*.1,0,[.55,.9,.55])}
+        else{mk(PG.dot,lam(dead?0x7a5a30:0xf2c230),tx,ty+.04,0,[1,.6,1]);for(let a=0;a<6;a++){const t=a/6*6.283;mk(PG.bloom,petal,tx+Math.cos(t)*.17,ty,Math.sin(t)*.17,[1,.4,1])}}}}
+    else{const b=mesh(PG.bush,leaf,0,.35,0);b.scale.setScalar(gs===2?.7:1);if(dead)b.scale.y*=.55;g.add(b);if(gs===3&&!dead)for(let i=0;i<4;i++){const a=i*1.6;g.add(mesh(PG.dot,lam(k.c),Math.cos(a)*.35,.45,Math.sin(a)*.35,false))}}
     plantGroup.add(g)}
 }
 Store.on("plants",rebuildPlants);setInterval(rebuildPlants,5*60e3);
@@ -1235,6 +1273,7 @@ const Snd=(()=>{let C=null,mg,sg,mu,dl,nb=null,sfx=ls.get("snd",true),mus=ls.get
     sip:t=>{nz(t,.25,{f:1200,to:600,q:2,vol:.06});tone(260,t+.3,.15,{vol:.08,to:200})},
     owl:t=>{tone(400,t,.4,{vol:.14,to:330});tone(390,t+.5,.5,{vol:.14,to:300})},
     fall:t=>nz(t,.8,{f:500,q:.5,vol:.1,type:"lowpass"}),
+    hiss:t=>nz(t,1.8,{f:5200,q:.5,vol:.06,type:"highpass",at:.25}),
     levelup:t=>[72,76,79,84].forEach((n,i)=>tone(mf(n),t+i*.1,.5,{type:"triangle",vol:.09}))};
   const FXMAP={water:"water",splash:"splash",plant:"plant",seed:"rustle",leaf:"rustle",corn:"rustle",note:"note",heart:"heart",coffee:"clink",paw:"paw",ball:"pop",yarn:"pop",food:"crunch",flower:"note",lantern:"chime",fish:"plop",wave:"pop",tent:"pop",camera:"shutter"};
   // tiếng người: "ha", "hmm", "ừm", "hừ" — mỗi nhân vật một cao độ riêng theo seed
@@ -1312,7 +1351,7 @@ function keyMove(dt){let f=0,s=0;if(keys.w||keys.arrowup)f+=1;if(keys.s||keys.ar
   if((!f&&!s)||!me.joined)return false;
   // hướng tới = từ camera nhìn vào nhân vật
   const fwx=-Math.sin(camS.yaw),fwz=-Math.cos(camS.yaw),rtx=-fwz,rtz=fwx;
-  const dx=fwx*f+rtx*s*-1,dz=fwz*f+rtz*s*-1,l=Math.hypot(dx,dz)||1;me.tx=null;me.after=null;stepTowards(me.x+dx/l*5,me.z+dz/l*5,dt);return true}
+  const dx=fwx*f+rtx*s*-1,dz=fwz*f+rtz*s*-1,l=Math.hypot(dx,dz)||1;me.tx=null;me.path=null;me.after=null;stepTowards(me.x+dx/l*5,me.z+dz/l*5,dt);return true}
 const _v=new T.Vector3();
 function project(x,y,z){_v.set(x,y,z).project(camera);if(_v.z>1)return null;return{x:(_v.x+1)/2*CW,y:(1-_v.y)/2*CH}}
 function tap(px,py){
@@ -1325,21 +1364,37 @@ function tap(px,py){
   for(const r of remotes.values())cand(r.x,groundY(r.x,r.z)+1.2,r.z,{t:"guest",o:r});
   for(const L of lanterns)cand(L.m.position.x,L.m.position.y,L.m.position.z,{t:"lantern",o:L.l});
   if(!plantMode)for(const p of Store.data.plants)if(isFinite(p.x))cand(p.x,H(p.x,p.z)+.5,p.z,{t:"plant",o:p});
+  if(!plantMode)SPRINK.forEach((q,i)=>cand(q[0],H(q[0],q[1])+.3,q[1],{t:"spr",o:i}));
   if(best){showEntity(best);return}
   ndc.set(px/CW*2-1,-(py/CH)*2+1);ray.setFromCamera(ndc,camera);const hit=ray.intersectObject(terrain)[0];
   if(!hit)return;
   const x=hit.point.x,z=hit.point.z;
   if(!me.joined){openJoin();return}
-  if(plantMode){if(!inRect(x,z,GARDEN)){toast("Chỉ trồng được trong vườn của khách (ô có hàng rào gỗ)");return}tryPlant(x,z);return}
+  if(plantMode){if(!canPlant(x,z)){toast("Chỗ này không gieo được: đường, nước, trong nhà hoặc ngoài ranh đất");return}tryPlant(x,z);return}
   const spot=SPOTS.find(s=>s.hit(x,z));
   if(spot){showSpot(spot);walkTo(spot.at?spot.at[0]:x,spot.at?spot.at[1]:z);return}
   if(!walkable(x,z)){toast("Ngoài ranh đất của retreat");return}
   if(streamDist(x,z)<3.2&&!fordNear(x,z)&&!onRoad(x,z))toast("Suối khá sâu. Chỗ nông đi bộ qua được nằm cách cầu 6 m, có sỏi.");
-  closeCard();walkTo(x,z);
+  closeCard();if(inRect(x,z,MH)&&!inMain()){enterMain(()=>walkTo(x,z));return}if(inMain()&&!inRect(x,z,MH)){exitMain(()=>walkTo(x,z));return}walkTo(x,z);
 }
+function findPath(x0,z0,x1,z1){
+  const cl=(x,z)=>!blocked(x,z)&&!blocked(x+.3,z)&&!blocked(x-.3,z)&&!blocked(x,z+.3)&&!blocked(x,z-.3);
+  const los=(ax,az,bx,bz)=>{const d=Math.hypot(bx-ax,bz-az),n=Math.ceil(d/.25);for(let i=1;i<=n;i++){const t=i/n;if(!cl(ax+(bx-ax)*t,az+(bz-az)*t))return false}return true};
+  if(los(x0,z0,x1,z1))return null;
+  const G=.5,pad=14,mx=Math.min(x0,x1)-pad,mz=Math.min(z0,z1)-pad,W=Math.ceil((Math.abs(x1-x0)+2*pad)/G),Hh=Math.ceil((Math.abs(z1-z0)+2*pad)/G);if(W*Hh>90000)return null;
+  const N=W*Hh,gc=new Float32Array(N).fill(1e9),fr=new Int32Array(N).fill(-1),cs=new Int8Array(N),done=new Uint8Array(N);
+  const ok=(i,j)=>{if(i<0||j<0||i>=W||j>=Hh)return false;const k=j*W+i;if(!cs[k])cs[k]=cl(mx+i*G,mz+j*G)?1:2;return cs[k]===1};
+  const si=Math.round((x0-mx)/G),sj=Math.round((z0-mz)/G);let ei=Math.round((x1-mx)/G),ej=Math.round((z1-mz)/G);
+  const hf=[],push=(f,k)=>{hf.push([f,k]);let c=hf.length-1;while(c>0){const p=(c-1)>>1;if(hf[p][0]<=hf[c][0])break;[hf[p],hf[c]]=[hf[c],hf[p]];c=p}},pop=()=>{const t=hf[0],l=hf.pop();if(hf.length){hf[0]=l;let c=0;for(;;){let a=2*c+1,b=a+1,m=c;if(a<hf.length&&hf[a][0]<hf[m][0])m=a;if(b<hf.length&&hf[b][0]<hf[m][0])m=b;if(m===c)break;[hf[m],hf[c]]=[hf[c],hf[m]];c=m}}return t};
+  const hs=(i,j)=>Math.hypot(i-ei,j-ej);const s0=sj*W+si;gc[s0]=0;push(hs(si,sj),s0);let goal=-1,it=0;
+  while(hf.length&&it++<60000){const[,k]=pop();if(done[k])continue;done[k]=1;const i=k%W,j=(k/W)|0;if(Math.abs(i-ei)<=1&&Math.abs(j-ej)<=1){goal=k;break}
+    for(let di=-1;di<=1;di++)for(let dj=-1;dj<=1;dj++){if(!di&&!dj)continue;const a=i+di,b=j+dj;if(!ok(a,b))continue;if(di&&dj&&(!ok(i+di,j)||!ok(i,j+dj)))continue;const nk=b*W+a,c=gc[k]+(di&&dj?1.414:1);if(c<gc[nk]){gc[nk]=c;fr[nk]=k;push(c+hs(a,b),nk)}}}
+  if(goal<0)return null;const cells=[];for(let k=goal;k>=0;k=fr[k])cells.push([mx+(k%W)*G,mz+((k/W)|0)*G]);cells.reverse();cells.push([x1,z1]);
+  const out=[];let cur=[x0,z0],i=0;while(i<cells.length-1){let b=i+1;for(let t=cells.length-1;t>i;t--)if(los(cur[0],cur[1],cells[t][0],cells[t][1])){b=t;break}cur=cells[b];out.push(cur);i=b}
+  return out.length?out:null}
 function walkTo(x,z,after){camS.up=0;if(!me.joined){openJoin();return}if(camS.mode==="drone")setView(false);
   if(blocked(x,z)){const a=Math.atan2(me.z-z,me.x-x);for(let r=.5;r<25;r+=.5){const nx=x+Math.cos(a)*r,nz=z+Math.sin(a)*r;if(!blocked(nx,nz)){x=nx;z=nz;break}}}
-  me.tx=x;me.tz=z;me.after=after||null}
+  me.tx=x;me.tz=z;me.after=after||null;me.path=findPath(me.x,me.z,x,z)}
 function walkAlong(pts){let i=0;const step=()=>{if(i>=pts.length)return;const p=pts[i++];walkTo(p[0],p[1],step)};step()}
 function teleport(x,z,yaw){if(yaw!=null){camS.yaw=yaw;camS.pitch=.38;camS.dist=15}if(!me.joined){camS.tx=x;camS.tz=z;return}me.x=x;me.z=z;me.tx=null;me.after=null;camTarget.set(x,groundY(x,z)+1.6,z);pushPresence()}
 function stepTowards(tx,tz,dt){const dx=tx-me.x,dz=tz-me.z,d=Math.hypot(dx,dz);const slow=inPool(me.x,me.z)?.45:streamDist(me.x,me.z)<2.4?.5:1;const sp=SPEED*slow*dt;
@@ -1351,7 +1406,7 @@ const AVI={x0:-25,x1:-17,z0:-64.5,z1:-57.5};
 function walkPet(p,f){const tx=p._x+.9,tz=p._z+.5;if(inRect(p._x,p._z,AVI)&&!inRect(me.x,me.z,AVI)){walkTo(NETH.x,NETH.z+4.6,()=>walkTo(NETH.x,NETH.z+2.4,()=>walkTo(clamp(tx,-24.3,-17.7),clamp(tz,-63.9,-58.3),f)))}else walkTo(tx,tz,f)}
 function stepMe(dt){if(!me.joined)return;unstick();moving=false;
   if(keyMove(dt))moving=true;
-  else if(me.tx!=null){moving=true;if(stepTowards(me.tx,me.tz,dt)){me.tx=null;moving=false;const f=me.after;me.after=null;if(f)f()}}
+  else if(me.tx!=null){moving=true;const wp=me.path&&me.path.length?me.path[0]:null;if(stepTowards(wp?wp[0]:me.tx,wp?wp[1]:me.tz,dt)){if(wp&&me.path.length>1)me.path.shift();else{me.path=null;me.tx=null;moving=false;const f=me.after;me.after=null;if(f)f()}}}
   const sw=inPool(me.x,me.z);if(sw)me.a="swim";else if(me.a==="swim")me.a="";if(moving&&me.a&&me.a!=="swim")me.a="";
   if(moving)maybePush()}
 
@@ -1407,8 +1462,11 @@ function petActs(p,asleep){if(asleep)return[];const near=f=>()=>walkPet(p,f),fol
   const ahead=(d)=>{let tx=me.x+Math.sin(me.r)*d,tz=me.z+Math.cos(me.r)*d;if(!walkable(tx,tz)||blocked(tx,tz)){tx=me.x+1;tz=me.z+1}return[tx,tz]};
   if(p.kind==="gấu")return pandaActs(p,near);
   if(p.kind==="chó")return[["Ném bóng",near(()=>{const[tx,tz]=ahead(9);doFx("ball",tx,tz);p.fetch={t0:Date.now(),fx:p._x,fz:p._z,tx,tz,done:()=>{say(p.id,"Gâu!");toast(pick([`${p.name} mang bóng về, đặt cách bạn đúng hai mét. Muốn thì tự ra lấy.`,`${p.name} nhặt được bóng, và cả một chiếc dép không rõ của ai.`,`${p.name} mang bóng về, ướt nhẹp, đầy tự hào.`]),4000)}}})],...follow];
-  if(p.kind==="mèo")return[["Đưa cuộn len",near(()=>{const[tx,tz]=ahead(3);doFx("yarn",tx,tz);p.fetch={t0:Date.now(),fx:p._x,fz:p._z,tx,tz,done:()=>toast(pick([`${p.name} vờn cuộn len 40 giây rồi giả vờ chưa từng quan tâm.`,`${p.name} cuộn mình trong đống len. Cuộn len giờ thuộc về ${p.name}.`]),4000)}})],...follow];
+  if(p.kind==="mèo")return[...(p.scout?[["Hỏi tình hình tuần tra",()=>scoutReport(p)]]:[]),["Đưa cuộn len",near(()=>{const[tx,tz]=ahead(3);doFx("yarn",tx,tz);p.fetch={t0:Date.now(),fx:p._x,fz:p._z,tx,tz,done:()=>toast(pick([`${p.name} vờn cuộn len 40 giây rồi giả vờ chưa từng quan tâm.`,`${p.name} cuộn mình trong đống len. Cuộn len giờ thuộc về ${p.name}.`]),4000)}})],...follow];
   return[["Bế lên",near(()=>{me.a="pet";doFx("heart",p._x,p._z);toast(pick([`${p.name} nằm im trong tay bạn, tim đập nhanh hơn bạn tưởng.`,`${p.name} giãy một cái rồi chịu ngồi yên. Mềm như gối.`,`${p.name} gặm nhẹ cúc áo bạn để đánh dấu chủ quyền.`]),4000)})]]}
+function scoutReport(p){const sp=SPOTS.find(s=>{try{return s.hit(p._x,p._z)}catch(e){return false}}),where=sp?sp.t:"quanh retreat",n=Store.data.plants.filter(q=>Math.hypot(q.x-p._x,q.z-p._z)<14&&plantDead(q)).length;
+  say(p.id,"Meo. (Báo cáo)");Snd.animal("mèo");doFx("paw",p._x,p._z);
+  toast(`${p.name} đang tuần ở: ${where}. ${n?`Có ${n} cây héo gần đây, cần nhổ.`:"Cây cối ổn."} ${pick(["Không thấy chuột.","Cổng yên tĩnh.","Có một con bướm đáng nghi.","Mọi thứ trong tầm kiểm soát."])}`,5200)}
 function npcLine(s){s._i=((s._i==null?Math.floor(Math.random()*s.lines.length):s._i)+1)%s.lines.length;return s.lines[s._i]}
 function showEntity(b){
   entSound(b);
@@ -1426,10 +1484,16 @@ function showEntity(b){
   if(b.t==="guest"){const p=b.o.p||{};card("Khách đang online",String(p.n||"Khách").slice(0,24),b.o.guest?"Khách được mời từ bên ngoài.":"Đang dạo quanh retreat.",[["Vẫy tay chào",()=>doFx("wave",me.x,me.z)],["Lại gần",()=>walkTo(b.o.x+1,b.o.z+.6)]]);return}
   if(b.t==="lantern"){const l=b.o;const body=el("div",{style:"display:flex;flex-direction:column;gap:6px"},el("q",null,String(l.t||"").slice(0,160)),el("p",null,`${String(l.by||"Ai đó").slice(0,24)} · ${ago(l.at)}`));
     card("Hoa đăng","Lời ước trên suối",body,isOwner?[["Gỡ hoa đăng",()=>Store.remove("lanterns",l.id).catch(writeErr)]]:[]);return}
-  if(b.t==="plant"){const p=b.o,k=KINDS[p.k]||KINDS.cai,st=plantStage(p);
-    const acts=[["Tưới cây",()=>walkTo(p.x+1,p.z+.6,()=>{me.a="water";doFx("water",p.x,p.z);Store.update("plants",p.id,{w:(p.w||0)+1,lw:Date.now()}).then(()=>toast("Đã tưới. Cây không nói cảm ơn nhưng lớn thêm chút.")).catch(writeErr)})]];
-    if(isOwner)acts.push(["Nhổ cây",()=>Store.remove("plants",p.id).catch(writeErr)]);
-    card(STAGE[st],k.n,`Trồng bởi ${String(p.by||"Khách").slice(0,24)}, ${ago(p.at)}. Đã tưới ${p.w||0} lần.${thirsty(p)?" Đang khát nước.":""}${WX.rain>.05?" Trời đang mưa tưới giúp.":""}`,acts)}
+  if(b.t==="spr"){const nx=SPR_RUNS.map(r=>`${Math.floor(r)}:${String(Math.round((r%1)*60)).padStart(2,"0")}`).join(" và ");
+    card("Hệ thống tưới","Vòi tưới tự động",el("p",null,`Chạy lúc ${nx} mỗi ngày, 20 phút một lần, nghỉ khi trời mưa. Cây trong vòng 7 m quanh vòi được tưới giúp nên không bị héo.${sprActive()?" Vòi đang chạy.":""}`),[["Lại gần xem",()=>walkTo(SPRINK[b.o][0]+1.2,SPRINK[b.o][1]+.8)]]);return}
+  if(b.t==="plant"){const p=b.o,k=KINDS[p.k]||KINDS.cai,st=plantStage(p),dead=st===4,mine=isOwner||p.by===me.n||dead;
+    const h=(Date.now()-(p.at||Date.now()))/HR+Math.min(p.w||0,12),fmt=t=>new Date(t).toLocaleString("vi-VN",{hour:"2-digit",minute:"2-digit",day:"numeric",month:"numeric",timeZone:"Asia/Ho_Chi_Minh"}),sp=sprinkAt(p)>0;
+    const info=dead?"Đã héo vì hơn 48 giờ không được tưới. Nhổ đi rồi trồng cây khác nhé.":(st<3?`Còn khoảng ${Math.max(1,Math.ceil(24-h))} giờ nữa là lớn đủ. `:`Đã lớn đủ${k.t==="flower"?", hoa đang nở":""}. `)+(sp?"Nằm trong tầm vòi tưới tự động nên được tưới mỗi ngày.":`Cần tưới trước ${fmt(careAt(p)+48*HR)} kẻo héo.`)+(thirsty(p)?" Đang khát nước.":"")+(WX.rain>.05?" Trời đang mưa tưới giúp.":"");
+    const acts=[];
+    if(!dead)acts.push(["Tưới cây",()=>walkTo(p.x+1,p.z+.6,()=>{me.a="water";pushPresence();Snd.play("water");doFx("water",p.x,p.z);Store.update("plants",p.id,{w:(p.w||0)+1,lw:Date.now()}).then(()=>toast("Đã tưới. Cây không nói cảm ơn nhưng lớn thêm chút.")).catch(writeErr)})]);
+    if(mine){acts.push(["Đổi sang cây khác",()=>pickKind("Đổi loại cây","Cây mới bắt đầu lại từ hạt.",nk=>walkTo(p.x+1,p.z+.6,()=>{me.a="plant";doFx("plant",p.x,p.z);Store.update("plants",p.id,{k:nk,at:Date.now(),w:0,lw:0,by:me.n.slice(0,24)}).then(()=>toast(`Đã thay bằng ${KINDS[nk].n.toLowerCase()}. Gieo lại từ hạt.`)).catch(writeErr)}))]);
+      acts.push(["Nhổ cây",()=>walkTo(p.x+1,p.z+.6,()=>{doFx("leaf",p.x,p.z);Store.remove("plants",p.id).then(()=>toast("Đã nhổ. Đất trống chờ hạt mới.")).catch(writeErr)})])}
+    card(STAGE[st],k.n,`Trồng bởi ${String(p.by||"Khách").slice(0,24)}, ${ago(p.at)}. Đã tưới ${p.w||0} lần. ${info}`,acts)}
 }
 /* ===== HOẠT ĐỘNG: menu, ảnh lưu niệm, nhà chính, âm thanh nhân vật, mặt trời ===== */
 const hashS=s=>[...String(s)].reduce((a,c)=>a+c.charCodeAt(0),0);
@@ -1458,7 +1522,7 @@ function act(id){const a=ACTS[id];if(!a)return;if(!me.joined){openJoin();return}
 function inMain(){return me.joined&&inRect(me.x,me.z,MH)}
 function enterMain(after){if(!me.joined){openJoin();return}if(inMain()){after&&after();return}
   walkTo(-6.55,-55.6,()=>{if(!MH.open)toggleMain(true);walkTo(-6.55,-59.3,after)})}
-function exitMain(){if(!inMain())return;walkTo(-6.55,-58.6,()=>{if(!MH.open)toggleMain(true);walkTo(-6.55,-55.6)})}
+function exitMain(after){if(!inMain()){after&&after();return}walkTo(-6.55,-58.6,()=>{if(!MH.open)toggleMain(true);walkTo(-6.55,-55.6,after)})}
 function goIn(x,z,after){enterMain(()=>walkTo(x,z,after))}
 function waterNearest(){if(!me.joined){openJoin();return}closeModal();let best=null,bd=40;for(const p of Store.data.plants||[]){if(!isFinite(p.x))continue;const d=Math.hypot(p.x-me.x,p.z-me.z);if(d<bd){bd=d;best=p}}
   if(!best){act("water");return}const p=best;walkTo(p.x+1,p.z+.6,()=>{me.a="water";pushPresence();Snd.play("water");doFx("water",p.x,p.z);Store.update("plants",p.id,{w:(p.w||0)+1,lw:Date.now()}).then(()=>toast(`Đã tưới cây ${(KINDS[p.k]||KINDS.cai).n} gần nhất.`,3400)).catch(writeErr)})}
@@ -1496,16 +1560,17 @@ function closeModal(){$("modal").hidden=true;bookRender=null}
 $("modal").addEventListener("click",e=>{if(e.target.id==="modal"&&me.joined)closeModal()});
 
 let plantMode=false,plantKind="cai";
-function setPlant(on){plantMode=on;$("plantbar").hidden=!on;$("b-plant").classList.toggle("on",on);if(on)$("plant-txt").textContent=`Chạm vào vườn để trồng ${KINDS[plantKind].n.toLowerCase()}`}
+function setPlant(on){plantMode=on;$("plantbar").hidden=!on;$("b-plant").classList.toggle("on",on);if(on)$("plant-txt").textContent=`Chạm vào chỗ đất bất kỳ để trồng ${KINDS[plantKind].n.toLowerCase()}`}
+function pickKind(title,lead,cb){const b=modal(title,lead);const g=el("div",{class:"grid"});const sub={veg:"Rau củ",flower:"Hoa",tree:"Cây lâu năm"};
+  for(const k in KINDS)g.append(el("button",{class:"pick"+(k===plantKind?" sel":""),onclick:()=>{closeModal();cb(k)}},KINDS[k].n,el("small",null,sub[KINDS[k].t])));b.append(g)}
 function openPlantPicker(){if(!me.joined){openJoin();return}
-  const b=modal("Trồng một cây","Mỗi người trồng tối đa 5 cây mỗi ngày. Cây qua 4 giai đoạn, tưới càng nhiều càng mau lớn.");const g=el("div",{class:"grid"});
-  const sub={veg:"Rau củ",flower:"Hoa",tree:"Cây lâu năm"};
-  for(const k in KINDS)g.append(el("button",{class:"pick"+(k===plantKind?" sel":""),onclick:()=>{plantKind=k;closeModal();setPlant(true);teleport(-32,-41.5,.3);camS.pitch=.6;toast("Đã tới vườn. Chạm vào luống đất để trồng.")}},KINDS[k].n,el("small",null,sub[KINDS[k].t])));b.append(g)}
+  pickKind("Trồng một cây","Trồng ở bất cứ đâu trên đất. Lớn đủ sau 24 giờ, quá 48 giờ không tưới thì héo. Mỗi người tối đa 12 cây mỗi ngày.",k=>{plantKind=k;setPlant(true);toast("Chạm vào chỗ đất bạn muốn gieo hạt.")})}
 const todayKey=()=>`${NOW.y}-${NOW.mo}-${NOW.d}`;
-function tryPlant(x,z){const k=KINDS[plantKind];if(Store.data.plants.find(p=>Math.hypot(p.x-x,p.z-z)<(k.t==="tree"?2.4:1.1))){toast("Chỗ này có cây rồi");return}
-  if(Store.data.plants.length>=480){toast("Vườn kín chỗ rồi, tưới giúp cây của mọi người nhé");return}
-  const q=ls.get("asr-quota",{d:"",n:0});if(q.d!==todayKey()){q.d=todayKey();q.n=0}if(q.n>=5){toast("Hôm nay bạn trồng đủ 5 cây. Mai quay lại nhé!");setPlant(false);return}
-  walkTo(x+1,z+.6,()=>{me.a="plant";doFx("plant",x,z);Promise.resolve(Store.add("plants",{k:plantKind,x:Math.round(x*10)/10,z:Math.round(z*10)/10,by:me.n.slice(0,24),w:0,lw:0})).then(()=>{q.n++;ls.set("asr-quota",q);toast(`Đã trồng ${k.n.toLowerCase()} (${q.n}/5 hôm nay)`)}).catch(writeErr)})}
+function canPlant(x,z){return walkable(x,z)&&!blocked(x,z)&&!inPool(x,z)&&!onRoad(x,z)&&!inRect(x,z,MH)&&!inRect(x,z,YH)}
+function tryPlant(x,z){const k=KINDS[plantKind];if(Store.data.plants.find(p=>Math.hypot(p.x-x,p.z-z)<(k.t==="tree"?2.4:1.1)&&Date.now()-careAt(p)<7*24*HR)){toast("Chỗ này có cây rồi");return}
+  if(Store.data.plants.filter(p=>Date.now()-careAt(p)<7*24*HR).length>=480){toast("Retreat kín chỗ rồi, nhổ bớt cây héo giúp mọi người nhé");return}
+  const q=ls.get("asr-quota",{d:"",n:0});if(q.d!==todayKey()){q.d=todayKey();q.n=0}if(q.n>=12){toast("Hôm nay bạn trồng đủ 12 cây. Mai quay lại nhé!");setPlant(false);return}
+  walkTo(x+1,z+.6,()=>{me.a="plant";doFx("plant",x,z);Promise.resolve(Store.add("plants",{k:plantKind,x:Math.round(x*10)/10,z:Math.round(z*10)/10,by:me.n.slice(0,24),w:0,lw:0,at:Date.now()})).then(()=>{q.n++;ls.set("asr-quota",q);toast(`Đã gieo ${k.n.toLowerCase()} (${q.n}/12 hôm nay)`)}).catch(writeErr)})}
 
 function openLantern(){if(!me.joined){openJoin();return}
   const b=modal("Thả hoa đăng","Viết một lời ước. Hoa đăng trôi trên suối 48 giờ, ai ghé cũng đọc được.");
@@ -1619,7 +1684,7 @@ function drawMini(){const m=$("mini"),c=m.getContext("2d"),W=m.width,s=W/(MM.x1-
   c.fillStyle="#5f9445";c.fillRect(X(TEA.x0),Z(TEA.z0),(TEA.x1-TEA.x0)*s,(TEA.z1-TEA.z0)*s);
   c.fillStyle="#a6c97a";c.fillRect(X(YARD.x0),Z(YARD.z0),(YARD.x1-YARD.x0)*s,(YARD.z1-YARD.z0)*s);
   c.fillStyle="#8a6a45";c.fillRect(X(GARDEN.x0),Z(GARDEN.z0),(GARDEN.x1-GARDEN.x0)*s,(GARDEN.z1-GARDEN.z0)*s);
-  line(DRIVE_PTS,"#c9a77a",2.4*s);line(LOOP_PTS,"#c9a77a",2.4*s);line(YPATH_PTS,"#c9a77a",2.4*s);line(ROAD2_PTS,"#efe9da",2.8*s);for(const P of[FALLPATH_PTS,TRAIL_PTS])line(P,"#c9a77a",1.6*s);
+  line(DRIVE_PTS,"#c9a77a",4.4*s);line(LOOP_PTS,"#c9a77a",2.4*s);line(YPATH_PTS,"#c9a77a",4.4*s);line(ROAD2_PTS,"#efe9da",2.8*s);for(const P of[FALLPATH_PTS,TRAIL_PTS])line(P,"#c9a77a",1.6*s);
   line(STREAM_PTS,"#8cc4d4",4.5*s);
   c.fillStyle="#f4f1ea";BLOCKS.forEach(b=>c.fillRect(X(b.x0),Z(b.z0),(b.x1-b.x0)*s,(b.z1-b.z0)*s));
   c.fillStyle="#a6c97a";c.fillRect(X(CAMP2.x0),Z(CAMP2.z0),(CAMP2.x1-CAMP2.x0)*s,(CAMP2.z1-CAMP2.z0)*s);c.fillStyle="#bdb4a0";c.fillRect(X(PARK.x0),Z(PARK.z0),(PARK.x1-PARK.x0)*s,(PARK.z1-PARK.z0)*s);
@@ -1653,7 +1718,7 @@ function frame(t){
     const py=inPool(p._x,p._z)?LOW_PAD.y+.05:groundY(p._x,p._z);p.obj.position.set(p._x,py,p._z);p.obj.rotation.y=q.dir;const sl=petAsleep(p);p.obj.scale.y=sl?.75:1;if(p.obj.userData.tail)p.obj.userData.tail.rotation.y=sl?0:Math.sin(time*(p.kind==="chó"||q.follow?12:3))*.5;
     if((q.run||q.follow)&&p.kind!=="thỏ")p.obj.position.y+=Math.abs(Math.sin(time*14))*.06;
     if(p.kind==="thỏ"&&!sl)p.obj.position.y+=Math.abs(Math.sin(time*5+hash(p.id)))*.15}
-  updateBirds(time,dt);if(me.tent)syncTent("me",me.tent,me.c);
+  updateSprinklers(time);updateBirds(time,dt);if(me.tent)syncTent("me",me.tent,me.c);
   for(const r of remotes.values()){const p=r.p||{};const tx=+p.x,tz=+p.z;if(isFinite(tx)&&isFinite(tz)){const k=1-Math.pow(.001,dt);const mv=Math.hypot(tx-r.x,tz-r.z)>.05;r.x=lerp(r.x,tx,k);r.z=lerp(r.z,tz,k);r.obj.position.set(r.x,groundY(r.x,r.z),r.z);if(isFinite(+p.r))r.obj.rotation.y=+p.r;animPerson(r.obj,mv,time,p.a)}}
   if(me.joined&&me.obj){me.obj.position.set(me.x,groundY(me.x,me.z),me.z);me.obj.rotation.y=me.r;animPerson(me.obj,moving,time,me.a)}
   for(const L of lanterns){const n=streamInLand.length,u=((time*.004+L.off)%1)*(n-1),i=Math.floor(u),f=u-i,a=streamInLand[i],b=streamInLand[Math.min(n-1,i+1)];const x=lerp(a[0],b[0],f),z=lerp(a[1],b[1],f),y=waterY(x,z)+.2+Math.sin(time*2+L.off*9)*.04;L.m.position.set(x,y,z);L.m.rotation.y=time*.3+L.off*6;L.sp.position.set(x,y+.2,z)}

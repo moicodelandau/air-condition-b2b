@@ -89,3 +89,10 @@ Phần giữa `<!--ARTIFACT-START-->` và `<!--ARTIFACT-END-->` là nội dung �
 - Menu "Hoạt động": trồng/tưới cây, đọc sách, chụp ảnh + selfie (khung polaroid, tải về), câu cá koi, yoga, guitar, vẽ tranh, pha trà, piano, ngắm sao (ban đêm), nhảy. Có dáng người + đạo cụ, đồng bộ cho khách khác qua presence.
 - Âm thanh tổng hợp bằng Web Audio (không file ngoài): tiếng động theo hoạt động, tiếng "ha/hmm" khi chạm nhân vật, tiếng chó/mèo/thỏ/gấu/chim/cú; nhạc nền kalimba (C–Am–F–G). Nút loa trên thanh dưới: nhạc+tiếng → chỉ tiếng → tắt (nhớ lựa chọn). Chỉ phát sau thao tác đầu tiên của người dùng.
 - Mặt trời: cung mặt trời trong chip giờ, vầng sáng lớn hơn, nút "Nhìn mặt trời" xoay camera và ngước lên đúng hướng theo giờ.
+
+## Vòng 12
+- Cây: trồng ở mọi chỗ đất trống (tối đa 12 cây/ngày/người), lớn đủ sau 24 giờ (tưới thêm 1 giờ mỗi lần, tối đa 12), quá 48 giờ không tưới thì héo, héo quá 5 ngày thì biến mất. Hoa mới: hướng dương, cẩm tú cầu, oải hương; mỗi loài có hình từ hạt, mầm, nụ đến hoa nở. Thẻ cây có "Đổi sang cây khác" và "Nhổ cây".
+- Vòi tưới tự động: 9 đầu quanh retreat, chạy 6:00 và 17:30 (20 phút, nghỉ khi mưa). Cây trong 7 m coi như được tưới (tính ảo, không ghi DB).
+- Đường vào nhà main dài thêm khoảng 10 m (vòng qua phía nam đống lửa), các lối sỏi rộng thêm 2 m.
+- Di chuyển có tìm đường (A*), tự mở cửa khi vào/ra nhà main nên không còn kẹt tường.
+- 3 mèo tuần tra (Cam, Bông, Xám) đi theo tuyến cố định, bấm vào để "Hỏi tình hình tuần tra".
